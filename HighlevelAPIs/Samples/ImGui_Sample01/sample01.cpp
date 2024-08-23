@@ -1163,16 +1163,20 @@ int main(int, char**) {
               float focalLength = current_cam->GetFocalLength();
               if (ImGui::DragFloat("Near", &zNearP, 0.001f, 0.001f, 1.0f)) {
                 current_cam->SetLensProjection(
-                    focalLength, (float)width / (float)height, zNearP, zFarP);
+                    focalLength, (float)render_width / (float)render_height, zNearP, zFarP);
               }
               if (ImGui::DragFloat("Far", &zFarP, 0.1f, 1.0f, 10000.0f)) {
                 current_cam->SetLensProjection(
-                    focalLength, (float)width / (float)height, zNearP, zFarP);
+                    focalLength, (float)render_width / (float)render_height,
+                    zNearP,
+                    zFarP);
               }
               if (ImGui::DragFloat("Focal length (mm)", &focalLength, 0.1f,
                                    16.0f, 90.0f)) {
                 current_cam->SetLensProjection(
-                    focalLength, (float)width / (float)height, zNearP, zFarP);
+                    focalLength, (float)render_width / (float)render_height,
+                    zNearP,
+                    zFarP);
               }
               break;
             }
