@@ -685,6 +685,59 @@ void resize(int width, int height) {
                                         (float)width / (float)height);
 }
 
+void setKeyboardButton(GLFWwindow* window, int key, int scancode, int action,
+                       int mods) {
+  if (!g_cam || g_cam != current_cam) {
+    return;
+  }
+
+  switch (action) {
+    case GLFW_PRESS:
+    case GLFW_REPEAT:
+      if (key == GLFW_KEY_W) {
+        g_cam->GetController()->KeyDown(
+            vzm::VzCamera::Controller::Key::FORWARD);
+      } else if (key == GLFW_KEY_A) {
+        g_cam->GetController()->KeyDown(vzm::VzCamera::Controller::Key::LEFT);
+      } else if (key == GLFW_KEY_S) {
+        g_cam->GetController()->KeyDown(
+            vzm::VzCamera::Controller::Key::BACKWARD);
+      } else if (key == GLFW_KEY_D) {
+        g_cam->GetController()->KeyDown(vzm::VzCamera::Controller::Key::RIGHT);
+      } else if (key == GLFW_KEY_Q) {
+        g_cam->GetController()->KeyDown(vzm::VzCamera::Controller::Key::UP);
+      } else if (key == GLFW_KEY_E) {
+        g_cam->GetController()->KeyDown(vzm::VzCamera::Controller::Key::DOWN);
+      } else if (key == GLFW_KEY_F) {
+        g_cam->GetController()->mode =
+            vzm::VzCamera::Controller::Mode::FREE_FLIGHT;
+        g_cam->GetController()->UpdateControllerSettings();
+      } else if (key == GLFW_KEY_R) {
+        g_cam->GetController()->mode = vzm::VzCamera::Controller::Mode::ORBIT;
+        g_cam->GetController()->UpdateControllerSettings();
+      }
+      g_cam->GetController()->UpdateCamera(0.3);
+      break;
+    case GLFW_RELEASE:
+      if (key == GLFW_KEY_W) {
+        g_cam->GetController()->KeyUp(vzm::VzCamera::Controller::Key::FORWARD);
+      } else if (key == GLFW_KEY_A) {
+        g_cam->GetController()->KeyUp(vzm::VzCamera::Controller::Key::LEFT);
+      } else if (key == GLFW_KEY_S) {
+        g_cam->GetController()->KeyUp(vzm::VzCamera::Controller::Key::BACKWARD);
+      } else if (key == GLFW_KEY_D) {
+        g_cam->GetController()->KeyUp(vzm::VzCamera::Controller::Key::RIGHT);
+      } else if (key == GLFW_KEY_Q) {
+        g_cam->GetController()->KeyUp(vzm::VzCamera::Controller::Key::UP);
+      } else if (key == GLFW_KEY_E) {
+        g_cam->GetController()->KeyUp(vzm::VzCamera::Controller::Key::DOWN);
+      }
+      break;
+    default:
+      break;
+  }
+}
+
 void setMouseButton(GLFWwindow* window, int button, int state,
                     int modifier_key) {
   if (!g_cam || g_cam != current_cam) {
@@ -878,6 +931,7 @@ int main(int, char**) {
       glfwCreateWindowSurface(g_Instance, window, g_Allocator, &surface);
   check_vk_result(err);
 
+  glfwSetKeyCallback(window, setKeyboardButton);
   glfwSetMouseButtonCallback(window, setMouseButton);
   glfwSetCursorPosCallback(window, setCursorPos);
   glfwSetScrollCallback(window, setMouseScroll);
@@ -974,6 +1028,8 @@ int main(int, char**) {
   bool isPlay = false;
   clock_t prevTime = clock();
   clock_t currentTime = clock();
+
+  int seqIndex = 0;
   // Main loop
   while (!glfwWindowShouldClose(window)) {
     g_renderer->Render(g_scene, current_cam);
@@ -1083,17 +1139,21 @@ int main(int, char**) {
               float zNearP, zFarP, fovInDegree;
               current_cam->GetPerspectiveProjection(&zNearP, &zFarP,
                                                     &fovInDegree, nullptr);
-              if (ImGui::SliderFloat("Near", &zNearP, 0.001f, 1.0f)) {
+
+              if (ImGui::DragFloat("Near", &zNearP, 0.001f, 0.001f, 1.0f)) {
                 current_cam->SetPerspectiveProjection(
-                    zNearP, zFarP, fovInDegree, (float)width / (float)height);
+                    zNearP, zFarP, fovInDegree,
+                    (float)render_width / (float)render_height);
               }
-              if (ImGui::SliderFloat("Far", &zFarP, 1.0f, 10000.0f)) {
+              if (ImGui::DragFloat("Far", &zFarP, 0.1f, 1.0f, 10000.0f)) {
                 current_cam->SetPerspectiveProjection(
-                    zNearP, zFarP, fovInDegree, (float)width / (float)height);
+                    zNearP, zFarP, fovInDegree,
+                    (float)render_width / (float)render_height);
               }
               if (ImGui::InputFloat("fov", &fovInDegree)) {
                 current_cam->SetPerspectiveProjection(
-                    zNearP, zFarP, fovInDegree, (float)width / (float)height);
+                    zNearP, zFarP, fovInDegree,
+                    (float)render_width / (float)render_height);
               }
               break;
             }
@@ -1101,16 +1161,16 @@ int main(int, char**) {
               float zNearP = current_cam->GetNear();
               float zFarP = current_cam->GetCullingFar();
               float focalLength = current_cam->GetFocalLength();
-              if (ImGui::SliderFloat("Near", &zNearP, 0.001f, 1.0f)) {
+              if (ImGui::DragFloat("Near", &zNearP, 0.001f, 0.001f, 1.0f)) {
                 current_cam->SetLensProjection(
                     focalLength, (float)width / (float)height, zNearP, zFarP);
               }
-              if (ImGui::SliderFloat("Far", &zFarP, 1.0f, 10000.0f)) {
+              if (ImGui::DragFloat("Far", &zFarP, 0.1f, 1.0f, 10000.0f)) {
                 current_cam->SetLensProjection(
                     focalLength, (float)width / (float)height, zNearP, zFarP);
               }
-              if (ImGui::SliderFloat("Focal length (mm)", &focalLength, 16.0f,
-                                     90.0f)) {
+              if (ImGui::DragFloat("Focal length (mm)", &focalLength, 0.1f,
+                                   16.0f, 90.0f)) {
                 current_cam->SetLensProjection(
                     focalLength, (float)width / (float)height, zNearP, zFarP);
               }
@@ -1123,20 +1183,21 @@ int main(int, char**) {
           float sensitivity = current_cam->GetSensitivity();
           float focusDistance = current_cam->GetFocusDistance();
 
-          if (ImGui::SliderFloat("Aperture", &aperture, 1.0f, 32.0f)) {
+          if (ImGui::DragFloat("Aperture", &aperture, 0.1f, 1.0f, 32.0f)) {
             current_cam->SetExposure(aperture, 1.0f / shutterSpeed,
                                      sensitivity);
           }
-          if (ImGui::SliderFloat("Speed (1/s)", &shutterSpeed, 1000.0f, 1.0f)) {
+          if (ImGui::DragFloat("Speed (1/s)", &shutterSpeed, 0.1f, 1000.0f,
+                               1.0f)) {
             current_cam->SetExposure(aperture, 1.0f / shutterSpeed,
                                      sensitivity);
           }
-          if (ImGui::SliderFloat("ISO", &sensitivity, 25.0f, 6400.0f)) {
+          if (ImGui::DragFloat("ISO", &sensitivity, 0.1f, 25.0f, 6400.0f)) {
             current_cam->SetExposure(aperture, 1.0f / shutterSpeed,
                                      sensitivity);
           }
-          if (ImGui::SliderFloat("Focus distance", &focusDistance, 0.0f,
-                                 30.0f)) {
+          if (ImGui::DragFloat("Focus distance", &focusDistance, 0.1f, 0.0f,
+                               30.0f)) {
             current_cam->SetFocusDistance(focusDistance);
           }
         }
@@ -1385,6 +1446,7 @@ int main(int, char**) {
               (vzm::VzSceneComp*)vzm::GetVzComponent(currentVID);
           vzm::SCENE_COMPONENT_TYPE type = component->GetSceneCompType();
           ImGui::Text(component->GetName().c_str());
+          ImGui::PushID(component->GetName().c_str());
           if (ImGui::CollapsingHeader(
                   "Transform",
                   ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -1497,6 +1559,29 @@ int main(int, char**) {
                               mi->SetTexture(pname, texture->GetVID());
                             }
                           }
+                          ImGui::SameLine();
+                          std::string seqLabel = "sequanceImages";
+                          seqLabel += postLabel;
+                          seqLabel += pname;
+
+                          int sequenceIndex = -1 + 1;
+                          std::string key =
+                              std::to_string(mi->GetVID()) + "_" + pname;
+                          if (sequenceIndexByMIParam.contains(key)) {
+                            sequenceIndex = sequenceIndexByMIParam[key] + 1;
+                          }
+                          if (ImGui::Combo(seqLabel.c_str(), &sequenceIndex,
+                                           "SELECT SEQUENCE IMAGE "
+                                           "INDEX\0Index00\0Index01\0Index02\0I"
+                                           "ndex03\0Index04\0Index05\0\0")) {
+                            sequenceIndex -= 1;
+                            if (sequenceIndex == -1) {
+                              sequenceIndexByMIParam.erase(key);
+                            } else {
+                              // 관리되는 자료구조에 연결
+                              sequenceIndexByMIParam[key] = sequenceIndex;
+                            }
+                          }
                         }
                         break;
                       case vzm::UniformType::FLOAT:
@@ -1557,7 +1642,8 @@ int main(int, char**) {
                       "SUN\0DIRECTIONAL\0POINT\0FOCUSED_SPOT\0SPOT\0\0")) {
                 lightComponent->SetType((vzm::VzLight::Type)lightType);
               }
-              if (ImGui::SliderFloat("intensity", &intensity, 0.0f, 10000000.0f)) {
+              if (ImGui::DragFloat("intensity", &intensity, 0.1f, 0.0f,
+                                   10000000.0f)) {
                 lightComponent->SetIntensity(intensity);
               }
 
@@ -1574,16 +1660,16 @@ int main(int, char**) {
                   float haloFallOff = lightComponent->GetSunHaloFalloff();
                   float sunRadius = lightComponent->GetSunAngularRadius();
 
-                  if (ImGui::SliderFloat("Halo size", &haloSize, 1.01f,
-                                         40.0f)) {
+                  if (ImGui::DragFloat("Halo size", &haloSize, 0.1f, 1.01f,
+                                       40.0f)) {
                     lightComponent->SetSunHaloSize(haloSize);
                   }
-                  if (ImGui::SliderFloat("Halo falloff", &haloFallOff, 4.0f,
-                                         1024.0f)) {
+                  if (ImGui::DragFloat("Halo falloff", &haloFallOff, 0.1f, 4.0f,
+                                       1024.0f)) {
                     lightComponent->SetSunHaloFalloff(haloFallOff);
                   }
-                  if (ImGui::SliderFloat("Sun radius", &sunRadius, 0.1f,
-                                         10.0f)) {
+                  if (ImGui::DragFloat("Sun radius", &sunRadius, 0.01f, 0.1f,
+                                       10.0f)) {
                     lightComponent->SetSunAngularRadius(sunRadius);
                   }
                   break;
@@ -1618,7 +1704,7 @@ int main(int, char**) {
               }
 
               vzm::VzLight::ShadowOptions sOpts =
-                  lightComponent->GetShadowOptions();
+                  *lightComponent->GetShadowOptions();
 
               ImGui::Indent();
               if (ImGui::CollapsingHeader("Shadow")) {
@@ -1643,7 +1729,8 @@ int main(int, char**) {
                   sOpts.lispsm = enableLiSPSM;
                   lightComponent->SetShadowOptions(sOpts);
                 }
-                if (ImGui::SliderFloat("Shadow Far", &shadowFar, 0.0f, 10.0f)) {
+                if (ImGui::DragFloat("Shadow Far", &shadowFar, 0.01f, 0.0f,
+                                     10.0f)) {
                   sOpts.shadowFar = shadowFar;
                   lightComponent->SetShadowOptions(sOpts);
                 }
@@ -1663,7 +1750,8 @@ int main(int, char**) {
                     sOpts.vsm.elvsm = elvsm;
                     lightComponent->SetShadowOptions(sOpts);
                   }
-                  if (ImGui::SliderFloat("VSM blur", &vsmBlur, 0.0f, 125.0f)) {
+                  if (ImGui::DragFloat("VSM blur", &vsmBlur, 0.1f, 0.0f,
+                                       125.0f)) {
                     sOpts.vsm.blurWidth = vsmBlur;
                     lightComponent->SetShadowOptions(sOpts);
                   }
@@ -1684,15 +1772,18 @@ int main(int, char**) {
                   sOpts.screenSpaceContactShadows = enableContactShadows;
                   lightComponent->SetShadowOptions(sOpts);
                 }
-                if (ImGui::SliderFloat("Split pos 0", &splitPos0, 0.0f, 1.0f)) {
+                if (ImGui::DragFloat("Split pos 0", &splitPos0, 0.001f, 0.0f,
+                                     1.0f)) {
                   sOpts.cascadeSplitPositions[0] = splitPos0;
                   lightComponent->SetShadowOptions(sOpts);
                 }
-                if (ImGui::SliderFloat("Split pos 1", &splitPos1, 0.0f, 1.0f)) {
+                if (ImGui::DragFloat("Split pos 1", &splitPos1, 0.001f, 0.0f,
+                                     1.0f)) {
                   sOpts.cascadeSplitPositions[1] = splitPos1;
                   lightComponent->SetShadowOptions(sOpts);
                 }
-                if (ImGui::SliderFloat("Split pos 2", &splitPos2, 0.0f, 1.0f)) {
+                if (ImGui::DragFloat("Split pos 2", &splitPos2, 0.001f, 0.0f,
+                                     1.0f)) {
                   sOpts.cascadeSplitPositions[2] = splitPos2;
                   lightComponent->SetShadowOptions(sOpts);
                 }
@@ -1700,7 +1791,7 @@ int main(int, char**) {
             }
             ImGui::Unindent();
           }
-
+          ImGui::PopID();
           break;
         }
         case 1:
@@ -1917,7 +2008,8 @@ int main(int, char**) {
             int bloomQuality = g_renderer->GetBloomQuality();
             bool isBloomLensFlare = g_renderer->IsBloomLensFlare();
 
-            if (ImGui::SliderFloat("Strength", &bloomStrength, 0.0f, 1.0f)) {
+            if (ImGui::DragFloat("Strength", &bloomStrength, 0.001f, 0.0f,
+                                 1.0f)) {
               g_renderer->SetBloomStrength(bloomStrength);
             }
             if (ImGui::Checkbox("Threshold", &isBloomThreshold)) {
@@ -1958,7 +2050,7 @@ int main(int, char**) {
                                 &isTaaHistoryReprojection)) {
               g_renderer->SetTaaHistoryReprojection(isTaaHistoryReprojection);
             }
-            if (ImGui::SliderFloat("Feedback", &feedback, 0.0f, 1.0f)) {
+            if (ImGui::DragFloat("Feedback", &feedback, 0.001f, 0.0f, 1.0f)) {
               g_renderer->SetTaaFeedback(feedback);
             }
             if (ImGui::Checkbox("Filter History", &filterHistory)) {
@@ -1967,10 +2059,11 @@ int main(int, char**) {
             if (ImGui::Checkbox("Filter Input", &filterInput)) {
               g_renderer->SetTaaFilterInput(filterInput);
             }
-            if (ImGui::SliderFloat("FilterWidth", &filterWidth, 0.2f, 2.0f)) {
+            if (ImGui::DragFloat("FilterWidth", &filterWidth, 0.001f, 0.2f,
+                                 2.0f)) {
               g_renderer->SetTaaFilterWidth(filterWidth);
             }
-            if (ImGui::SliderFloat("LOD bias", &lodBias, -8.0f, 0.0f)) {
+            if (ImGui::DragFloat("LOD bias", &lodBias, 0.01f, -8.0f, 0.0f)) {
               g_renderer->SetTaaLodBias(lodBias);
             }
             if (ImGui::Checkbox("Use YCoCg", &useYCoCg)) {
@@ -1994,11 +2087,11 @@ int main(int, char**) {
                              "AABB\0Variance\0Both\0\0")) {
               g_renderer->SetTaaBoxType((vzm::VzRenderer::BoxType)taaBoxType);
             }
-            if (ImGui::SliderFloat("Variance Gamma", &varianceGamma, 0.75f,
-                                   1.25f)) {
+            if (ImGui::DragFloat("Variance Gamma", &varianceGamma, 0.001f,
+                                 0.75f, 1.25f)) {
               g_renderer->SetTaaVarianceGamma(varianceGamma);
             }
-            if (ImGui::SliderFloat("RCAS", &rcas, 0.0f, 1.0f)) {
+            if (ImGui::DragFloat("RCAS", &rcas, 0.001f, 0.0f, 1.0f)) {
               g_renderer->SetTaaSharpness(rcas);
             }
           }
@@ -2024,12 +2117,12 @@ int main(int, char**) {
             if (ImGui::Checkbox("High quality upsampling", &isUpsampling)) {
               g_renderer->SetSsaoUpsampling(isUpsampling);
             }
-            if (ImGui::SliderFloat("Min Horizon angle", &minHorizonAngle, 0.0f,
-                                   (float)1.0)) {
+            if (ImGui::DragFloat("Min Horizon angle", &minHorizonAngle, 0.001f,
+                                 0.0f, (float)1.0)) {
               g_renderer->SetSsaoMinHorizonAngleRad(minHorizonAngle);
             }
-            if (ImGui::SliderFloat("Bilateral Threshold", &bilateralThreshold,
-                                   0.0f, 0.1f)) {
+            if (ImGui::DragFloat("Bilateral Threshold", &bilateralThreshold,
+                                 0.001f, 0.0f, 0.1f)) {
               g_renderer->SetSsaoBilateralThreshold(bilateralThreshold);
             }
             if (ImGui::Checkbox("Half resolution", &halfResolution)) {
@@ -2055,28 +2148,28 @@ int main(int, char**) {
               if (ImGui::Checkbox("Enabled##dls", &ssctEnabled)) {
                 g_renderer->SetSsaoSsctEnabled(ssctEnabled);
               }
-              if (ImGui::SliderFloat("Cone angle", &ssctLightConeRad, 0.0f,
-                                     1.0f)) {
+              if (ImGui::DragFloat("Cone angle", &ssctLightConeRad, 0.001f,
+                                   0.0f, 1.0f)) {
                 g_renderer->SetSsaoSsctLightConeRad(ssctLightConeRad);
               }
-              if (ImGui::SliderFloat("Shadow Distance", &shadowDist, 0.0f,
-                                     10.0f)) {
+              if (ImGui::DragFloat("Shadow Distance", &shadowDist, 0.01f, 0.0f,
+                                   10.0f)) {
                 g_renderer->SetSsaoSsctShadowDistance(shadowDist);
               }
-              if (ImGui::SliderFloat("Contact dist max", &contactDistMax, 0.0f,
-                                     100.0f)) {
+              if (ImGui::DragFloat("Contact dist max", &contactDistMax, 0.01f,
+                                   0.0f, 100.0f)) {
                 g_renderer->SetSsaoSsctContactDistanceMax(contactDistMax);
               }
-              if (ImGui::SliderFloat("Intensity##dls", &ssctIntensity, 0.0f,
-                                     10.0f)) {
+              if (ImGui::DragFloat("Intensity##dls", &ssctIntensity, 0.01f,
+                                   0.0f, 10.0f)) {
                 g_renderer->SetSsaoSsctIntensity(ssctIntensity);
               }
-              if (ImGui::SliderFloat("Depth bias", &ssctDepthBias, 0.0f,
-                                     1.0f)) {
+              if (ImGui::DragFloat("Depth bias", &ssctDepthBias, 0.001f, 0.0f,
+                                   1.0f)) {
                 g_renderer->SetSsaoSsctDepthBias(ssctDepthBias);
               }
-              if (ImGui::SliderFloat("Depth slope bias", &ssctDepthSlopeBias,
-                                     0.0f, 1.0f)) {
+              if (ImGui::DragFloat("Depth slope bias", &ssctDepthSlopeBias,
+                                   0.001f, 0.0f, 1.0f)) {
                 g_renderer->SetSsaoSsctDepthSlopeBias(ssctDepthSlopeBias);
               }
               if (ImGui::SliderInt("Sample Count", &sampleCount, 1, 32)) {
@@ -2097,17 +2190,18 @@ int main(int, char**) {
             float maxDist = g_renderer->GetScreenSpaceReflectionsMaxDistance();
             float stride = g_renderer->GetScreenSpaceReflectionsStride();
 
-            if (ImGui::SliderFloat("Ray thickness", &rayThickness, 0.001f,
-                                   0.2f)) {
+            if (ImGui::DragFloat("Ray thickness", &rayThickness, 0.001f, 0.001f,
+                                 0.2f)) {
               g_renderer->SetScreenSpaceReflectionsThickness(rayThickness);
             }
-            if (ImGui::SliderFloat("Bias", &bias, 0.001f, 0.5f)) {
+            if (ImGui::DragFloat("Bias", &bias, 0.001f, 0.001f, 0.5f)) {
               g_renderer->SetScreenSpaceReflectionsBias(bias);
             }
-            if (ImGui::SliderFloat("Max distance", &maxDist, 0.1f, 10.0f)) {
+            if (ImGui::DragFloat("Max distance", &maxDist, 0.01f, 0.1f,
+                                 10.0f)) {
               g_renderer->SetScreenSpaceReflectionsMaxDistance(maxDist);
             }
-            if (ImGui::SliderFloat("Stride", &stride, 1.0, 10.0f)) {
+            if (ImGui::DragFloat("Stride", &stride, 0.01f, 1.0f, 10.0f)) {
               g_renderer->SetScreenSpaceReflectionsStride(stride);
             }
           }
@@ -2127,16 +2221,18 @@ int main(int, char**) {
             if (ImGui::Checkbox("homogeneous", &homogeneous)) {
               g_renderer->SetDynamicResoultionHomogeneousScaling(homogeneous);
             }
-            if (ImGui::SliderFloat("min. scale", &minScale, 0.25f, 1.0f)) {
+            if (ImGui::DragFloat("min. scale", &minScale, 0.001f, 0.25f,
+                                 1.0f)) {
               g_renderer->SetDynamicResoultionMinScale(minScale);
             }
-            if (ImGui::SliderFloat("max. scale", &maxScale, 0.25f, 1.0f)) {
+            if (ImGui::DragFloat("max. scale", &maxScale, 0.001f, 0.25f,
+                                 1.0f)) {
               g_renderer->SetDynamicResoultionMaxScale(maxScale);
             }
             if (ImGui::SliderInt("quality", &quality, 0, 3)) {
               g_renderer->SetDynamicResoultionQuality(quality);
             }
-            if (ImGui::SliderFloat("sharpness", &sharpness, 0.0f, 1.0f)) {
+            if (ImGui::DragFloat("sharpness", &sharpness, 0.001f, 0.0f, 1.0f)) {
               g_renderer->SetDynamicResoultionSharpness(sharpness);
             }
           }
@@ -2151,7 +2247,9 @@ int main(int, char**) {
                 if (filePath.size() != 0) {
                   std::string str_path;
                   str_path.assign(filePath.begin(), filePath.end());
-                  g_scene->LoadIBL(str_path);
+                  if (g_scene->LoadIBL(str_path)) {
+                    savefileIO::setIBLPath(str_path);
+                  }
                 }
               }
               if (ImGui::InputFloat("IBL intensity", &iblIntensity)) {
@@ -2162,7 +2260,8 @@ int main(int, char**) {
               }
             }
             if (ImGui::CollapsingHeader("Sunlight")) {
-              vzm::VzLight::ShadowOptions sOpts = g_light->GetShadowOptions();
+              vzm::VzLight::ShadowOptions sOpts =
+                  *(g_light->GetShadowOptions());
               float intensity = g_light->GetIntensity();
               float haloSize = g_light->GetSunHaloSize();
               float haloFallOff = g_light->GetSunHaloFalloff();
@@ -2174,14 +2273,16 @@ int main(int, char**) {
               if (ImGui::InputFloat("Sun intensity", &intensity)) {
                 g_light->SetIntensity(intensity);
               }
-              if (ImGui::SliderFloat("Halo size", &haloSize, 1.01f, 40.0f)) {
+              if (ImGui::DragFloat("Halo size", &haloSize, 0.01f, 1.01f,
+                                   40.0f)) {
                 g_light->SetSunHaloSize(haloSize);
               }
-              if (ImGui::SliderFloat("Halo falloff", &haloFallOff, 4.0f,
-                                     1024.0f)) {
+              if (ImGui::DragFloat("Halo falloff", &haloFallOff, 0.1f, 4.0f,
+                                   1024.0f)) {
                 g_light->SetSunHaloFalloff(haloFallOff);
               }
-              if (ImGui::SliderFloat("Sun radius", &sunRadius, 0.1f, 10.0f)) {
+              if (ImGui::DragFloat("Sun radius", &sunRadius, 0.01f, 0.1f,
+                                   10.0f)) {
                 g_light->SetSunAngularRadius(sunRadius);
               }
               ImGui::Indent();
@@ -2207,7 +2308,8 @@ int main(int, char**) {
                   g_light->SetShadowOptions(sOpts);
                 }
 
-                if (ImGui::SliderFloat("Shadow Far", &shadowFar, 0.0f, 10.0f)) {
+                if (ImGui::DragFloat("Shadow Far", &shadowFar, 0.01f, 0.0f,
+                                     10.0f)) {
                   sOpts.shadowFar = shadowFar;
                   g_light->SetShadowOptions(sOpts);
                 }
@@ -2253,7 +2355,8 @@ int main(int, char**) {
                     sOpts.vsm.elvsm = elvsm;
                     g_light->SetShadowOptions(sOpts);
                   }
-                  if (ImGui::SliderFloat("VSM blur", &vsmBlur, 0.0f, 125.0f)) {
+                  if (ImGui::DragFloat("VSM blur", &vsmBlur, 0.1f, 0.0f,
+                                       125.0f)) {
                     sOpts.vsm.blurWidth = vsmBlur;
                     g_light->SetShadowOptions(sOpts);
                   }
@@ -2277,15 +2380,18 @@ int main(int, char**) {
                   sOpts.screenSpaceContactShadows = enableContactShadows;
                   g_light->SetShadowOptions(sOpts);
                 }
-                if (ImGui::SliderFloat("Split pos 0", &splitPos0, 0.0f, 1.0f)) {
+                if (ImGui::DragFloat("Split pos 0", &splitPos0, 0.001f, 0.0f,
+                                     1.0f)) {
                   sOpts.cascadeSplitPositions[0] = splitPos0;
                   g_light->SetShadowOptions(sOpts);
                 }
-                if (ImGui::SliderFloat("Split pos 1", &splitPos1, 0.0f, 1.0f)) {
+                if (ImGui::DragFloat("Split pos 1", &splitPos1, 0.001f, 0.0f,
+                                     1.0f)) {
                   sOpts.cascadeSplitPositions[1] = splitPos1;
                   g_light->SetShadowOptions(sOpts);
                 }
-                if (ImGui::SliderFloat("Split pos 2", &splitPos2, 0.0f, 1.0f)) {
+                if (ImGui::DragFloat("Split pos 2", &splitPos2, 0.001f, 0.0f,
+                                     1.0f)) {
                   sOpts.cascadeSplitPositions[2] = splitPos2;
                   g_light->SetShadowOptions(sOpts);
                 }
@@ -2331,15 +2437,14 @@ int main(int, char**) {
                 float softShadowPenumbraRatioScale =
                     g_renderer->GetSoftShadowPenumbraRatioScale();
 
-                if (ImGui::SliderFloat("Penumbra scale",
-                                       &softShadowPenumbraScale, 0.0f,
-                                       100.0f)) {
+                if (ImGui::DragFloat("Penumbra scale", &softShadowPenumbraScale,
+                                     0.1f, 0.0f, 100.0f)) {
                   g_renderer->SetSoftShadowPenumbraScale(
                       softShadowPenumbraScale);
                 }
-                if (ImGui::SliderFloat("Penumbra Ratio scale",
-                                       &softShadowPenumbraRatioScale, 1.0f,
-                                       100.0f)) {
+                if (ImGui::DragFloat("Penumbra Ratio scale",
+                                     &softShadowPenumbraRatioScale, 0.1f, 1.0f,
+                                     100.0f)) {
                   g_renderer->SetSoftShadowPenumbraRatioScale(
                       softShadowPenumbraRatioScale);
                 }
@@ -2365,26 +2470,26 @@ int main(int, char**) {
             if (ImGui::Checkbox("Enable large-scale fog", &isFogEnabled)) {
               g_renderer->SetFogEnabled(isFogEnabled);
             }
-            if (ImGui::SliderFloat("Start [m]", &fogDist, 0.0f, 100.0f)) {
+            if (ImGui::DragFloat("Start [m]", &fogDist, 0.1f, 0.0f, 100.0f)) {
               g_renderer->SetFogDistance(fogDist);
             }
-            if (ImGui::SliderFloat("Extinction [1/m]", &fogDensity, 0.0f,
-                                   1.0f)) {
+            if (ImGui::DragFloat("Extinction [1/m]", &fogDensity, 0.001f, 0.0f,
+                                 1.0f)) {
               g_renderer->SetFogDensity(fogDensity);
             }
-            if (ImGui::SliderFloat("Floor [m]", &fogHeight, 0.0f, 100.0f)) {
+            if (ImGui::DragFloat("Floor [m]", &fogHeight, 0.1f, 0.0f, 100.0f)) {
               g_renderer->SetFogHeight(fogHeight);
             }
-            if (ImGui::SliderFloat("Height falloff [1/m]", &fogHeightFalloff,
-                                   0.0f, 4.0f)) {
+            if (ImGui::DragFloat("Height falloff [1/m]", &fogHeightFalloff,
+                                 0.001f, 0.0f, 4.0f)) {
               g_renderer->SetFogHeightFalloff(fogHeightFalloff);
             }
-            if (ImGui::SliderFloat("Sun Scattering start [m]",
-                                   &fogInScatteringStart, 0.0f, 100.0f)) {
+            if (ImGui::DragFloat("Sun Scattering start [m]",
+                                 &fogInScatteringStart, 0.1f, 0.0f, 100.0f)) {
               g_renderer->SetFogInScatteringStart(fogInScatteringStart);
             }
-            if (ImGui::SliderFloat("Sun Scattering size", &fogInScatteringSize,
-                                   0.1f, 100.0f)) {
+            if (ImGui::DragFloat("Sun Scattering size", &fogInScatteringSize,
+                                 0.1f, 0.1f, 100.0f)) {
               g_renderer->SetFogInScatteringSize(fogInScatteringSize);
             }
             if (ImGui::Checkbox("Exclude Skybox", &isFogExcludeSkybox)) {
@@ -2444,11 +2549,12 @@ int main(int, char**) {
               // if (ImGui::SliderFloat("Focus distance", &any, 0.0f,
               //                        30.0f)) {
               // }
-              if (ImGui::SliderFloat("Blur scale", &dofCocScale, 0.1f, 10.0f)) {
+              if (ImGui::DragFloat("Blur scale", &dofCocScale, 0.01f, 0.1f,
+                                   10.0f)) {
                 g_renderer->SetDofCocScale(dofCocScale);
               }
-              if (ImGui::SliderFloat("CoC aspect-ratio", &dofCocAspectRatio,
-                                     0.25f, 4.0f)) {
+              if (ImGui::DragFloat("CoC aspect-ratio", &dofCocAspectRatio,
+                                   0.001f, 0.25f, 4.0f)) {
                 g_renderer->SetDofCocAspectRatio(dofCocAspectRatio);
               }
               if (ImGui::SliderInt("Ring count", &dofRingCount, 1, 17)) {
@@ -2477,17 +2583,81 @@ int main(int, char**) {
                                   &vignetteEnabled)) {
                 g_renderer->SetVignetteEnabled(vignetteEnabled);
               }
-              if (ImGui::SliderFloat("Mid point", &midPoint, 0.0f, 1.0f)) {
+              if (ImGui::DragFloat("Mid point", &midPoint, 0.001f, 0.0f,
+                                   1.0f)) {
                 g_renderer->SetVignetteMidPoint(midPoint);
               }
-              if (ImGui::SliderFloat("Roundness", &roundness, 0.0f, 1.0f)) {
+              if (ImGui::DragFloat("Roundness", &roundness, 0.001f, 0.0f,
+                                   1.0f)) {
                 g_renderer->SetVignetteRoundness(roundness);
               }
-              if (ImGui::SliderFloat("Feather", &feather, 0.0f, 1.0f)) {
+              if (ImGui::DragFloat("Feather", &feather, 0.001f, 0.0f, 1.0f)) {
                 g_renderer->SetVignetteFeather(feather);
               }
               if (ImGui::ColorEdit3("Color##vignetteColor", color)) {
                 g_renderer->SetVignetteColor(color);
+              }
+            }
+
+            ImGui::Unindent();
+          }
+
+          if (ImGui::CollapsingHeader("Sequence Images")) {
+            ImGui::Indent();
+            for (int i = 0; i < SEQ_COUNT; i++) {
+              std::string label =
+                  "Upload Sequence Images Index " + std::to_string(i);
+              if (ImGui::Button(label.c_str())) {
+                // 다중 파일 선택
+                OPENFILENAME ofn;
+                wchar_t szFile[10000];
+                wchar_t szFileTitle[10000];
+
+                ZeroMemory(&szFile, sizeof(szFile));
+                ZeroMemory(&ofn, sizeof(ofn));
+                ofn.lStructSize = sizeof(ofn);
+                ofn.hwndOwner = NULL;
+                ofn.lpstrFile = szFile;
+                ofn.nMaxFile = sizeof(szFile);
+                ofn.lpstrFileTitle = szFileTitle;
+                ofn.nMaxFileTitle = sizeof(szFileTitle);
+                ofn.lpstrFilter = L"Image Files\0*.PNG\0";
+                ofn.nFilterIndex = 1;
+                ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST |
+                            OFN_ALLOWMULTISELECT | OFN_EXPLORER;
+
+                wchar_t originCurrentDirectory[260];
+                GetCurrentDirectory(260, originCurrentDirectory);
+
+                if (GetOpenFileName(&ofn) == TRUE) {
+                  SetCurrentDirectory(originCurrentDirectory);
+
+                  std::vector<std::wstring> files;
+                  wchar_t* p = ofn.lpstrFile;
+
+                  std::wstring directory = p;
+                  p += directory.length() + 1;
+
+                  while (*p) {
+                    files.push_back(directory + L"\\" + p);
+                    p += lstrlenW(p) + 1;
+                  }
+                  std::vector<vzm::VzTexture*> sequenceImgVec;
+                  // 텍스처 개수만큼 생성
+                  for (const auto& file : files) {
+                    std::string str_path;
+                    str_path.assign(file.begin(), file.end());
+                    vzm::VzTexture* texture =
+                        (vzm::VzTexture*)vzm::NewResComponent(
+                            vzm::RES_COMPONENT_TYPE::TEXTURE, str_path.c_str());
+                    texture->ReadImage(str_path);
+
+                    sequenceImgVec.emplace_back(texture);
+                  }
+                  // 저장
+                  sequenceTextures[i] = sequenceImgVec;
+                } else {
+                }
               }
             }
 
@@ -2499,6 +2669,27 @@ int main(int, char**) {
       // right_editUIWidth = ImGui::GetWindowWidth();
       ImGui::End();
     }
+
+    // sequence images
+    for (auto iter = sequenceIndexByMIParam.begin();
+         iter != sequenceIndexByMIParam.end(); iter++) {
+      std::string miParam = iter->first;
+      int seqIdx = iter->second;
+
+      int seperatorIdx = miParam.find('_');
+      int miVID = std::stoi(miParam.substr(0, seperatorIdx));
+      std::string pname =
+          miParam.substr(seperatorIdx+1, miParam.size() - seperatorIdx - 1);
+
+      vzm::VzMI* mi = (vzm::VzMI*)vzm::GetVzComponent(miVID);
+      if (sequenceTextures[seqIdx].size() > 0) {
+        int currentTextureIdx = seqIndex % (sequenceTextures[seqIdx].size());
+        vzm::VzTexture* texture = sequenceTextures[seqIdx][currentTextureIdx];
+
+        mi->SetTexture(pname, texture->GetVID());
+      }
+    }
+    seqIndex++;
 
     // render
     ImGui::Render();
