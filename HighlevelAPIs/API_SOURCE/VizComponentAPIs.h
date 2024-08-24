@@ -92,6 +92,9 @@ namespace vzm
         void SetParam(const ID& key, const std::any& param) {
             __params[key] = param;
         }
+        void SetString(const ID& key, const std::string& param) {
+            __params[key] = param;
+        }
         void RemoveParam(const ID& key) {
             auto it = __params.find(key);
             if (it != __params.end()) {
