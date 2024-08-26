@@ -45,6 +45,12 @@ namespace vzm
             // Orbit mode properties
             float orbitHomePosition[3] = {0, 0, 1.f};   //! Initial eye position in world space, defaults to (0,0,1)
             float orbitSpeed[2] = {0.01f, 0.01f};       //! Multiplied with viewport delta, defaults to 0.01
+#pragma region OrbitLimits
+            float minPolarAngle = 0.f;
+            float maxPolarAngle = VZ_PI;
+            float minAzimuthAngle = -INFINITY;
+            float maxAzimuthAngle = INFINITY;
+#pragma endregion
             // Map mode properties
             bool isVerticalFov = true;                  //! The axis that's held constant when viewport changes
             float fovDegrees = 90.f;                    //! The full FOV (not the half-angle)

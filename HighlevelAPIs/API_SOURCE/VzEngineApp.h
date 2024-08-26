@@ -164,6 +164,8 @@ namespace vzm
         float deltaTime = 0;
         float deltaTimeAccumulator = 0;
 
+        filament::camutils::Bookmark<float> previousBookmark;
+
         void SetCamera(Camera* camera);
         Camera* GetCamera();
         Cube* GetCameraCube();

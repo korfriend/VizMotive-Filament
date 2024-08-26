@@ -141,10 +141,6 @@ namespace vzm
     }
     void VzTypesetter::Typeset()
     {
-        if (texture)
-        {
-            return;
-        }
         Measure();
         FontVID font = textFormat.font;
         VzFontRes* font_res = gEngineApp.GetFontRes(font);

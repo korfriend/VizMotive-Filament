@@ -188,6 +188,40 @@ namespace vzm
     {
         GET_CM_WARN(cam_res, cm);
         cm->grabUpdate(x, y);
+        if (mode == Mode::ORBIT)
+        {
+            float3 eyePosition, targetPosition, upward;
+            cm->getLookAt(&eyePosition, &targetPosition, &upward);
+            float radius = length(eyePosition);
+            float theta = atan2(eyePosition.x, eyePosition.z);
+            float phi = acos(clamp(eyePosition.y / radius, -1.0f, 1.0f));
+            float min = minAzimuthAngle;
+            float max = maxAzimuthAngle;
+            if (!isinf(min) && !isinf(max))
+            {
+                if (min < -VZ_PI) min += VZ_2PI; else if (min > VZ_PI) min -= VZ_2PI;
+                if (max < -VZ_PI) max += VZ_2PI; else if (max > VZ_PI) max -= VZ_2PI;
+                if (min <= max) {
+                    if ((theta < min) || (theta > max))
+                    {
+                        cm->jumpToBookmark(cam_res->previousBookmark);
+                    }
+                }
+                else
+                {
+                    if (((theta > (min + max) / 2.0f) && (theta < min)) ||
+                        ((theta < (min + max) / 2.0f) && (theta > max)))
+                    {
+                        cm->jumpToBookmark(cam_res->previousBookmark);
+                    }
+                }
+            }
+            if ((phi < minPolarAngle) || (phi > maxPolarAngle))
+            {
+                cm->jumpToBookmark(cam_res->previousBookmark);
+            }
+            cam_res->previousBookmark = cm->getCurrentBookmark();
+        }
     }
     void VzCamera::Controller::GrabEnd()
     {
