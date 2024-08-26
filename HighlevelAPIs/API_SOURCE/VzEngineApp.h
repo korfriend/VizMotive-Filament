@@ -201,6 +201,9 @@ namespace vzm
         float anchorV = 0.5f;
         float worldSize = 1.0f;
 
+        float spriteWidth = 1.f;
+        float spriteHeight = 1.f;
+
         // for sprite
         VertexBuffer* intrinsicVB = nullptr;
         IndexBuffer* intrinsicIB = nullptr;

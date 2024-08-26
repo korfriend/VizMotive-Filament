@@ -171,10 +171,46 @@ namespace vzm
             .build(*gEngine, ett_actor);
     }
 
-    void VzSpriteActor::SetGeometry(const float w, const float h, const float anchorU, const float anchorV)
+    VzSpriteActor& VzSpriteActor::SetSpriteWidth(const float w)
     {
-        buildQuadGeometry(GetVID(), w, h, anchorU, anchorV);
+        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        actor_res->spriteWidth = w;
         UpdateTimeStamp();
+        return *this;
+    }
+    VzSpriteActor& VzSpriteActor::SetSpriteHeight(const float h)
+    {
+        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        actor_res->spriteHeight = h;
+        UpdateTimeStamp();
+        return *this;
+    }
+    VzSpriteActor& VzSpriteActor::SetAnchorU(const float u)
+    {
+        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        actor_res->anchorU = u;
+        UpdateTimeStamp();
+        return *this;
+    }
+    VzSpriteActor& VzSpriteActor::SetAnchorV(const float v)
+    {
+        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        actor_res->anchorV = v;
+        UpdateTimeStamp();
+        return *this;
+    }
+
+    bool VzSpriteActor::Build()
+    {
+        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        buildQuadGeometry(GetVID(), actor_res->spriteWidth, actor_res->spriteHeight, actor_res->anchorU, actor_res->anchorV);
+        UpdateTimeStamp();
+        return true;
     }
 
     void VzSpriteActor::SetTexture(const VID vidTexture)
