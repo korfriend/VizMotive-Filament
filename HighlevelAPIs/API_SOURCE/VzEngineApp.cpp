@@ -160,6 +160,7 @@ namespace vzm
             return;
         }
         uint8_t* pixels = new uint8_t[width * height];
+        memset(pixels, 0, width * height);
         TextAlign textAlign = textFormat.textAlign;
         int32_t numberOfLines = linesWidth.size();
         int32_t lineX = GetLeftBlankWidth(textAlign, linesWidth[0], width);
@@ -1250,14 +1251,14 @@ namespace vzm
             }
             else
             {
-                vid_m = GetFirstVidByName("_TEXT_SPRITE_MATERIAL");
+                vid_m = GetFirstVidByName("_BUILDER_TEXT_SPRITE_MATERIAL");
                 if (vid_m == INVALID_VID) {
                     MaterialBuilder::init();
                     const char* code = R"(
                         void material(inout MaterialInputs material) {
                             prepareMaterial(material);
-                            material.baseColor.rgb = materialParams.textColor;
-                            material.baseColor.a = texture(materialParams_textTexture, getUV0()).r;
+                            material.baseColor = materialParams.baseColorFactor;
+                            material.baseColor *= texture(materialParams_textTexture, getUV0()).r;
                         }
                     )";
                     MaterialBuilder builder;
@@ -1269,19 +1270,20 @@ namespace vzm
                                    (MaterialBuilder::SamplerType) SamplerType::SAMPLER_2D,
                                    SamplerFormat::FLOAT,
                                    (MaterialBuilder::Precision) Precision::MEDIUM)
-                        .parameter("textColor",
-                                   (MaterialBuilder::UniformType) UniformType::FLOAT3,
+                        .parameter("baseColorFactor",
+                                   (MaterialBuilder::UniformType) UniformType::FLOAT4,
                                    (MaterialBuilder::Precision) Precision::MEDIUM)
                         .require(MaterialBuilder::VertexAttribute::UV0)
                         .doubleSided(true)
                         .flipUV(false)
+                        .optimization(MaterialBuilder::Optimization::NONE)
                         .material(code);
                     Package result = builder.build(gEngine->getJobSystem());
                     assert(result.isValid());
                     Material* material = Material::Builder()
                         .package(result.getData(), result.getSize())
                         .build(*gEngine);
-                    vid_m = gEngineApp.CreateMaterial("_TEXT_SPRITE_MATERIAL", material, nullptr, true)->GetVID();
+                    vid_m = gEngineApp.CreateMaterial("_BUILDER_TEXT_SPRITE_MATERIAL", material, nullptr, false)->GetVID();
                     std::vector<Material::ParameterInfo> params(material->getParameterCount());
                     material->getParameters(&params[0], params.size());
                     for (auto& it : params) {
@@ -1293,10 +1295,7 @@ namespace vzm
             Material* m = materialResMap_[vid_m]->material;
             MaterialInstance* mi = m->createInstance();
 
-            if (compType == SCENE_COMPONENT_TYPE::SPRITE_ACTOR)
-            {
-                mi->setParameter("baseColorFactor", filament::RgbaType::LINEAR, filament::math::float4{1.0, 1.0, 1.0, 1.0});
-            }
+            mi->setParameter("baseColorFactor", filament::RgbaType::LINEAR, filament::math::float4{1.0, 1.0, 1.0, 1.0});
             mi->setDoubleSided(true);
             VzMI* v_mi = CreateMaterialInstance(name + "_mi", vid_m, mi);
             actor_res->SetMIs({ v_mi->GetVID() });

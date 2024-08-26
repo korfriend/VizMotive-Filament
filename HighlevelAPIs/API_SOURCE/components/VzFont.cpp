@@ -48,6 +48,10 @@ namespace vzm
     std::string VzFont::GetFontFileName()
     {
         VzFontRes* font_res = gEngineApp.GetFontRes(GetVID());
+        if (font_res == nullptr)
+        {
+            return "";
+        }
         return font_res->path_;
     }
 }
