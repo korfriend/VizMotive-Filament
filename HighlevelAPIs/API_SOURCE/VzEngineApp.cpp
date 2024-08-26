@@ -1276,6 +1276,7 @@ namespace vzm
                         .require(MaterialBuilder::VertexAttribute::UV0)
                         .doubleSided(true)
                         .flipUV(false)
+                        .optimization(MaterialBuilder::Optimization::NONE)
                         .material(code);
                     Package result = builder.build(gEngine->getJobSystem());
                     assert(result.isValid());
