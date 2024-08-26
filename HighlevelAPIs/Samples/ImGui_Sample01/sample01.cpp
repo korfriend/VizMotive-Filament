@@ -944,8 +944,8 @@ int main(int, char**) {
   SetupVulkanWindow(wd, surface, w, h);
 
   vzm::ParamMap<std::string> arguments;
-  arguments.SetParam("api", std::string("vulkan"));
-  arguments.SetParam("vulkan-gpu-hint", std::string("0"));
+  arguments.SetString("api", "vulkan");
+  arguments.SetString("vulkan-gpu-hint", "0");
   if (VZ_OK != vzm::InitEngineLib(arguments)) {
     std::cerr << "Failed to initialize engine library." << std::endl;
     return -1;
