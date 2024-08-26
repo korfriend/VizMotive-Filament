@@ -659,7 +659,7 @@ int current_cam_idx = 0;
 std::vector<VID> cameras;
 
 bool g_lightEnabled = false;
-vzm::VzLight* g_light;
+vzm::VzSunLight* g_light;
 
 vzm::VzAsset* g_asset;
 const int left_editUIWidth = 400;
@@ -890,8 +890,8 @@ void initViewer() {
   cc->UpdateControllerSettings();
   cc->SetViewport(render_width, render_height);
 
-  g_light = (vzm::VzLight*)vzm::NewSceneComponent(
-      vzm::SCENE_COMPONENT_TYPE::LIGHT, "sunlight");
+  g_light = (vzm::VzSunLight*)vzm::NewSceneComponent(
+      vzm::SCENE_COMPONENT_TYPE::LIGHT_SUN, "sunlight");
   vzm::AppendSceneCompTo(g_light, g_scene);
   vzm::AppendSceneCompTo(g_cam, g_scene);
   current_cam = g_cam;
@@ -1028,6 +1028,8 @@ int main(int, char**) {
   bool isPlay = false;
   clock_t prevTime = clock();
   clock_t currentTime = clock();
+
+  int seqIndex = 0;
   // Main loop
   while (!glfwWindowShouldClose(window)) {
     g_renderer->Render(g_scene, current_cam);
@@ -1161,16 +1163,20 @@ int main(int, char**) {
               float focalLength = current_cam->GetFocalLength();
               if (ImGui::DragFloat("Near", &zNearP, 0.001f, 0.001f, 1.0f)) {
                 current_cam->SetLensProjection(
-                    focalLength, (float)width / (float)height, zNearP, zFarP);
+                    focalLength, (float)render_width / (float)render_height, zNearP, zFarP);
               }
               if (ImGui::DragFloat("Far", &zFarP, 0.1f, 1.0f, 10000.0f)) {
                 current_cam->SetLensProjection(
-                    focalLength, (float)width / (float)height, zNearP, zFarP);
+                    focalLength, (float)render_width / (float)render_height,
+                    zNearP,
+                    zFarP);
               }
               if (ImGui::DragFloat("Focal length (mm)", &focalLength, 0.1f,
                                    16.0f, 90.0f)) {
                 current_cam->SetLensProjection(
-                    focalLength, (float)width / (float)height, zNearP, zFarP);
+                    focalLength, (float)render_width / (float)render_height,
+                    zNearP,
+                    zFarP);
               }
               break;
             }
@@ -1486,20 +1492,23 @@ int main(int, char**) {
                   vzm::VzMaterial* ma =
                       (vzm::VzMaterial*)vzm::GetVzComponent(maid);
                   std::map<std::string, vzm::VzMaterial::ParameterInfo> pram;
-                  // std::map<std::string, vzm::UniformType> pram;
                   ma->GetAllowedParameters(pram);
+                  
+                  //unlit
+                  /*vzm::VzMaterial::MaterialKey matkey;
+                  ma->GetStandardMaterialKey(matkey);
+                  bool bUnlit = matkey.unlit;
 
-                  // int lightModel = (int)ma->GetLightingModel();
-                  // std::string lmLabelName = "LightModel";
-                  // lmLabelName += postLabel;
-                  // if (ImGui::Combo(
-                  //         lmLabelName.c_str(), &lightModel,
-                  //         "UNLIT\0LIT\0SUBSURFACE\0CLOTH\0SPECULAR_GLOSSINESS\0\0"))
-                  //         {
-                  //   ma->SetLightingModel(
-                  //       (vzm::VzMaterial::LightingModel)lightModel);
-                  // }
-
+                  std::string ulLabelName = "Unlit";
+                  ulLabelName += postLabel;
+                  if (ImGui::Checkbox(ulLabelName.c_str(), &bUnlit)) {
+                    matkey.unlit = bUnlit;
+                    ma->SetStandardMaterialByKey(matkey);
+                    
+                    mi->SetMaterial(ma->GetVID());
+                    actor->SetMI(mi->GetVID(), prim);
+                  }*/
+                  
                   bool doubleSided = mi->IsDoubleSided();
                   std::string dsLabelName = "DoubleSided";
                   dsLabelName += postLabel;
@@ -1551,10 +1560,46 @@ int main(int, char**) {
                             std::wstring filePath = OpenFileDialog();
 
                             if (filePath.size() > 0) {
+                              //vzm::VzTexture* oldTexture =
+                              //    (vzm::VzTexture*)vzm::GetVzComponent(
+                              //        mi->GetTexture(pname));
+                              //oldTexture->get
                               std::string str_path;
                               str_path.assign(filePath.begin(), filePath.end());
                               texture->ReadImage(str_path);
+                              /*texture->SetMagFilter(
+                                  vzm::SamplerMagFilter::NEAREST);
+                              texture->SetMinFilter(
+                                  vzm::SamplerMinFilter::NEAREST);
+                              texture->SetWrapModeS(
+                                  vzm::SamplerWrapMode::CLAMP_TO_EDGE);
+                              texture->SetWrapModeT(
+                                  vzm::SamplerWrapMode::CLAMP_TO_EDGE);*/
+
                               mi->SetTexture(pname, texture->GetVID());
+                            }
+                          }
+                          ImGui::SameLine();
+                          std::string seqLabel = "sequanceImages";
+                          seqLabel += postLabel;
+                          seqLabel += pname;
+
+                          int sequenceIndex = -1 + 1;
+                          std::string key =
+                              std::to_string(mi->GetVID()) + "_" + pname;
+                          if (sequenceIndexByMIParam.contains(key)) {
+                            sequenceIndex = sequenceIndexByMIParam[key] + 1;
+                          }
+                          if (ImGui::Combo(seqLabel.c_str(), &sequenceIndex,
+                                           "SELECT SEQUENCE IMAGE "
+                                           "INDEX\0Index00\0Index01\0Index02\0I"
+                                           "ndex03\0Index04\0Index05\0\0")) {
+                            sequenceIndex -= 1;
+                            if (sequenceIndex == -1) {
+                              sequenceIndexByMIParam.erase(key);
+                            } else {
+                              // 관리되는 자료구조에 연결
+                              sequenceIndexByMIParam[key] = sequenceIndex;
                             }
                           }
                         }
@@ -1603,20 +1648,19 @@ int main(int, char**) {
                   ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent();
 
-            if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT) {
-              vzm::VzLight* lightComponent = (vzm::VzLight*)component;
+            if (2<= (int)type && (int)type <=6) {
+              vzm::VzBaseLight* lightComponent = (vzm::VzBaseLight*)component;
 
-              int lightType = (int)lightComponent->GetType();
+              //int lightType = (int)lightComponent->GetType();
               float intensity = lightComponent->GetIntensity();
               float color[3];
               lightComponent->GetColor(color);
-              float falloff = lightComponent->GetFalloff();
 
-              if (ImGui::Combo(
-                      "Light Type", &lightType,
-                      "SUN\0DIRECTIONAL\0POINT\0FOCUSED_SPOT\0SPOT\0\0")) {
-                lightComponent->SetType((vzm::VzLight::Type)lightType);
-              }
+              //if (ImGui::Combo(
+              //        "Light Type", &lightType,
+              //        "SUN\0DIRECTIONAL\0POINT\0FOCUSED_SPOT\0SPOT\0\0")) {
+              //  lightComponent->SetType((vzm::VzLight::Type)lightType);
+              //}
               if (ImGui::DragFloat("intensity", &intensity, 0.1f, 0.0f,
                                    10000000.0f)) {
                 lightComponent->SetIntensity(intensity);
@@ -1625,60 +1669,67 @@ int main(int, char**) {
               if (ImGui::ColorEdit3("Color", color)) {
                 lightComponent->SetColor(color);
               }
-              if (ImGui::InputFloat("Falloff", &falloff)) {
-                lightComponent->SetFalloff(falloff);
-              }
 
-              switch ((vzm::VzLight::Type)lightType) {
-                case vzm::VzLight::Type::SUN: {
-                  float haloSize = lightComponent->GetSunHaloSize();
-                  float haloFallOff = lightComponent->GetSunHaloFalloff();
-                  float sunRadius = lightComponent->GetSunAngularRadius();
+              switch (type) {
+                case vzm::SCENE_COMPONENT_TYPE::LIGHT_SUN: {
+                  vzm::VzSunLight* sunLight = (vzm::VzSunLight*)lightComponent;
+                  float haloSize = sunLight->GetSunHaloSize();
+                  float haloFallOff = sunLight->GetSunHaloFalloff();
+                  float sunRadius = sunLight->GetSunAngularRadius();
 
                   if (ImGui::DragFloat("Halo size", &haloSize, 0.1f, 1.01f,
                                        40.0f)) {
-                    lightComponent->SetSunHaloSize(haloSize);
+                    sunLight->SetSunHaloSize(haloSize);
                   }
                   if (ImGui::DragFloat("Halo falloff", &haloFallOff, 0.1f, 4.0f,
                                        1024.0f)) {
-                    lightComponent->SetSunHaloFalloff(haloFallOff);
+                    sunLight->SetSunHaloFalloff(haloFallOff);
                   }
                   if (ImGui::DragFloat("Sun radius", &sunRadius, 0.01f, 0.1f,
                                        10.0f)) {
-                    lightComponent->SetSunAngularRadius(sunRadius);
+                    sunLight->SetSunAngularRadius(sunRadius);
                   }
                   break;
                 }
-                case vzm::VzLight::Type::DIRECTIONAL: {
+                case vzm::SCENE_COMPONENT_TYPE::LIGHT_DIRECTIONAL: {
                   break;
                 }
-                case vzm::VzLight::Type::POINT: {
-                  break;
-                }
-                case vzm::VzLight::Type::FOCUSED_SPOT: {
-                  break;
-                }
-                case vzm::VzLight::Type::SPOT: {
-                  float spotLightInnerCone =
-                      lightComponent->GetSpotLightInnerCone();
-                  float spotLightOuterCone =
-                      lightComponent->GetSpotLightOuterCone();
+                case vzm::SCENE_COMPONENT_TYPE::LIGHT_POINT: {
+                  vzm::VzPointLight* pointLight =
+                      (vzm::VzPointLight*)lightComponent;
 
+                  float falloff = pointLight->GetFalloff();
+                  if (ImGui::InputFloat("Falloff", &falloff)) {
+                    pointLight->SetFalloff(falloff);
+                  }
+                  break;
+                }
+                case vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT:
+                case vzm::SCENE_COMPONENT_TYPE::LIGHT_SPOT: {
+                  vzm::VzBaseSpotLight* spotLight =
+                      (vzm::VzBaseSpotLight*)lightComponent;
+                  float spotLightInnerCone = spotLight->GetSpotLightInnerCone();
+                  float spotLightOuterCone = spotLight->GetSpotLightOuterCone();
+                  float falloff = spotLight->GetFalloff();
+
+                  if (ImGui::InputFloat("Falloff", &falloff)) {
+                    spotLight->SetFalloff(falloff);
+                  }
                   if (ImGui::InputFloat("Spot Light Inner Cone",
                                         &spotLightInnerCone)) {
-                    lightComponent->SetSpotLightCone(spotLightInnerCone,
+                    spotLight->SetSpotLightCone(spotLightInnerCone,
                                                      spotLightOuterCone);
                   }
                   if (ImGui::InputFloat("Spot Light Outer Cone",
                                         &spotLightOuterCone)) {
-                    lightComponent->SetSpotLightCone(spotLightInnerCone,
+                    spotLight->SetSpotLightCone(spotLightInnerCone,
                                                      spotLightOuterCone);
                   }
                   break;
                 }
               }
 
-              vzm::VzLight::ShadowOptions sOpts =
+              vzm::VzBaseLight::ShadowOptions sOpts =
                   *lightComponent->GetShadowOptions();
 
               ImGui::Indent();
@@ -2222,7 +2273,9 @@ int main(int, char**) {
                 if (filePath.size() != 0) {
                   std::string str_path;
                   str_path.assign(filePath.begin(), filePath.end());
-                  g_scene->LoadIBL(str_path);
+                  if (g_scene->LoadIBL(str_path)) {
+                    savefileIO::setIBLPath(str_path);
+                  }
                 }
               }
               if (ImGui::InputFloat("IBL intensity", &iblIntensity)) {
@@ -2233,7 +2286,7 @@ int main(int, char**) {
               }
             }
             if (ImGui::CollapsingHeader("Sunlight")) {
-              vzm::VzLight::ShadowOptions sOpts =
+              vzm::VzBaseLight::ShadowOptions sOpts =
                   *(g_light->GetShadowOptions());
               float intensity = g_light->GetIntensity();
               float haloSize = g_light->GetSunHaloSize();
@@ -2574,12 +2627,95 @@ int main(int, char**) {
 
             ImGui::Unindent();
           }
+
+          if (ImGui::CollapsingHeader("Sequence Images")) {
+            ImGui::Indent();
+            for (int i = 0; i < SEQ_COUNT; i++) {
+              std::string label =
+                  "Upload Sequence Images Index " + std::to_string(i);
+              if (ImGui::Button(label.c_str())) {
+                // 다중 파일 선택
+                OPENFILENAME ofn;
+                wchar_t szFile[10000];
+                wchar_t szFileTitle[10000];
+
+                ZeroMemory(&szFile, sizeof(szFile));
+                ZeroMemory(&ofn, sizeof(ofn));
+                ofn.lStructSize = sizeof(ofn);
+                ofn.hwndOwner = NULL;
+                ofn.lpstrFile = szFile;
+                ofn.nMaxFile = sizeof(szFile);
+                ofn.lpstrFileTitle = szFileTitle;
+                ofn.nMaxFileTitle = sizeof(szFileTitle);
+                ofn.lpstrFilter = L"Image Files\0*.PNG\0";
+                ofn.nFilterIndex = 1;
+                ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST |
+                            OFN_ALLOWMULTISELECT | OFN_EXPLORER;
+
+                wchar_t originCurrentDirectory[260];
+                GetCurrentDirectory(260, originCurrentDirectory);
+
+                if (GetOpenFileName(&ofn) == TRUE) {
+                  SetCurrentDirectory(originCurrentDirectory);
+
+                  std::vector<std::wstring> files;
+                  wchar_t* p = ofn.lpstrFile;
+
+                  std::wstring directory = p;
+                  p += directory.length() + 1;
+
+                  while (*p) {
+                    files.push_back(directory + L"\\" + p);
+                    p += lstrlenW(p) + 1;
+                  }
+                  std::vector<vzm::VzTexture*> sequenceImgVec;
+                  // 텍스처 개수만큼 생성
+                  for (const auto& file : files) {
+                    std::string str_path;
+                    str_path.assign(file.begin(), file.end());
+                    vzm::VzTexture* texture =
+                        (vzm::VzTexture*)vzm::NewResComponent(
+                            vzm::RES_COMPONENT_TYPE::TEXTURE, str_path.c_str());
+                    texture->ReadImage(str_path);
+
+                    sequenceImgVec.emplace_back(texture);
+                  }
+                  // 저장
+                  sequenceTextures[i] = sequenceImgVec;
+                } else {
+                }
+              }
+            }
+
+            ImGui::Unindent();
+          }
           break;
       }
 
       // right_editUIWidth = ImGui::GetWindowWidth();
       ImGui::End();
     }
+
+    // sequence images
+    for (auto iter = sequenceIndexByMIParam.begin();
+         iter != sequenceIndexByMIParam.end(); iter++) {
+      std::string miParam = iter->first;
+      int seqIdx = iter->second;
+
+      int seperatorIdx = miParam.find('_');
+      int miVID = std::stoi(miParam.substr(0, seperatorIdx));
+      std::string pname =
+          miParam.substr(seperatorIdx+1, miParam.size() - seperatorIdx - 1);
+
+      vzm::VzMI* mi = (vzm::VzMI*)vzm::GetVzComponent(miVID);
+      if (sequenceTextures[seqIdx].size() > 0) {
+        int currentTextureIdx = seqIndex % (sequenceTextures[seqIdx].size());
+        vzm::VzTexture* texture = sequenceTextures[seqIdx][currentTextureIdx];
+
+        mi->SetTexture(pname, texture->GetVID());
+      }
+    }
+    seqIndex++;
 
     // render
     ImGui::Render();
