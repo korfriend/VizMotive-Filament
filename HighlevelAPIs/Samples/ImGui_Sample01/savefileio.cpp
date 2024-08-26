@@ -191,7 +191,7 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
           lightNode["spotLightOuterCone"].GetFloat());
 
       lightComponent->SetShadowCaster(lightNode["shadowEnabled"].GetBool());
-      vzm::VzLight::ShadowOptions sOpts = lightComponent->GetShadowOptions();
+      vzm::VzLight::ShadowOptions sOpts = *lightComponent->GetShadowOptions();
       sOpts.mapSize = lightNode["mapSize"].GetInt();
       sOpts.stable = lightNode["stable"].GetBool();
       sOpts.lispsm = lightNode["lispsm"].GetBool();
