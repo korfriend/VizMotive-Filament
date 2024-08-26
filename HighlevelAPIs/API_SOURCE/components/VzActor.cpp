@@ -219,7 +219,7 @@ namespace vzm
         UpdateTimeStamp();
     }
 
-    void VzTextSpriteActor::SetText(const std::wstring& text, const float fontHeight, const float anchorU, const float anchorV)
+    void VzTextSpriteActor::SetText(const std::wstring& text, const float fontHeight, const float fontWidth, const float anchorU, const float anchorV)
     {
         VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
         assert(actor_res->isSprite);
