@@ -160,6 +160,7 @@ namespace vzm
             return;
         }
         uint8_t* pixels = new uint8_t[width * height];
+        memset(pixels, 0, width * height);
         TextAlign textAlign = textFormat.textAlign;
         int32_t numberOfLines = linesWidth.size();
         int32_t lineX = GetLeftBlankWidth(textAlign, linesWidth[0], width);
