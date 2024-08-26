@@ -69,10 +69,6 @@ namespace vzm
 #pragma region // VzTypesetter
     void VzTypesetter::Measure()
     {
-        if (isMeasured)
-        {
-            return;
-        }
         FontVID font = textFormat.font;
         VzFontRes* font_res = gEngineApp.GetFontRes(font);
         if ((font == INVALID_VID) || (text.empty()))
@@ -87,7 +83,6 @@ namespace vzm
         int32_t numberOfLines = linesWidth.size();
         textHeight = font_res->GetLineHeight() * numberOfLines;
         textHeight += (numberOfLines - 1) * textFormat.leading;
-        isMeasured = true;
     }
     int32_t VzTypesetter::MeasureLinesWidth(FontVID font)
     {
