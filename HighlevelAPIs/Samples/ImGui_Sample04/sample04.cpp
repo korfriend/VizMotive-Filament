@@ -199,8 +199,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         .SetAnchorU(0.5f)
         .SetAnchorV(0.5f)
         .SetColor(__FP text_color)
-        .SetWorldSize(1.0f)
-        .SetMaxWidth(100.0f)
+        .SetFontHeight(1.0f)
+        .SetMaxWidth(3.0f)
         .Build();
     sprite_p2.x = -2.f;
     textsprite_on_cam->SetPosition(__FP sprite_p2);

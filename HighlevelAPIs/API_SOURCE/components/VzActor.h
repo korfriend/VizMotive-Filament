@@ -76,7 +76,7 @@ namespace vzm
         VzTextSpriteActor& SetAnchorU(const float anchorU);
         VzTextSpriteActor& SetAnchorV(const float anchorV);
         VzTextSpriteActor& SetColor(const float color[4]);
-        VzTextSpriteActor& SetWorldSize(const float worldSize);
+        VzTextSpriteActor& SetFontHeight(const float fontHeight);
         VzTextSpriteActor& SetMaxWidth(const float maxWidth);
 
         void Build();

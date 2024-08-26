@@ -199,7 +199,7 @@ namespace vzm
         VzTextField textField;
         float anchorU = 0.5f;
         float anchorV = 0.5f;
-        float worldSize = 1.0f;
+        float fontHeight = 1.f;
 
         float spriteWidth = 1.f;
         float spriteHeight = 1.f;

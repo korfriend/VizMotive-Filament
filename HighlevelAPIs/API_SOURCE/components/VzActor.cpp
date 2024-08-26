@@ -292,11 +292,11 @@ namespace vzm
         return *this;
     }
 
-    VzTextSpriteActor& VzTextSpriteActor::SetWorldSize(const float worldSize)
+    VzTextSpriteActor& VzTextSpriteActor::SetFontHeight(const float fontHeight)
     {
         VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
         assert(actor_res->isSprite);
-        actor_res->worldSize = worldSize;
+        actor_res->fontHeight = fontHeight;
         UpdateTimeStamp();
         return *this;
     }
@@ -305,7 +305,7 @@ namespace vzm
     {
         VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
         assert(actor_res->isSprite);
-        actor_res->textField.typesetter.fixedWidth = maxWidth;
+        actor_res->spriteWidth = maxWidth;
         UpdateTimeStamp();
         return *this;
     }
@@ -328,6 +328,7 @@ namespace vzm
         //      * image width and height in pixels : text_image_w, text_image_h
         //      * unsigned char* as image (rgba) buffer pointer (the allocation will be owned by VzTextSpriteActor)
         VzTypesetter& typesetter = actor_res->textField.typesetter;
+        typesetter.fixedWidth = (int32_t) (actor_res->spriteWidth / actor_res->fontHeight * (float) font_res->GetLineHeight());
         typesetter.Typeset();
         actor_res->intrinsicTexture = typesetter.texture;
 
@@ -336,18 +337,18 @@ namespace vzm
         sampler.setMagFilter(TextureSampler::MagFilter::LINEAR);
         sampler.setMinFilter(TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR);
         sampler.setWrapModeS(TextureSampler::WrapMode::REPEAT);
-        sampler.setWrapModeT(TextureSampler::WrapMode::REPEAT);
+        sampler.setWrapModeT(TextureSampler::WrapMode::REPEAT); 
         mi->setParameter("baseColorFactor", (filament::RgbaType) RgbaType::LINEAR, *(float4*) actor_res->textField.textColor);
         mi->setParameter("textTexture", actor_res->intrinsicTexture, sampler);
 
         size_t text_image_w = typesetter.texture->getWidth();
         size_t text_image_h = typesetter.texture->getHeight();
 
-        const float w = actor_res->worldSize / (float) text_image_h * text_image_w;
-        const float h = actor_res->worldSize;
+        const float w = actor_res->spriteWidth;
+        const float h = actor_res->spriteWidth / text_image_w * text_image_h;
         //if (actor_res->intrinsicVB) gEngine->destroy(actor_res->intrinsicVB);
         //if (actor_res->intrinsicIB) gEngine->destroy(actor_res->intrinsicIB);
-        buildQuadGeometry(GetVID(), w, h, actor_res->anchorU, actor_res->anchorV);
+        buildQuadGeometry(GetVID(), actor_res->spriteWidth, h, actor_res->anchorU, actor_res->anchorV);
 
         UpdateTimeStamp();
     }
