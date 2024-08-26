@@ -554,7 +554,11 @@ namespace vzm
             }
             break;
         }
-        case SCENE_COMPONENT_TYPE::LIGHT:
+        case SCENE_COMPONENT_TYPE::LIGHT_SUN:
+        case SCENE_COMPONENT_TYPE::LIGHT_POINT:
+        case SCENE_COMPONENT_TYPE::LIGHT_DIRECTIONAL:
+        case SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT:
+        case SCENE_COMPONENT_TYPE::LIGHT_SPOT:
         {
             std::vector<VID> engine_vids;
             gEngineApp.GetLightVids(engine_vids);

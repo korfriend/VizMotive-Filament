@@ -114,11 +114,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     vzm::VzScene* scene = vzm::NewScene("my scene");
     scene->LoadIBL("../../../VisualStudio/samples/assets/ibl/lightroom_14b");
     //vzm::VzAsset* asset = vzm::LoadFileIntoAsset("", "my gltf asset");
-    //vzm::VzAsset* asset = vzm::LoadFileIntoAsset("../assets/Soldier.glb", "my gltf asset");
+    vzm::VzAsset* asset = vzm::LoadFileIntoAsset("../assets/Soldier.glb", "my gltf asset");
     //vzm::VzAsset* asset = vzm::LoadFileIntoAsset("D:/data/car_gltf/ioniq.gltf", "my gltf asset");
     //vzm::VzAsset* asset = vzm::LoadFileIntoAsset("D:/data/show_car.glb", "my gltf asset");
     //vzm::VzAsset* asset = vzm::LoadFileIntoAsset("D:/data/showroom/show_car.gltf", "my gltf asset");
-    vzm::VzAsset* asset = vzm::LoadFileIntoAsset("D:/data/showroom1/car_action_08.gltf", "my gltf asset");
+    //vzm::VzAsset* asset = vzm::LoadFileIntoAsset("D:/data/showroom1/car_action_08.gltf", "my gltf asset");
 
     std::vector<vzm::VzBaseComp*> components;
     if (vzm::GetVzComponentsByType("VzMI", components) > 0)
@@ -202,7 +202,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     cc->SetViewport(w, h);
 
 
-    vzm::VzLight* light = (vzm::VzLight*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::LIGHT, "my light", 0);
+    vzm::VzSunLight* light = (vzm::VzSunLight*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::LIGHT_SUN, "my light");
 
     std::vector<VID> root_vids = asset->GetGLTFRoots();
     if (root_vids.size() > 0)
@@ -286,18 +286,6 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case 'T': {
             vzm::VzTexture* texture = (vzm::VzTexture*)vzm::GetFirstVzComponentByName("my image");
             texture->ReadImage("../assets/testimage1.png");
-            break;
-        }
-        case 'C': {
-            VID lid = vzm::GetFirstVidByName("my light");
-            vzm::VzLight* light = (vzm::VzLight*)vzm::GetVzComponent(lid);
-            light->SetIntensity(210000);
-            break;
-        }
-        case 'V': {
-            VID lid = vzm::GetFirstVidByName("my light");
-            vzm::VzLight* light = (vzm::VzLight*)vzm::GetVzComponent(lid);
-            light->SetIntensity(10000);
             break;
         }
         case 'J': {

@@ -141,7 +141,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     cc->UpdateControllerSettings();
     cc->SetViewport(w, h);
 
-    vzm::VzLight* light = (vzm::VzLight*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::LIGHT, "my light");
+    vzm::VzSunLight* light = (vzm::VzSunLight*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::LIGHT_SUN, "my light");
 
     vzm::VzTexture* texture1 = (vzm::VzTexture*)vzm::NewResComponent(vzm::RES_COMPONENT_TYPE::TEXTURE, "my image 1");
     texture1->ReadImage("../assets/testimage.png");
@@ -184,9 +184,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     vzm::VzTextSpriteActor* textsprite_on_cam =
         (vzm::VzTextSpriteActor*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR, "my text-sprite in front of cam");
     textsprite_on_cam->SetFont(font->GetVID());
-    textsprite_on_cam->SetText(L"Graphica Text", 0.5f, 0, 0.5f, 0.5f);
-    glm::fvec3 text_color(0.0f, 0.0f, 1.0f);
-    textsprite_on_cam->SetColor(__FP text_color);
+    glm::fvec4 text_color(0, 0, 1, 1);
+    textsprite_on_cam->SetText(L"Hello world!")
+        .SetAnchorU(0.5f)
+        .SetAnchorV(0.5f)
+        .SetColor(__FP text_color)
+        .SetWorldSize(1.0f)
+        .SetMaxWidth(100.0f)
+        .Build();
     sprite_p2.x = -2.f;
     textsprite_on_cam->SetPosition(__FP sprite_p2);
     //sprite->EnableBillboard(true);
@@ -264,18 +269,6 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
     case WM_KEYDOWN:
         switch (wParam) {
-        case 'C': {
-            VID lid = vzm::GetFirstVidByName("my light");
-            vzm::VzLight* light = (vzm::VzLight*)vzm::GetVzComponent(lid);
-            light->SetIntensity(210000);
-            break;
-        }
-        case 'V': {
-            VID lid = vzm::GetFirstVidByName("my light");
-            vzm::VzLight* light = (vzm::VzLight*)vzm::GetVzComponent(lid);
-            light->SetIntensity(10000);
-            break;
-        }
         case 'J': {
             VID aid = vzm::GetFirstVidByName("my test model");
             vzm::VzActor* actor = (vzm::VzActor*)vzm::GetVzComponent(aid);

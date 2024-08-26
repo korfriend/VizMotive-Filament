@@ -531,7 +531,17 @@ namespace filament::gltfio {
 
         if (node->light) {
             createLight(node->light, entity, fAsset);
-            gEngineApp.CreateSceneComponent(SCENE_COMPONENT_TYPE::LIGHT, name, entity.getId());
+
+            switch (node->light->type)
+            {
+            case cgltf_light_type_directional:
+                gEngineApp.CreateSceneComponent(SCENE_COMPONENT_TYPE::LIGHT_SUN, name, entity.getId()); break;
+            case cgltf_light_type_point:
+                gEngineApp.CreateSceneComponent(SCENE_COMPONENT_TYPE::LIGHT_POINT, name, entity.getId()); break;
+            case cgltf_light_type_spot:
+                gEngineApp.CreateSceneComponent(SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT, name, entity.getId()); break;
+            }
+            
             mLightMap[entity.getId()] = name;
         }
 

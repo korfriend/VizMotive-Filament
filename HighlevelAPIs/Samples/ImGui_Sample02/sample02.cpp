@@ -141,7 +141,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     cc->UpdateControllerSettings();
     cc->SetViewport(w, h);
 
-    vzm::VzLight* light = (vzm::VzLight*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::LIGHT, "my light");
+    vzm::VzSunLight* light = (vzm::VzSunLight*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::LIGHT_SUN, "my light");
 
     vzm::VzSpriteActor* sprite = (vzm::VzSpriteActor*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR, "my sprite");
     {
@@ -227,13 +227,13 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         switch (wParam) {
         case 'C': {
             VID lid = vzm::GetFirstVidByName("my light");
-            vzm::VzLight* light = (vzm::VzLight*)vzm::GetVzComponent(lid);
+            vzm::VzSunLight* light = (vzm::VzSunLight*)vzm::GetVzComponent(lid);
             light->SetIntensity(210000);
             break;
         }
         case 'V': {
             VID lid = vzm::GetFirstVidByName("my light");
-            vzm::VzLight* light = (vzm::VzLight*)vzm::GetVzComponent(lid);
+            vzm::VzSunLight* light = (vzm::VzSunLight*)vzm::GetVzComponent(lid);
             light->SetIntensity(10000);
             break;
         }

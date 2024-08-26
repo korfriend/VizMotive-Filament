@@ -128,12 +128,11 @@ namespace vzm
         std::vector<int32_t> linesWidth;
         int32_t textWidth = 0;
         int32_t textHeight = 0;
-        bool isMeasured = false;
     };
 
     struct VzTextField {
         VzTypesetter typesetter;
-        float textColor[3] = { 0.0f, 0.0f, 0.0f };
+        float textColor[4] = { 1.f, 1.f, 1.f, 1.f };
     };
 
     struct VzSceneRes
@@ -198,6 +197,9 @@ namespace vzm
 
         // for text sprite
         VzTextField textField;
+        float anchorU = 0.5f;
+        float anchorV = 0.5f;
+        float worldSize = 1.0f;
 
         // for sprite
         VertexBuffer* intrinsicVB = nullptr;

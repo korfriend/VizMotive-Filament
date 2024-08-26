@@ -212,21 +212,73 @@ namespace vzm
             backlog::post("invalid font!", backlog::LogLevel::Error);
             return;
         }
-
         VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
         actor_res->textField.typesetter.textFormat.font = vidFont;
-
         UpdateTimeStamp();
     }
 
-    void VzTextSpriteActor::SetText(const std::wstring& text, const float fontHeight, const float fontWidth, const float anchorU, const float anchorV)
+    VzTextSpriteActor& VzTextSpriteActor::SetText(const std::wstring& text)
     {
+        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        actor_res->textField.typesetter.text = text;
+        UpdateTimeStamp();
+        return *this;
+    }
+
+    VzTextSpriteActor& VzTextSpriteActor::SetAnchorU(const float anchorU)
+    {
+        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        actor_res->anchorU = anchorU;
+        UpdateTimeStamp();
+        return *this;
+    }
+
+    VzTextSpriteActor& VzTextSpriteActor::SetAnchorV(const float anchorV)
+    {
+        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        actor_res->anchorV = anchorV;
+        UpdateTimeStamp();
+        return *this;
+    }
+
+    VzTextSpriteActor& VzTextSpriteActor::SetColor(const float color[4])
+    {
+        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        actor_res->textField.textColor[0] = color[0];
+        actor_res->textField.textColor[1] = color[1];
+        actor_res->textField.textColor[2] = color[2];
+        actor_res->textField.textColor[3] = color[3];
+        UpdateTimeStamp();
+        return *this;
+    }
+
+    VzTextSpriteActor& VzTextSpriteActor::SetWorldSize(const float worldSize)
+    {
+        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        actor_res->worldSize = worldSize;
+        UpdateTimeStamp();
+        return *this;
+    }
+
+    VzTextSpriteActor& VzTextSpriteActor::SetMaxWidth(const float maxWidth)
+    {
+        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        actor_res->textField.typesetter.fixedWidth = maxWidth;
+        UpdateTimeStamp();
+        return *this;
+    }
+
+    void VzTextSpriteActor::Build() {
         VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
         assert(actor_res->isSprite);
         if (actor_res->intrinsicTexture) gEngine->destroy(actor_res->intrinsicTexture);
 
-        size_t text_image_w = 0, text_image_h = 0;
-        
         FontVID font = actor_res->textField.typesetter.textFormat.font;
         VzFontRes* font_res = gEngineApp.GetFontRes(font);
         if ((font == INVALID_VID) || (font_res->ftFace_ == nullptr))
@@ -240,8 +292,6 @@ namespace vzm
         //      * image width and height in pixels : text_image_w, text_image_h
         //      * unsigned char* as image (rgba) buffer pointer (the allocation will be owned by VzTextSpriteActor)
         VzTypesetter& typesetter = actor_res->textField.typesetter;
-        typesetter.text = text;
-        typesetter.isMeasured = false;
         typesetter.Typeset();
         actor_res->intrinsicTexture = typesetter.texture;
 
@@ -251,26 +301,18 @@ namespace vzm
         sampler.setMinFilter(TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR);
         sampler.setWrapModeS(TextureSampler::WrapMode::REPEAT);
         sampler.setWrapModeT(TextureSampler::WrapMode::REPEAT);
+        mi->setParameter("baseColorFactor", (filament::RgbaType) RgbaType::LINEAR, *(float4*) actor_res->textField.textColor);
         mi->setParameter("textTexture", actor_res->intrinsicTexture, sampler);
 
-        text_image_w = typesetter.texture->getWidth();
-        text_image_h = typesetter.texture->getHeight();
+        size_t text_image_w = typesetter.texture->getWidth();
+        size_t text_image_h = typesetter.texture->getHeight();
 
-        const float w = fontHeight / (float)text_image_h * text_image_w;
-        const float h = fontHeight;
+        const float w = actor_res->worldSize / (float) text_image_h * text_image_w;
+        const float h = actor_res->worldSize;
         //if (actor_res->intrinsicVB) gEngine->destroy(actor_res->intrinsicVB);
         //if (actor_res->intrinsicIB) gEngine->destroy(actor_res->intrinsicIB);
-        buildQuadGeometry(GetVID(), w, h, anchorU, anchorV);
+        buildQuadGeometry(GetVID(), w, h, actor_res->anchorU, actor_res->anchorV);
 
-        UpdateTimeStamp();
-    }
-
-    void VzTextSpriteActor::SetColor(const float color[3]) {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
-        MaterialInstance* mi = gEngineApp.GetMIRes(actor_res->GetMIVids()[0])->mi;
-        assert(mi);
-        float4 baseColor = { color[0], color[1], color[2], 1.0f };
-        mi->setParameter("baseColorFactor", (filament::RgbaType) RgbaType::LINEAR, baseColor);
         UpdateTimeStamp();
     }
 }
