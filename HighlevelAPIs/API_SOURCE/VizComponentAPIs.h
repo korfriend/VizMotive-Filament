@@ -125,8 +125,17 @@ namespace vzm
     {
         // camera, light, actor component can have renderable resources technically
         SCENEBASE = 0,  // empty (only transform and name)
+        
         CAMERA,
-        LIGHT,
+
+        // lights
+        LIGHT_SUN,
+        LIGHT_DIRECTIONAL,
+        LIGHT_POINT,
+        LIGHT_FOCUSED_SPOT,
+        LIGHT_SPOT,
+        
+        // actors
         ACTOR,
         SPRITE_ACTOR,
         TEXT_SPRITE_ACTOR,

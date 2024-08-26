@@ -3,19 +3,10 @@
 
 namespace vzm
 {
-    struct API_EXPORT VzLight : VzSceneComp
+    struct API_EXPORT VzBaseLight : VzSceneComp
     {
-        VzLight(const VID vid, const std::string& originFrom)
-            : VzSceneComp(vid, originFrom, "VzLight", SCENE_COMPONENT_TYPE::LIGHT) {}
-        enum class Type : uint8_t {
-            SUN,            //!< Directional light that also draws a sun's disk in the sky.
-            DIRECTIONAL,    //!< Directional light, emits light in a given direction.
-            POINT,          //!< Point light, emits light from a position, in all directions.
-            FOCUSED_SPOT,   //!< Physically correct spot light.
-            SPOT,           //!< Spot light with coupling of outer cone and illumination disabled.
-        };
-        void SetType(const Type type);
-        Type GetType() const;
+        VzBaseLight(const VID vid, const std::string& originFrom, const std::string& typeName, const SCENE_COMPONENT_TYPE scenecompType)
+            : VzSceneComp(vid, originFrom, typeName, scenecompType) {}
 
         void SetLightChannel(unsigned int channel, bool enable = true);
         bool GetLightChannel(unsigned int channel) const;
@@ -31,22 +22,6 @@ namespace vzm
 
         void SetIntensity(const float intensity);
         float GetIntensity() const;
-
-        void SetFalloff(const float radius);
-        float GetFalloff() const;
-
-        void SetSpotLightCone(const float inner, const float outer);
-        float GetSpotLightOuterCone() const;
-        float GetSpotLightInnerCone() const;
-
-        void SetSunAngularRadius(const float angularRadius);
-        float GetSunAngularRadius() const;
-
-        void SetSunHaloSize(const float haloSize);
-        float GetSunHaloSize() const;
-
-        void SetSunHaloFalloff(const float haloFalloff);
-        float GetSunHaloFalloff() const;
 
         struct ShadowOptions {
             uint32_t mapSize = 1024;
@@ -76,5 +51,62 @@ namespace vzm
 
         void SetShadowCaster(bool shadowCaster);
         bool IsShadowCaster() const;
+    };
+
+    struct API_EXPORT VzBaseSpotLight
+    {
+    private:
+        VzBaseLight* baseLight_;
+    public:
+        VzBaseSpotLight(VzBaseLight* baseLight) : baseLight_(baseLight) {};
+
+        void SetSpotLightCone(const float inner, const float outer);
+        float GetSpotLightOuterCone() const;
+        float GetSpotLightInnerCone() const;
+
+        void SetFalloff(const float radius);
+        float GetFalloff() const;
+    };
+
+    struct API_EXPORT VzSpotLight : VzBaseLight, VzBaseSpotLight
+    {
+        VzSpotLight(const VID vid, const std::string& originFrom)
+            : VzBaseLight(vid, originFrom, "VzSpotLight", SCENE_COMPONENT_TYPE::LIGHT_SPOT), VzBaseSpotLight(this) {}
+    };
+
+    struct API_EXPORT VzFocusedSpotLight : VzBaseLight, VzBaseSpotLight
+    {
+        VzFocusedSpotLight(const VID vid, const std::string& originFrom)
+            : VzBaseLight(vid, originFrom, "VzFocusedSpotLight", SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT), VzBaseSpotLight(this) {}
+    };
+
+    struct API_EXPORT VzSunLight : VzBaseLight
+    {
+        VzSunLight(const VID vid, const std::string& originFrom)
+            : VzBaseLight(vid, originFrom, "VzSunLight", SCENE_COMPONENT_TYPE::LIGHT_SUN) {}
+
+        void SetSunAngularRadius(const float angularRadius);
+        float GetSunAngularRadius() const;
+
+        void SetSunHaloSize(const float haloSize);
+        float GetSunHaloSize() const;
+
+        void SetSunHaloFalloff(const float haloFalloff);
+        float GetSunHaloFalloff() const;
+    };
+
+    struct API_EXPORT VzDirectionalLight : VzBaseLight
+    {
+        VzDirectionalLight(const VID vid, const std::string& originFrom)
+            : VzBaseLight(vid, originFrom, "VzDirectionalLight", SCENE_COMPONENT_TYPE::LIGHT_DIRECTIONAL) {}
+    };
+
+    struct API_EXPORT VzPointLight : VzBaseLight
+    {
+        VzPointLight(const VID vid, const std::string& originFrom)
+            : VzBaseLight(vid, originFrom, "VzPointLight", SCENE_COMPONENT_TYPE::LIGHT_POINT) {}
+
+        void SetFalloff(const float radius);
+        float GetFalloff() const;
     };
 }

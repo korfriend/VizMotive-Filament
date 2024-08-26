@@ -1317,23 +1317,37 @@ namespace vzm
             v_comp = (VzSceneComp*)it.first->second.get();
             break;
         }
-        case SCENE_COMPONENT_TYPE::LIGHT:
+        case SCENE_COMPONENT_TYPE::LIGHT_SUN:
+        case SCENE_COMPONENT_TYPE::LIGHT_POINT:
+        case SCENE_COMPONENT_TYPE::LIGHT_DIRECTIONAL:
+        case SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT:
+        case SCENE_COMPONENT_TYPE::LIGHT_SPOT:
         {
-            if (!is_alive)
-            {
-                LightManager::Builder(LightManager::Type::SUN)
-                    .color(Color::toLinear<ACCURATE>(sRGBColor(0.98f, 0.92f, 0.89f)))
-                    .intensity(110000)
-                    .direction({ 0.7, -1, -0.8 })
-                    .sunAngularRadius(1.9f)
-                    .castShadows(false)
-                    .build(*gEngine, ett);
-            }
             lightSceneMap_[vid] = 0; // first creation
             lightResMap_[vid] = std::make_unique<VzLightRes>();
 
-            auto it = vzCompMap_.emplace(vid, std::make_unique<VzLight>(vid, "CreateSceneComponent"));
-            v_comp = (VzSceneComp*)it.first->second.get();
+#define LIGHT_BUILDER(LTYPE, VZCOMP) { if (!is_alive) LightManager::Builder(LightManager::Type::LTYPE)\
+            .color(Color::toLinear<ACCURATE>(sRGBColor(0.98f, 0.92f, 0.89f)))\
+                .intensity(110000)\
+                .direction({ 0.7, -1, -0.8 })\
+                .sunAngularRadius(1.9f)\
+                .castShadows(false)\
+                .build(*gEngine, ett);\
+            vzCompMap_.emplace(vid, std::make_unique<VZCOMP>(vid, "CreateSceneComponent")); break; }
+
+            switch (compType)
+            {
+            case SCENE_COMPONENT_TYPE::LIGHT_SUN: LIGHT_BUILDER(SUN, VzSunLight);
+            case SCENE_COMPONENT_TYPE::LIGHT_POINT: LIGHT_BUILDER(POINT, VzPointLight);
+            case SCENE_COMPONENT_TYPE::LIGHT_DIRECTIONAL: LIGHT_BUILDER(DIRECTIONAL, VzDirectionalLight);
+            case SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT: LIGHT_BUILDER(FOCUSED_SPOT, VzFocusedSpotLight);
+            case SCENE_COMPONENT_TYPE::LIGHT_SPOT: LIGHT_BUILDER(SPOT, VzSpotLight);
+            default:
+                assert(0);
+            }
+
+            auto it = vzCompMap_.find(vid);
+            v_comp = (VzSceneComp*)it->second.get();
             break;
         }
         case SCENE_COMPONENT_TYPE::CAMERA:

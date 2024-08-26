@@ -141,7 +141,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     cc->UpdateControllerSettings();
     cc->SetViewport(w, h);
 
-    vzm::VzLight* light = (vzm::VzLight*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::LIGHT, "my light");
+    vzm::VzSunLight* light = (vzm::VzSunLight*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::LIGHT_SUN, "my light");
 
     vzm::VzTexture* texture1 = (vzm::VzTexture*)vzm::NewResComponent(vzm::RES_COMPONENT_TYPE::TEXTURE, "my image 1");
     texture1->ReadImage("../assets/testimage.png");
@@ -264,18 +264,6 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
     case WM_KEYDOWN:
         switch (wParam) {
-        case 'C': {
-            VID lid = vzm::GetFirstVidByName("my light");
-            vzm::VzLight* light = (vzm::VzLight*)vzm::GetVzComponent(lid);
-            light->SetIntensity(210000);
-            break;
-        }
-        case 'V': {
-            VID lid = vzm::GetFirstVidByName("my light");
-            vzm::VzLight* light = (vzm::VzLight*)vzm::GetVzComponent(lid);
-            light->SetIntensity(10000);
-            break;
-        }
         case 'J': {
             VID aid = vzm::GetFirstVidByName("my test model");
             vzm::VzActor* actor = (vzm::VzActor*)vzm::GetVzComponent(aid);
