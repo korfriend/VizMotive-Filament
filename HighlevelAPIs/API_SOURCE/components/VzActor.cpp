@@ -251,9 +251,6 @@ namespace vzm
         sampler.setMinFilter(TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR);
         sampler.setWrapModeS(TextureSampler::WrapMode::REPEAT);
         sampler.setWrapModeT(TextureSampler::WrapMode::REPEAT);
-        auto& textColor = actor_res->textField.textColor;
-        float3 color = { textColor[0], textColor[1], textColor[2] };
-        mi->setParameter("textColor", (filament::RgbType) RgbType::LINEAR, color);
         mi->setParameter("textTexture", actor_res->intrinsicTexture, sampler);
 
         text_image_w = typesetter.texture->getWidth();
@@ -266,5 +263,14 @@ namespace vzm
         buildQuadGeometry(GetVID(), w, h, anchorU, anchorV);
 
         UpdateTimeStamp();
-    }   
+    }
+
+    void VzTextSpriteActor::SetColor(const float color[3]) {
+        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        MaterialInstance* mi = gEngineApp.GetMIRes(actor_res->GetMIVids()[0])->mi;
+        assert(mi);
+        float4 baseColor = { color[0], color[1], color[2], 1.0f };
+        mi->setParameter("baseColorFactor", (filament::RgbaType) RgbaType::LINEAR, baseColor);
+        UpdateTimeStamp();
+    }
 }

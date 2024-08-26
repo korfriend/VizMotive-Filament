@@ -185,6 +185,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         (vzm::VzTextSpriteActor*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR, "my text-sprite in front of cam");
     textsprite_on_cam->SetFont(font->GetVID());
     textsprite_on_cam->SetText(L"Graphica Text", 1.f, 0.5f, 0.5f);
+    glm::fvec3 text_color(0.0f, 0.0f, 1.0f);
+    textsprite_on_cam->SetColor(__FP text_color);
     sprite_p2.x = -2.f;
     textsprite_on_cam->SetPosition(__FP sprite_p2);
     //sprite->EnableBillboard(true);
