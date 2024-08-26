@@ -28,10 +28,10 @@ void setResPath(std::string assetPath);
 void setIBLPath(std::string absIBLPath);
 
 void importSettings(VID root, std::string filePath, vzm::VzRenderer* renderer,
-                    vzm::VzScene* scene, vzm::VzLight* sunLight);
+                    vzm::VzScene* scene, vzm::VzSunLight* sunLight);
 
 void exportSettings(VID root, vzm::VzRenderer* renderer, vzm::VzScene* scene,
-                    vzm::VzLight* sunLight);
+                    vzm::VzSunLight* sunLight);
 
 }  // namespace savefileIO
 #endif

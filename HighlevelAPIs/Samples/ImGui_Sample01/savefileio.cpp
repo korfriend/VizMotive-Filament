@@ -169,12 +169,16 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
       camera->SetFocusDistance(cameraNode["focusDistance"].GetFloat());
       break;
     }
-    case vzm::SCENE_COMPONENT_TYPE::LIGHT: {
-      vzm::VzLight* lightComponent = (vzm::VzLight*)component;
+    case vzm::SCENE_COMPONENT_TYPE::LIGHT_SUN:
+    case vzm::SCENE_COMPONENT_TYPE::LIGHT_DIRECTIONAL:
+    case vzm::SCENE_COMPONENT_TYPE::LIGHT_POINT:
+    case vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT:
+    case vzm::SCENE_COMPONENT_TYPE::LIGHT_SPOT: {
+      vzm::VzBaseLight* lightComponent = (vzm::VzBaseLight*)component;
       const rapidjson::Value& lightNode = jsonNode["light"];
 
-      lightComponent->SetType(
-          (vzm::VzLight::Type)lightNode["lightType"].GetInt());
+      // lightComponent->SetType(
+      //     (vzm::VzLight::Type)lightNode["lightType"].GetInt());
       lightComponent->SetIntensity(lightNode["intensity"].GetFloat());
 
       const rapidjson::Value& lightColor = lightNode["color"].GetArray();
@@ -182,16 +186,28 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
                                 lightColor[1].GetFloat(),
                                 lightColor[2].GetFloat()};
       lightComponent->SetColor(lightColorArr);
-      lightComponent->SetFalloff(lightNode["falloff"].GetFloat());
-      lightComponent->SetSunHaloSize(lightNode["haloSize"].GetFloat());
-      lightComponent->SetSunHaloFalloff(lightNode["haloFallOff"].GetFloat());
-      lightComponent->SetSunAngularRadius(lightNode["sunRadius"].GetFloat());
-      lightComponent->SetSpotLightCone(
-          lightNode["spotLightInnerCone"].GetFloat(),
-          lightNode["spotLightOuterCone"].GetFloat());
+      if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_SUN) {
+        vzm::VzSunLight* sunLight = (vzm::VzSunLight*)lightComponent;
+        sunLight->SetSunHaloSize(lightNode["haloSize"].GetFloat());
+        sunLight->SetSunHaloFalloff(lightNode["haloFallOff"].GetFloat());
+        sunLight->SetSunAngularRadius(lightNode["sunRadius"].GetFloat());
+      } else if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_POINT) {
+        vzm::VzPointLight* pointLight = (vzm::VzPointLight*)lightComponent;
+        pointLight->SetFalloff(lightNode["falloff"].GetFloat());
+      } else if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_SPOT ||
+                 type == vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT) {
+        vzm::VzBaseSpotLight* spotLight =
+            (vzm::VzBaseSpotLight*)lightComponent;
+
+        spotLight->SetFalloff(lightNode["falloff"].GetFloat());
+        spotLight->SetSpotLightCone(
+            lightNode["spotLightInnerCone"].GetFloat(),
+            lightNode["spotLightOuterCone"].GetFloat());
+      }
 
       lightComponent->SetShadowCaster(lightNode["shadowEnabled"].GetBool());
-      vzm::VzLight::ShadowOptions sOpts = *lightComponent->GetShadowOptions();
+      vzm::VzBaseLight::ShadowOptions sOpts =
+          *lightComponent->GetShadowOptions();
       sOpts.mapSize = lightNode["mapSize"].GetInt();
       sOpts.stable = lightNode["stable"].GetBool();
       sOpts.lispsm = lightNode["lispsm"].GetBool();
@@ -399,13 +415,17 @@ void ExportMaterials(rapidjson::Value& jsonNode,
       jsonNode.AddMember("camera", cameraSettings, allocator);
       break;
     }
-    case vzm::SCENE_COMPONENT_TYPE::LIGHT: {
-      vzm::VzLight* lightComponent = (vzm::VzLight*)component;
+    case vzm::SCENE_COMPONENT_TYPE::LIGHT_SUN:
+    case vzm::SCENE_COMPONENT_TYPE::LIGHT_DIRECTIONAL:
+    case vzm::SCENE_COMPONENT_TYPE::LIGHT_POINT:
+    case vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT:
+    case vzm::SCENE_COMPONENT_TYPE::LIGHT_SPOT: {
+      vzm::VzBaseLight* lightComponent = (vzm::VzBaseLight*)component;
       rapidjson::Value lightSettings;
       lightSettings.SetObject();
 
-      lightSettings.AddMember("lightType", (int)lightComponent->GetType(),
-                              allocator);
+      // lightSettings.AddMember("lightType", (int)lightComponent->GetType(),
+      //                         allocator);
       lightSettings.AddMember("intensity", lightComponent->GetIntensity(),
                               allocator);
       float color[3];
@@ -416,23 +436,35 @@ void ExportMaterials(rapidjson::Value& jsonNode,
       colorValue.PushBack(color[2], allocator);
       lightSettings.AddMember("color", colorValue, allocator);
 
-      lightSettings.AddMember("falloff", lightComponent->GetFalloff(),
-                              allocator);
+      if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_SUN) {
+        vzm::VzSunLight* sunLight = (vzm::VzSunLight*)lightComponent;
+        lightSettings.AddMember("haloSize", sunLight->GetSunHaloSize(),
+                                allocator);
+        lightSettings.AddMember("haloFallOff", sunLight->GetSunHaloFalloff(),
+                                allocator);
+        lightSettings.AddMember("sunRadius", sunLight->GetSunAngularRadius(),
+                                allocator);
 
-      lightSettings.AddMember("haloSize", lightComponent->GetSunHaloSize(),
-                              allocator);
-      lightSettings.AddMember("haloFallOff",
-                              lightComponent->GetSunHaloFalloff(), allocator);
-      lightSettings.AddMember("sunRadius",
-                              lightComponent->GetSunAngularRadius(), allocator);
-      lightSettings.AddMember("spotLightInnerCone",
-                              lightComponent->GetSpotLightInnerCone(),
-                              allocator);
-      lightSettings.AddMember("spotLightOuterCone",
-                              lightComponent->GetSpotLightOuterCone(),
-                              allocator);
-      // shadow
-      vzm::VzLight::ShadowOptions sOpts = *lightComponent->GetShadowOptions();
+      } else if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_POINT) {
+        vzm::VzPointLight* pointLight = (vzm::VzPointLight*)lightComponent;
+        lightSettings.AddMember("falloff", pointLight->GetFalloff(),
+                                allocator);
+
+      } else if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_SPOT ||
+                 type == vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT) {
+        vzm::VzBaseSpotLight* spotLight = (vzm::VzBaseSpotLight*)lightComponent;
+        lightSettings.AddMember("falloff", spotLight->GetFalloff(),
+                                allocator);
+        lightSettings.AddMember("spotLightInnerCone",
+                                spotLight->GetSpotLightInnerCone(),
+                                allocator);
+        lightSettings.AddMember("spotLightOuterCone",
+                                spotLight->GetSpotLightOuterCone(),
+                                allocator);
+      }
+
+      vzm::VzBaseLight::ShadowOptions sOpts =
+          *lightComponent->GetShadowOptions();
 
       lightSettings.AddMember("shadowEnabled", lightComponent->IsShadowCaster(),
                               allocator);
@@ -483,15 +515,15 @@ void ExportMaterials(rapidjson::Value& jsonNode,
 }
 void ImportGlobalSettings(const rapidjson::Value& globalSettings,
                           vzm::VzRenderer* g_renderer, vzm::VzScene* g_scene,
-                          vzm::VzLight* g_light) {
+                          vzm::VzSunLight* g_light) {
   {
-    //TODO: 기존 sequence image 날리기, Remove가 이상하게 돼서 보류.
-    //for (int i = 0; i < SEQ_COUNT; i++) {
-    //  for (int j = 0; j < sequenceTextures[i].size(); j++) {
-    //    vzm::RemoveComponent(sequenceTextures[i][j]->GetVID());
-    //  }
-    //}
-    // sequence images
+    // TODO: 기존 sequence image 날리기, Remove가 이상하게 돼서 보류.
+    // for (int i = 0; i < SEQ_COUNT; i++) {
+    //   for (int j = 0; j < sequenceTextures[i].size(); j++) {
+    //     vzm::RemoveComponent(sequenceTextures[i][j]->GetVID());
+    //   }
+    // }
+    //  sequence images
     const rapidjson::Value& sequenceTextureArray =
         globalSettings["sequenceTextures"].GetArray();
     for (int i = 0; i < SEQ_COUNT; i++) {
@@ -615,7 +647,7 @@ void ImportGlobalSettings(const rapidjson::Value& globalSettings,
         dynamicResolution["DynamicResoultionSharpness"].GetFloat());
   }
   if (g_light) {
-    vzm::VzLight::ShadowOptions sOpts = *g_light->GetShadowOptions();
+    vzm::VzBaseLight::ShadowOptions sOpts = *g_light->GetShadowOptions();
 
     const rapidjson::Value& LightSettings = globalSettings["LightSettings"];
     ibl_path = LightSettings["IBLPath"].GetString();
@@ -714,7 +746,7 @@ void ImportGlobalSettings(const rapidjson::Value& globalSettings,
 void ExportGlobalSettings(rapidjson::Value& globalSettings,
                           rapidjson::Document::AllocatorType& allocator,
                           vzm::VzRenderer* g_renderer, vzm::VzScene* g_scene,
-                          vzm::VzLight* g_light) {
+                          vzm::VzSunLight* g_light) {
   {
     // sequence images
     rapidjson::Value sequenceTextureArray;
@@ -912,7 +944,7 @@ void ExportGlobalSettings(rapidjson::Value& globalSettings,
                             allocator);
 
     // shadowsettings
-    vzm::VzLight::ShadowOptions sOpts = *g_light->GetShadowOptions();
+    vzm::VzBaseLight::ShadowOptions sOpts = *g_light->GetShadowOptions();
     LightSettings.AddMember("shadowEnabled", g_light->IsShadowCaster(),
                             allocator);
     LightSettings.AddMember("mapSize", sOpts.mapSize, allocator);
@@ -1025,7 +1057,7 @@ void ExportGlobalSettings(rapidjson::Value& globalSettings,
   }
 }
 void importSettings(VID root, std::string filePath, vzm::VzRenderer* renderer,
-                    vzm::VzScene* scene, vzm::VzLight* sunLight) {
+                    vzm::VzScene* scene, vzm::VzSunLight* sunLight) {
   FILE* fp;
   fopen_s(&fp, filePath.c_str(), "r");
   if (fp == nullptr) return;
@@ -1044,7 +1076,7 @@ void importSettings(VID root, std::string filePath, vzm::VzRenderer* renderer,
 }
 
 void exportSettings(VID root, vzm::VzRenderer* renderer, vzm::VzScene* scene,
-                    vzm::VzLight* sunLight) {
+                    vzm::VzSunLight* sunLight) {
   FILE* outfp;
   rapidjson::Document outputDoc;
 
