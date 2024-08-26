@@ -160,7 +160,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         vzm::VzSpriteActor* sprite = 
             (vzm::VzSpriteActor*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR, "my sprite " + std::to_string(i));
 
-        sprite->SetGeometry((randomValue1 + 0.5) * 3.f, (randomValue2 + 0.5f) * 3.f, 0.5, 0.5);
+        sprite->SetSpriteWidth((randomValue1 + 0.5) * 3.f)
+            .SetSpriteHeight((randomValue2 + 0.5) * 3.f)
+            .SetAnchorU(0.5)
+            .SetAnchorV(0.5)
+            .Build();
+
         sprite->SetTexture(texture2->GetVID());
         glm::fvec3 sprite_p = glm::fvec3(randomValue1 - 0.5f, randomValue2 - 0.5f, randomValue3 - 0.5f) * 7.f;
         sprite->SetPosition(__FP sprite_p);
@@ -171,7 +176,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     vzm::VzSpriteActor* sprite_on_cam =
         (vzm::VzSpriteActor*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR, "my sprite in front of cam");
-    sprite_on_cam->SetGeometry(2.f, 2.f, 0.5, 0.5);
+    sprite_on_cam->SetSpriteWidth(2.f)
+        .SetSpriteHeight(2.f)
+        .SetAnchorU(0.5)
+        .SetAnchorV(0.5)
+        .Build(); 
+
     sprite_on_cam->SetTexture(texture1->GetVID());
     glm::fvec3 sprite_p2 = glm::fvec3(2.f, 1.f, -7.f);
     sprite_on_cam->SetPosition(__FP sprite_p2);

@@ -1278,7 +1278,7 @@ namespace vzm
                     Material* material = Material::Builder()
                         .package(result.getData(), result.getSize())
                         .build(*gEngine);
-                    vid_m = gEngineApp.CreateMaterial("_BUILDER_TEXT_SPRITE_MATERIAL", material, nullptr, false)->GetVID();
+                    vid_m = gEngineApp.CreateMaterial("_BUILDER_TEXT_SPRITE_MATERIAL", material, nullptr, true)->GetVID();
                     std::vector<Material::ParameterInfo> params(material->getParameterCount());
                     material->getParameters(&params[0], params.size());
                     for (auto& it : params) {
@@ -1298,7 +1298,7 @@ namespace vzm
             actor_res->castShadow = false;
             actor_res->receiveShadow = false;
 
-            ((VzSpriteActor*)v_comp)->SetGeometry();
+            ((VzSpriteActor*)v_comp)->Build();
 
             break;
         }
@@ -2083,6 +2083,12 @@ namespace vzm
             {
                 it->second->isAsyncLocked = false;
             }
+        }
+
+        if (MaterialVID vid_system_m = GetFirstVidByName("_BUILDER_TEXT_SPRITE_MATERIAL"))
+        {
+            VzMaterialRes* m_res = GetMaterialRes(vid_system_m);
+            m_res->isSystem = false;
         }
 
         //std::unordered_map<SceneVID, filament::Scene*> scenes_;
