@@ -115,17 +115,29 @@ namespace vzm
         return true;
     }
 
-    bool VzMI::SetTexture(const std::string& name, const VID vidTexture)
-    {
+    bool VzMI::SetTexture(const std::string& name, const VID vidTexture,
+                          const bool retainSampler) {
         SET_PARAM_COMP(mi, mi_res, m_res, false);
-
+        
         VzTextureRes* tex_res = gEngineApp.GetTextureRes(vidTexture);
-
+        
         if (tex_res->texture == nullptr) {
-            return false;
+          return false;
         }
-
+        
+        if (retainSampler) {
+          VID prev_texture = GetTexture(name);
+          VzTextureRes* prev_tex_res = gEngineApp.GetTextureRes(prev_texture);
+        
+          if (prev_tex_res->texture == nullptr) {
+            return false;
+          }
+        
+          tex_res->sampler = prev_tex_res->sampler;
+        }
+        
         mi->setParameter(name.c_str(), tex_res->texture, tex_res->sampler);
+        
         mi_res->texMap[name] = vidTexture;
         tex_res->assignedMIs.insert(GetVID());
         
