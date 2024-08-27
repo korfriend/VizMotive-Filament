@@ -845,7 +845,7 @@ void treeNode(VID id) {
   }
 };
 
-std::wstring OpenFileDialog() {
+std::wstring OpenFileDialog(const wchar_t* pStrFilter) {
   OPENFILENAME ofn;
   wchar_t szFile[260] = {0};
   HWND hwnd = NULL;
@@ -855,7 +855,7 @@ std::wstring OpenFileDialog() {
   ofn.hwndOwner = nullptr;
   ofn.lpstrFile = szFile;
   ofn.nMaxFile = sizeof(szFile);
-  ofn.lpstrFilter = L"All\0*.*\0";
+  ofn.lpstrFilter = pStrFilter;  // L "All\0*.*\0";
   ofn.nFilterIndex = 1;
   ofn.lpstrFileTitle = NULL;
   ofn.nMaxFileTitle = 0;
@@ -892,6 +892,7 @@ void initViewer() {
 
   g_light = (vzm::VzSunLight*)vzm::NewSceneComponent(
       vzm::SCENE_COMPONENT_TYPE::LIGHT_SUN, "sunlight");
+  g_light->SetIntensity(0.0f);
   vzm::AppendSceneCompTo(g_light, g_scene);
   vzm::AppendSceneCompTo(g_cam, g_scene);
   current_cam = g_cam;
@@ -1163,20 +1164,19 @@ int main(int, char**) {
               float focalLength = current_cam->GetFocalLength();
               if (ImGui::DragFloat("Near", &zNearP, 0.001f, 0.001f, 1.0f)) {
                 current_cam->SetLensProjection(
-                    focalLength, (float)render_width / (float)render_height, zNearP, zFarP);
+                    focalLength, (float)render_width / (float)render_height,
+                    zNearP, zFarP);
               }
               if (ImGui::DragFloat("Far", &zFarP, 0.1f, 1.0f, 10000.0f)) {
                 current_cam->SetLensProjection(
                     focalLength, (float)render_width / (float)render_height,
-                    zNearP,
-                    zFarP);
+                    zNearP, zFarP);
               }
               if (ImGui::DragFloat("Focal length (mm)", &focalLength, 0.1f,
                                    16.0f, 90.0f)) {
                 current_cam->SetLensProjection(
                     focalLength, (float)render_width / (float)render_height,
-                    zNearP,
-                    zFarP);
+                    zNearP, zFarP);
               }
               break;
             }
@@ -1493,8 +1493,8 @@ int main(int, char**) {
                       (vzm::VzMaterial*)vzm::GetVzComponent(maid);
                   std::map<std::string, vzm::VzMaterial::ParameterInfo> pram;
                   ma->GetAllowedParameters(pram);
-                  
-                  //unlit
+
+                  // unlit
                   /*vzm::VzMaterial::MaterialKey matkey;
                   ma->GetStandardMaterialKey(matkey);
                   bool bUnlit = matkey.unlit;
@@ -1508,7 +1508,7 @@ int main(int, char**) {
                     mi->SetMaterial(ma->GetVID());
                     actor->SetMI(mi->GetVID(), prim);
                   }*/
-                  
+
                   bool doubleSided = mi->IsDoubleSided();
                   std::string dsLabelName = "DoubleSided";
                   dsLabelName += postLabel;
@@ -1557,13 +1557,14 @@ int main(int, char**) {
                                 (vzm::VzTexture*)vzm::NewResComponent(
                                     vzm::RES_COMPONENT_TYPE::TEXTURE,
                                     "my image");
-                            std::wstring filePath = OpenFileDialog();
+                            std::wstring filePath =
+                                OpenFileDialog(L"Image\0*.png;*.jpg\0");
 
                             if (filePath.size() > 0) {
-                              //vzm::VzTexture* oldTexture =
-                              //    (vzm::VzTexture*)vzm::GetVzComponent(
-                              //        mi->GetTexture(pname));
-                              //oldTexture->get
+                              // vzm::VzTexture* oldTexture =
+                              //     (vzm::VzTexture*)vzm::GetVzComponent(
+                              //         mi->GetTexture(pname));
+                              // oldTexture->get
                               std::string str_path;
                               str_path.assign(filePath.begin(), filePath.end());
                               texture->ReadImage(str_path);
@@ -1648,19 +1649,19 @@ int main(int, char**) {
                   ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent();
 
-            if (2<= (int)type && (int)type <=6) {
+            if (2 <= (int)type && (int)type <= 6) {
               vzm::VzBaseLight* lightComponent = (vzm::VzBaseLight*)component;
 
-              //int lightType = (int)lightComponent->GetType();
+              // int lightType = (int)lightComponent->GetType();
               float intensity = lightComponent->GetIntensity();
               float color[3];
               lightComponent->GetColor(color);
 
-              //if (ImGui::Combo(
-              //        "Light Type", &lightType,
-              //        "SUN\0DIRECTIONAL\0POINT\0FOCUSED_SPOT\0SPOT\0\0")) {
-              //  lightComponent->SetType((vzm::VzLight::Type)lightType);
-              //}
+              // if (ImGui::Combo(
+              //         "Light Type", &lightType,
+              //         "SUN\0DIRECTIONAL\0POINT\0FOCUSED_SPOT\0SPOT\0\0")) {
+              //   lightComponent->SetType((vzm::VzLight::Type)lightType);
+              // }
               if (ImGui::DragFloat("intensity", &intensity, 0.1f, 0.0f,
                                    10000000.0f)) {
                 lightComponent->SetIntensity(intensity);
@@ -1718,12 +1719,12 @@ int main(int, char**) {
                   if (ImGui::InputFloat("Spot Light Inner Cone",
                                         &spotLightInnerCone)) {
                     spotLight->SetSpotLightCone(spotLightInnerCone,
-                                                     spotLightOuterCone);
+                                                spotLightOuterCone);
                   }
                   if (ImGui::InputFloat("Spot Light Outer Cone",
                                         &spotLightOuterCone)) {
                     spotLight->SetSpotLightCone(spotLightInnerCone,
-                                                     spotLightOuterCone);
+                                                spotLightOuterCone);
                   }
                   break;
                 }
@@ -1822,7 +1823,7 @@ int main(int, char**) {
         }
         case 1:
           if (ImGui::Button("Import", ImVec2(right_editUIWidth, 40))) {
-            std::wstring filePath = OpenFileDialog();
+            std::wstring filePath = OpenFileDialog(L"gltf/glb\0*.gltf;*.glb\0");
             if (filePath.size() > 0) {
               std::string str_path;
               str_path.assign(filePath.begin(), filePath.end());
@@ -1859,7 +1860,7 @@ int main(int, char**) {
           }
           if (ImGui::Button("Import Savefile")) {
             if (g_asset) {
-              std::wstring filePath = OpenFileDialog();
+              std::wstring filePath = OpenFileDialog(L"JSON\0*json\0");
               if (filePath.size() > 0) {
                 std::string str_path;
                 str_path.assign(filePath.begin(), filePath.end());
@@ -2269,7 +2270,7 @@ int main(int, char**) {
               float iblIntensity = g_scene->GetIBLIntensity();
               float iblRotation = g_scene->GetIBLRotation();
               if (ImGui::Button("Select IBL")) {
-                std::wstring filePath = OpenFileDialog();
+                std::wstring filePath = OpenFileDialog(L"HDR\0*.hdr\0");
                 if (filePath.size() != 0) {
                   std::string str_path;
                   str_path.assign(filePath.begin(), filePath.end());
@@ -2705,7 +2706,7 @@ int main(int, char**) {
       int seperatorIdx = miParam.find('_');
       int miVID = std::stoi(miParam.substr(0, seperatorIdx));
       std::string pname =
-          miParam.substr(seperatorIdx+1, miParam.size() - seperatorIdx - 1);
+          miParam.substr(seperatorIdx + 1, miParam.size() - seperatorIdx - 1);
 
       vzm::VzMI* mi = (vzm::VzMI*)vzm::GetVzComponent(miVID);
       if (sequenceTextures[seqIdx].size() > 0) {
