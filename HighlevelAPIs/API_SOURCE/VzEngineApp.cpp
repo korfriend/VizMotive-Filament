@@ -141,6 +141,10 @@ namespace vzm
     }
     void VzTypesetter::Typeset()
     {
+        glyphCodes.clear();
+        linesWidth.clear();
+        textWidth = 0;
+        textHeight = 0;
         Measure();
         FontVID font = textFormat.font;
         VzFontRes* font_res = gEngineApp.GetFontRes(font);

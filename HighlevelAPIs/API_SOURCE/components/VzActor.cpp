@@ -253,6 +253,14 @@ namespace vzm
         UpdateTimeStamp();
     }
 
+    VzTextSpriteActor& VzTextSpriteActor::SetText(const std::string& text) {
+        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        actor_res->textField.typesetter.text = std::wstring(text.begin(), text.end());
+        UpdateTimeStamp();
+        return *this;
+    }
+
     VzTextSpriteActor& VzTextSpriteActor::SetText(const std::wstring& text)
     {
         VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
@@ -328,6 +336,7 @@ namespace vzm
         //      * image width and height in pixels : text_image_w, text_image_h
         //      * unsigned char* as image (rgba) buffer pointer (the allocation will be owned by VzTextSpriteActor)
         VzTypesetter& typesetter = actor_res->textField.typesetter;
+        if (typesetter.text.empty()) typesetter.text = L" ";
         typesetter.fixedWidth = (int32_t) (actor_res->spriteWidth / actor_res->fontHeight * (float) font_res->GetLineHeight());
         typesetter.Typeset();
         actor_res->intrinsicTexture = typesetter.texture;
