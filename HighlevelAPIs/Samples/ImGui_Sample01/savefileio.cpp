@@ -83,7 +83,6 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
             vzm::UniformType type =
                 (vzm::UniformType)parameters[j]["type"].GetInt();
             bool isSampler = parameters[j]["isSampler"].GetBool();
-            int sequenceIndex = parameters[j]["sequenceIndex"].GetInt();
 
             const rapidjson::Value& values = parameters[j]["value"];
             if (values.IsArray()) {
@@ -120,6 +119,8 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
                                 vzm::RES_COMPONENT_TYPE::TEXTURE, "my image");
                         texture->ReadImage(absImagePath);
                         mi->SetTexture(name, texture->GetVID());
+                        int sequenceIndex =
+                            parameters[j]["sequenceIndex"].GetInt();
                         if (sequenceIndex != -1) {
                           std::string key =
                               std::to_string(mi->GetVID()) + "_" + name;
