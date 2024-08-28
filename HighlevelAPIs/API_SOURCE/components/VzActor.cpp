@@ -89,7 +89,16 @@ namespace vzm
         VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         return actor_res->GetGeometryVid();
     }
-
+    void VzActor::SetMorphWeights(const float* weights, const int count)
+    {
+        COMP_ACTOR(rcm, ett, ins, );
+        rcm.setMorphWeights(ins, weights, count);
+    }
+    int VzActor::GetMorphTargetCount()
+    {
+        COMP_ACTOR(rcm, ett, ins, 0);
+        return (int)rcm.getMorphTargetCount(ins);
+    }
 }
 
 
