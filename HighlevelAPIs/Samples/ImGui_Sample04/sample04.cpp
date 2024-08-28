@@ -138,10 +138,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     cam->SetMatrixAutoUpdate(false);
     vzm::VzCamera::Controller* cc = cam->GetController();
     *(glm::fvec3*)cc->orbitHomePosition = p;
-    cc->minPolarAngle = VZ_PIDIV4;
-    cc->maxPolarAngle = VZ_PIDIV4 * 3.f;
-    cc->minAzimuthAngle = -VZ_PIDIV2;
-    cc->maxAzimuthAngle = VZ_PIDIV2;
+    cc->minPolarAngle = -VZ_PIDIV4;
+    cc->maxPolarAngle = VZ_PIDIV4;
     cc->UpdateControllerSettings();
     cc->SetViewport(w, h);
 
