@@ -1,6 +1,7 @@
 #ifndef VIZCOMPONENTAPIS
 #define VIZCOMPONENTAPIS
 
+#pragma warning (disable : 4003)
 #pragma warning (disable : 4251)
 #pragma warning (disable : 4819)
 // FEngine Warnings

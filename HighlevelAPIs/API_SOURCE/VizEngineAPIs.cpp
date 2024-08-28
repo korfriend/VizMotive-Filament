@@ -90,7 +90,9 @@ filament::backend::VulkanPlatform* gVulkanPlatform = nullptr;
 filament::SwapChain* gDummySwapChain = nullptr;
 filament::Material* gMaterialTransparent = nullptr; // do not release
 Engine* gEngine = nullptr;
-VzEngineApp gEngineApp;
+VzEngineApp* gEngineApp = nullptr;
+
+#define CHECK_API_VALIDITY(RET) if (gEngineApp == nullptr) { backlog::post("High-level API is not initialized!!", backlog::LogLevel::Error); return RET; }
 
 enum MaterialSource {
     JITSHADER,
@@ -167,6 +169,8 @@ namespace vzm
             backlog::post("Already initialized!", backlog::LogLevel::Error);
             return VZ_WARNNING;
         }
+        assert(gEngineApp == nullptr);
+        gEngineApp = new VzEngineApp();
 
         auto& em = utils::EntityManager::get();
         backlog::post("Entity Manager is activated (# of entities : " + std::to_string(em.getEntityCount()) + ")", 
@@ -240,23 +244,23 @@ namespace vzm
             Material* material = Material::Builder()
                 .package(FILAMENTAPP_DEPTHVISUALIZER_DATA, FILAMENTAPP_DEPTHVISUALIZER_SIZE)
                 .build(*gEngine);
-            vzmMaterials.push_back(gEngineApp.CreateMaterial("_DEFAULT_DEPTH_MATERIAL", material, nullptr, true)->GetVID());
+            vzmMaterials.push_back(gEngineApp->CreateMaterial("_DEFAULT_DEPTH_MATERIAL", material, nullptr, true)->GetVID());
 
             material = Material::Builder()
                 //.package(RESOURCES_SANDBOXUNLIT_DATA, RESOURCES_SANDBOXUNLIT_SIZE)
                 .package(RESOURCES_AIDEFAULTMAT_DATA, RESOURCES_AIDEFAULTMAT_SIZE)
                 .build(*gEngine);
-            vzmMaterials.push_back(gEngineApp.CreateMaterial("_DEFAULT_STANDARD_MATERIAL", material, nullptr, true)->GetVID());
+            vzmMaterials.push_back(gEngineApp->CreateMaterial("_DEFAULT_STANDARD_MATERIAL", material, nullptr, true)->GetVID());
 
             material = Material::Builder()
                 .package(RESOURCES_SANDBOXUNLIT_DATA, RESOURCES_SANDBOXUNLIT_SIZE)
                 .build(*gEngine);
-            vzmMaterials.push_back(gEngineApp.CreateMaterial("_DEFAULT_UNLIT_MATERIAL", material, nullptr, true)->GetVID());
+            vzmMaterials.push_back(gEngineApp->CreateMaterial("_DEFAULT_UNLIT_MATERIAL", material, nullptr, true)->GetVID());
 
             material = Material::Builder()
                 .package(FILAMENTAPP_TRANSPARENTCOLOR_DATA, FILAMENTAPP_TRANSPARENTCOLOR_SIZE)
                 .build(*gEngine);
-            vzmMaterials.push_back(gEngineApp.CreateMaterial("_DEFAULT_TRANSPARENT_MATERIAL", material, nullptr, true)->GetVID());
+            vzmMaterials.push_back(gEngineApp->CreateMaterial("_DEFAULT_TRANSPARENT_MATERIAL", material, nullptr, true)->GetVID());
 
             gMaterialTransparent = material;
         }
@@ -282,11 +286,11 @@ namespace vzm
         //    aabb.min = { -0.5, -0.5, -0.5 };
         //    aabb.max = { 0.5, 0.5, 0.5 };
         //    VzPrimitive prim = { .vertices = quadVb, .indices = quadIb, .aabb = aabb, .morphTargetOffset = 0};
-        //    vzmGeometries.push_back(gEngineApp.CreateGeometry("_DEFAULT_QUAD_GEOMETRY", { prim }, nullptr, true)->GetVID());
+        //    vzmGeometries.push_back(gEngineApp->CreateGeometry("_DEFAULT_QUAD_GEOMETRY", { prim }, nullptr, true)->GetVID());
         //}
 
         auto& ncm = VzNameCompManager::Get();
-        gEngineApp.Initialize();
+        gEngineApp->Initialize();
 
         return VZ_OK;
     }
@@ -305,7 +309,7 @@ namespace vzm
         {
             std::string name = ncm.GetName(utils::Entity::import(it));
             vzm::backlog::post("material (" + name + ") has been system-unlocked.", backlog::LogLevel::Default);
-            VzMaterialRes* m_res = gEngineApp.GetMaterialRes(it);
+            VzMaterialRes* m_res = gEngineApp->GetMaterialRes(it);
             assert(m_res);
             m_res->isSystem = false;
         }
@@ -314,12 +318,12 @@ namespace vzm
         {
             std::string name = ncm.GetName(utils::Entity::import(it));
             vzm::backlog::post("geometry (" + name + ") has been system-unlocked.", backlog::LogLevel::Default);
-            VzGeometryRes* geo_res = gEngineApp.GetGeometryRes(it);
+            VzGeometryRes* geo_res = gEngineApp->GetGeometryRes(it);
             assert(geo_res);
             geo_res->isSystem = false;
         }
 
-        gEngineApp.Destroy();
+        gEngineApp->Destroy();
 
         if (gDummySwapChain) {
             gEngine->destroy(gDummySwapChain);
@@ -344,6 +348,9 @@ namespace vzm
             gVulkanPlatform = nullptr;
         }
 
+        delete gEngineApp;
+        gEngineApp = nullptr;
+
         safeReleaseChecker->destroyed = true;
         safeReleaseChecker.reset();
         return VZ_OK;
@@ -351,22 +358,23 @@ namespace vzm
 
     VZRESULT ReleaseWindowHandlerTasks(void* window)
     {
+        CHECK_API_VALIDITY(VZ_FAIL);
         if (window == nullptr)
         {
             return VZ_OK;
         }
-        gEngineApp.CancelAyncLoad();
+        gEngineApp->CancelAyncLoad();
 
         std::vector<RendererVID> renderpath_vids;
-        gEngineApp.GetRenderPathVids(renderpath_vids);
+        gEngineApp->GetRenderPathVids(renderpath_vids);
         for (RendererVID vid_renderpath : renderpath_vids)
         {
-            VzRenderPath* render_path = gEngineApp.GetRenderPath(vid_renderpath);
+            VzRenderPath* render_path = gEngineApp->GetRenderPath(vid_renderpath);
             void* window_render_path = nullptr;
             render_path->GetCanvas(nullptr, nullptr, nullptr, &window_render_path);
             if (window == window_render_path)
             {
-                gEngineApp.RemoveComponent(vid_renderpath);
+                gEngineApp->RemoveComponent(vid_renderpath);
             }
         }
 
@@ -375,25 +383,29 @@ namespace vzm
 
     VID GetFirstVidByName(const std::string& name)
     {
-        return gEngineApp.GetFirstVidByName(name);
+        CHECK_API_VALIDITY(INVALID_VID);
+        return gEngineApp->GetFirstVidByName(name);
     }
 
     size_t GetVidsByName(const std::string& name, std::vector<VID>& vids)
     {
-        return gEngineApp.GetVidsByName(name, vids);
+        CHECK_API_VALIDITY(0);
+        return gEngineApp->GetVidsByName(name, vids);
     }
 
     bool GetNameByVid(const VID vid, std::string& name)
     {
-        name = gEngineApp.GetNameByVid(vid);
+        CHECK_API_VALIDITY(false);
+        name = gEngineApp->GetNameByVid(vid);
         return name != "";
     }
 
     void RemoveComponent(const VID vid)
     {
+        CHECK_API_VALIDITY( );
         auto& ncm = VzNameCompManager::Get();
         std::string name = ncm.GetName(utils::Entity::import(vid));
-        if (gEngineApp.RemoveComponent(vid))
+        if (gEngineApp->RemoveComponent(vid))
         {
             backlog::post("Component (" + name + ") has been removed", backlog::LogLevel::Default);
         }
@@ -405,27 +417,30 @@ namespace vzm
 
     VzScene* NewScene(const std::string& sceneName)
     {
-        return gEngineApp.CreateScene(sceneName);
+        CHECK_API_VALIDITY(nullptr);
+        return gEngineApp->CreateScene(sceneName);
     }
 
     VzRenderer* NewRenderer(const std::string& sceneName)
     {
-        return gEngineApp.CreateRenderPath(sceneName);
+        CHECK_API_VALIDITY(nullptr);
+        return gEngineApp->CreateRenderPath(sceneName);
     }
 
     VzSceneComp* NewSceneComponent(const SCENE_COMPONENT_TYPE compType, const std::string& compName, const VID parentVid)
     {
+        CHECK_API_VALIDITY(nullptr);
         VzSceneComp* v_comp = nullptr;
-        v_comp = gEngineApp.CreateSceneComponent(compType, compName);
+        v_comp = gEngineApp->CreateSceneComponent(compType, compName);
         if (v_comp == nullptr)
         {
-            backlog::post("NewSceneComponent >> failure to gEngineApp.CreateSceneComponent", backlog::LogLevel::Error);
+            backlog::post("NewSceneComponent >> failure to gEngineApp->CreateSceneComponent", backlog::LogLevel::Error);
             return nullptr;
         }
 
         if (parentVid != 0)
         {
-            gEngineApp.AppendSceneEntityToParent(v_comp->GetVID(), parentVid);
+            gEngineApp->AppendSceneEntityToParent(v_comp->GetVID(), parentVid);
         }
 
         return v_comp;
@@ -433,25 +448,26 @@ namespace vzm
 
     VzResource* NewResComponent(const RES_COMPONENT_TYPE compType, const std::string& compName)
     {
+        CHECK_API_VALIDITY(nullptr);
         VzResource* v_comp = nullptr;
         switch (compType)
         {
         case RES_COMPONENT_TYPE::GEOMATRY:
-            v_comp = gEngineApp.CreateGeometry(compName, {}); break;
+            v_comp = gEngineApp->CreateGeometry(compName, {}); break;
         case RES_COMPONENT_TYPE::MATERIAL:
-            v_comp = gEngineApp.CreateMaterial(compName, {}); break;
+            v_comp = gEngineApp->CreateMaterial(compName, {}); break;
         case RES_COMPONENT_TYPE::MATERIALINSTANCE:
-            v_comp = gEngineApp.CreateMaterialInstance(compName, {}); break;
+            v_comp = gEngineApp->CreateMaterialInstance(compName, {}); break;
         case RES_COMPONENT_TYPE::TEXTURE:
-            v_comp = gEngineApp.CreateTexture(compName, {}); break;
+            v_comp = gEngineApp->CreateTexture(compName, {}); break;
         case RES_COMPONENT_TYPE::FONT:
-            v_comp = gEngineApp.CreateFont(compName); break;
+            v_comp = gEngineApp->CreateFont(compName); break;
         default:
             backlog::post("INVALID RESOURCE TYPE", backlog::LogLevel::Error);
         }
         if (v_comp == nullptr)
         {
-            backlog::post("NewResComponent >> failure to gEngineApp.Create[ResComp]", backlog::LogLevel::Error);
+            backlog::post("NewResComponent >> failure to gEngineApp->Create[ResComp]", backlog::LogLevel::Error);
             return nullptr;
         }
         return v_comp;
@@ -459,35 +475,40 @@ namespace vzm
 
     VID AppendSceneCompVidTo(const VID vid, const VID parentVid)
     {
-        if (!gEngineApp.AppendSceneEntityToParent(vid, parentVid))
+        CHECK_API_VALIDITY(INVALID_VID);
+        if (!gEngineApp->AppendSceneEntityToParent(vid, parentVid))
         {
             return INVALID_VID;
         }
-        Scene* scene = gEngineApp.GetScene(parentVid);
+        Scene* scene = gEngineApp->GetScene(parentVid);
         if (scene)
         {
             return parentVid;
         }
-        return gEngineApp.GetSceneVidBelongTo(parentVid);
+        return gEngineApp->GetSceneVidBelongTo(parentVid);
     }
 
     VzScene* AppendSceneCompTo(const VzBaseComp* comp, const VzBaseComp* parentComp)
     {
+        CHECK_API_VALIDITY(nullptr);
         return (VzScene*) GetVzComponent(AppendSceneCompVidTo(comp->GetVID(), parentComp->GetVID()));
     };
 
     VzBaseComp* GetVzComponent(const VID vid)
     {
-        return gEngineApp.GetVzComponent<VzBaseComp>(vid);
+        CHECK_API_VALIDITY(nullptr);
+        return gEngineApp->GetVzComponent<VzBaseComp>(vid);
     }
 
     VzBaseComp* GetFirstVzComponentByName(const std::string& name)
     {
+        CHECK_API_VALIDITY(nullptr);
         return GetVzComponent(GetFirstVidByName(name));
     }
 
     size_t GetVzComponentsByName(const std::string& name, std::vector<VzBaseComp*>& components)
     {
+        CHECK_API_VALIDITY(0);
         std::vector<VID> vids;
         size_t n = GetVidsByName(name, vids);
         if (n > 0) {
@@ -501,15 +522,17 @@ namespace vzm
 
     size_t GetVzComponentsByType(const std::string& type, std::vector<VzBaseComp*>& components)
     {
-        return gEngineApp.GetVzComponentsByType(type, components);
+        CHECK_API_VALIDITY(0);
+        return gEngineApp->GetVzComponentsByType(type, components);
     }
 
     size_t GetSceneCompoenentVids(const SCENE_COMPONENT_TYPE compType, const VID sceneVid, std::vector<VID>& vids, const bool isRenderableOnly)
     {
+        CHECK_API_VALIDITY(0);
         Scene* scene = nullptr;
         if (sceneVid != 0)
         {
-            scene = gEngineApp.GetScene(sceneVid);
+            scene = gEngineApp->GetScene(sceneVid);
             if (scene == nullptr)
             {
                 return 0;
@@ -523,10 +546,10 @@ namespace vzm
         case SCENE_COMPONENT_TYPE::CAMERA:
         {
             std::vector<VID> engine_vids;
-            gEngineApp.GetCameraVids(engine_vids);
+            gEngineApp->GetCameraVids(engine_vids);
             for (auto& vid : engine_vids)
             {
-                if (sceneVid == 0 || gEngineApp.GetSceneVidBelongTo(vid) == sceneVid)
+                if (sceneVid == 0 || gEngineApp->GetSceneVidBelongTo(vid) == sceneVid)
                 {
                     vids.push_back(vid);
                 }
@@ -536,10 +559,10 @@ namespace vzm
         case SCENE_COMPONENT_TYPE::ACTOR:
         {
             std::vector<VID> engine_vids;
-            gEngineApp.GetActorVids(engine_vids);
+            gEngineApp->GetActorVids(engine_vids);
             for (auto& vid : engine_vids)
             {
-                if (sceneVid == 0 || gEngineApp.GetSceneVidBelongTo(vid) == sceneVid)
+                if (sceneVid == 0 || gEngineApp->GetSceneVidBelongTo(vid) == sceneVid)
                 {
                     if (isRenderableOnly)
                     {
@@ -562,10 +585,10 @@ namespace vzm
         case SCENE_COMPONENT_TYPE::LIGHT_SPOT:
         {
             std::vector<VID> engine_vids;
-            gEngineApp.GetLightVids(engine_vids);
+            gEngineApp->GetLightVids(engine_vids);
             for (auto& vid : engine_vids)
             {
-                if (sceneVid == 0 || gEngineApp.GetSceneVidBelongTo(vid) == sceneVid)
+                if (sceneVid == 0 || gEngineApp->GetSceneVidBelongTo(vid) == sceneVid)
                 {
                     vids.push_back(vid);
                 }
@@ -579,12 +602,14 @@ namespace vzm
     
     VzActor* LoadTestModelIntoActor(const std::string& modelName)
     {
-        return gEngineApp.CreateTestActor(modelName);
+        CHECK_API_VALIDITY(nullptr);
+        return gEngineApp->CreateTestActor(modelName);
     }
 
     VzActor* LoadModelFileIntoActors(const std::string& filename, std::vector<VzActor*>& actors)
     {
-        gEngineApp.LoadMeshFile(filename, actors);
+        CHECK_API_VALIDITY(nullptr);
+        gEngineApp->LoadMeshFile(filename, actors);
         return actors.size() > 0 ? actors[0] : nullptr;
     }
 
@@ -612,7 +637,7 @@ namespace vzm
         }
 
         // Parse the glTF file and create Filament entities.
-        VzAssetLoader* asset_loader = gEngineApp.GetGltfAssetLoader();
+        VzAssetLoader* asset_loader = gEngineApp->GetGltfAssetLoader();
         asset = asset_loader->createAsset(buffer.data(), buffer.size());
         if (!asset) {
             backlog::post("Unable to parse " + std::string(filename.c_str()), backlog::LogLevel::Error);
@@ -626,9 +651,10 @@ namespace vzm
 
     VzAsset* LoadFileIntoAsset(const std::string& filename, const std::string& assetName)
     {
+        CHECK_API_VALIDITY(nullptr);
         utils::Path path = filename;
         filament::gltfio::FilamentAsset* asset = nullptr;
-        VzAssetLoader* asset_loader = gEngineApp.GetGltfAssetLoader();
+        VzAssetLoader* asset_loader = gEngineApp->GetGltfAssetLoader();
         asset_loader->mAssetName = assetName;
         // assume one instance per each asset (possibly multi-instance)
         if (path.isEmpty()) {
@@ -696,9 +722,9 @@ namespace vzm
                 UserVariantFilterBit::VSM);
         }
 #endif
-        VzAsset* v_asset = gEngineApp.CreateAsset(assetName);
+        VzAsset* v_asset = gEngineApp->CreateAsset(assetName);
         AssetVID vid_asset = v_asset->GetVID();
-        VzAssetRes& asset_res = *gEngineApp.GetAssetRes(vid_asset);
+        VzAssetRes& asset_res = *gEngineApp->GetAssetRes(vid_asset);
         asset_res.animator = VzAsset::Animator(vid_asset);
         asset_res.asset = asset;
         asset_res.asyncTextures = asset_loader->mTextureMap;
@@ -715,8 +741,8 @@ namespace vzm
             bone_vids.push_back(it.first);
             getDescendants(it.first, bone_vids);
 
-            gEngineApp.CreateSkeleton(it.second, it.first);
-            VzSkeletonRes* skeleton_res = gEngineApp.GetSkeletonRes(it.first);
+            gEngineApp->CreateSkeleton(it.second, it.first);
+            VzSkeletonRes* skeleton_res = gEngineApp->GetSkeletonRes(it.first);
             
             skeleton_res->bones.clear();
             size_t num_bones = bone_vids.size();
@@ -735,7 +761,7 @@ namespace vzm
         configuration.gltfPath = path.c_str();
         configuration.normalizeSkinningWeights = true;
 
-        ResourceLoader* resource_loader = gEngineApp.GetGltfResourceLoader();
+        ResourceLoader* resource_loader = gEngineApp->GetGltfResourceLoader();
         resource_loader->setConfiguration(configuration);
         if (!resource_loader->asyncBeginLoad(asset)) {
             asset_loader->destroyAsset((filament::gltfio::FFilamentAsset*)asset);
@@ -743,7 +769,7 @@ namespace vzm
             return nullptr;
         }
 
-        gEngineApp.activeAsyncAsset = vid_asset;
+        gEngineApp->activeAsyncAsset = vid_asset;
 
         //auto& rcm = gEngine->getRenderableManager();
         //auto& lcm = gEngine->getLightManager();
@@ -763,17 +789,20 @@ namespace vzm
         return v_asset;
     }
     
-    void ExportAssetToGlb(const VzAsset* v_asset, const std::string& filename) {
+    void ExportAssetToGlb(const VzAsset* v_asset, const std::string& filename) 
+    {
+        CHECK_API_VALIDITY( );
         AssetVID vid_asset = v_asset->GetVID();
-        VzAssetRes& asset_res = *gEngineApp.GetAssetRes(vid_asset);
+        VzAssetRes& asset_res = *gEngineApp->GetAssetRes(vid_asset);
 
-        filament::gltfio::VzAssetExpoter* asset_exporter = gEngineApp.GetGltfAssetExpoter();
+        filament::gltfio::VzAssetExpoter* asset_exporter = gEngineApp->GetGltfAssetExpoter();
         asset_exporter->ExportToGlb(v_asset, filename);
     }
 
     float GetAsyncLoadProgress()
     {
-        ResourceLoader* resource_loader = gEngineApp.GetGltfResourceLoader();
+        CHECK_API_VALIDITY(-1.f);
+        ResourceLoader* resource_loader = gEngineApp->GetGltfResourceLoader();
         if (resource_loader == nullptr)
         {
             backlog::post("resource loader is not activated!", backlog::LogLevel::Error);
@@ -784,15 +813,19 @@ namespace vzm
 
     void ReloadShader()
     {
+        CHECK_API_VALIDITY( );
         //wi::renderer::ReloadShaders();
     }
 
     VID DisplayEngineProfiling(const int w, const int h, const bool displayProfile, const bool displayEngineStates)
     {
+        CHECK_API_VALIDITY(INVALID_VID);
         return 0;
     }
 
-    void* GetGraphicsSharedRenderTarget() {
+    void* GetGraphicsSharedRenderTarget() 
+    {
+        CHECK_API_VALIDITY(nullptr);
         return gEngine->getSwapHandle();
     }
 }

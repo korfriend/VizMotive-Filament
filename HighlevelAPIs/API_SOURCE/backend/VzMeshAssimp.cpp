@@ -67,7 +67,7 @@ using namespace filamat;
 using namespace filament::math;
 using namespace utils;
 
-extern vzm::VzEngineApp gEngineApp;
+extern vzm::VzEngineApp* gEngineApp;
 
 namespace filament::assimp {
     enum class AlphaMode : uint8_t {
@@ -267,7 +267,7 @@ namespace filament::assimp {
         //mDefaultMap = createOneByOneTexture(0xffffffff);
         //mDefaultNormalMap = createOneByOneTexture(0xffff8080);
 
-        VzMaterialRes* mat_res = gEngineApp.GetMaterialRes(vidMat);
+        VzMaterialRes* mat_res = gEngineApp->GetMaterialRes(vidMat);
         if (mat_res == nullptr)
         {
             mDefaultColorMaterial = Material::Builder()
@@ -279,14 +279,14 @@ namespace filament::assimp {
             mDefaultColorMaterial->setDefaultParameter("roughness", 0.4f);
             mDefaultColorMaterial->setDefaultParameter("reflectance", 0.5f);
 
-            vidMat = gEngineApp.CreateMaterial("Assimp Default Material", mDefaultColorMaterial, nullptr, false)->GetVID();
+            vidMat = gEngineApp->CreateMaterial("Assimp Default Material", mDefaultColorMaterial, nullptr, false)->GetVID();
         }
         else
         {
             mDefaultColorMaterial = mat_res->material;
         }
 
-        mat_res = gEngineApp.GetMaterialRes(vidMatTrans);
+        mat_res = gEngineApp->GetMaterialRes(vidMatTrans);
         if (mat_res == nullptr)
         {
             mDefaultTransparentColorMaterial = Material::Builder()
@@ -297,7 +297,7 @@ namespace filament::assimp {
             mDefaultTransparentColorMaterial->setDefaultParameter("metallic", 0.0f);
             mDefaultTransparentColorMaterial->setDefaultParameter("roughness", 0.4f);
 
-            vidMatTrans = gEngineApp.CreateMaterial("Assimp Transparent Material", mDefaultTransparentColorMaterial, nullptr, false)->GetVID();
+            vidMatTrans = gEngineApp->CreateMaterial("Assimp Transparent Material", mDefaultTransparentColorMaterial, nullptr, false)->GetVID();
         }
         else
         {
@@ -576,7 +576,7 @@ namespace filament::assimp {
                     actor_name += " [" + std::to_string(count++) + "]";
                 }
 
-                ActorVID vid_actor = gEngineApp.CreateSceneComponent(SCENE_COMPONENT_TYPE::ACTOR, actor_name)->GetVID();
+                ActorVID vid_actor = gEngineApp->CreateSceneComponent(SCENE_COMPONENT_TYPE::ACTOR, actor_name)->GetVID();
                 loadedActors.push_back(vid_actor);
 
                 utils::Entity ett_actor = utils::Entity::import(vid_actor);
@@ -585,8 +585,8 @@ namespace filament::assimp {
 
                 if (mesh.count > 0)
                 {
-                    GeometryVID vid_geo = gEngineApp.CreateGeometry(actor_name + " (Geometry)", empty_prims)->GetVID();
-                    VzActorRes* actor_res = gEngineApp.GetActorRes(vid_actor);
+                    GeometryVID vid_geo = gEngineApp->CreateGeometry(actor_name + " (Geometry)", empty_prims)->GetVID();
+                    VzActorRes* actor_res = gEngineApp->GetActorRes(vid_actor);
 
                     std::vector<VzPrimitive> prims(mesh.parts.size());
                     std::vector<MInstanceVID> mis(mesh.parts.size());
@@ -679,15 +679,15 @@ namespace filament::assimp {
                         mi->setParameter("metallic", part.metallic);
                         mi->setParameter("roughness", part.roughness);
 
-                        mis[i] = gEngineApp.CreateMaterialInstance(name_mi, vid_mat, mi)->GetVID();
+                        mis[i] = gEngineApp->CreateMaterialInstance(name_mi, vid_mat, mi)->GetVID();
                     }
 
-                    VzGeometryRes* geo_res = gEngineApp.GetGeometryRes(vid_geo);
+                    VzGeometryRes* geo_res = gEngineApp->GetGeometryRes(vid_geo);
                     geo_res->Set(prims);
                     actor_res->SetGeometry(vid_geo);
                     actor_res->SetMIs(mis);
 
-                    gEngineApp.BuildRenderable(vid_actor);
+                    gEngineApp->BuildRenderable(vid_actor);
                 }
             }
 

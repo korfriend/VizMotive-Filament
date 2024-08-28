@@ -5,7 +5,7 @@
 #include "../FIncludes.h"
 
 extern Engine* gEngine;
-extern vzm::VzEngineApp gEngineApp;
+extern vzm::VzEngineApp* gEngineApp;
 
 namespace vzm
 {
@@ -14,13 +14,13 @@ namespace vzm
         COMP_RENDERPATH(render_path, );
 
         std::vector<RendererVID> render_path_vids;
-        gEngineApp.GetRenderPathVids(render_path_vids);
+        gEngineApp->GetRenderPathVids(render_path_vids);
         if (window) 
         {
             for (size_t i = 0, n = render_path_vids.size(); i < n; ++i)
             {
                 VID vid_i = render_path_vids[i];
-                VzRenderPath* render_path_i = gEngineApp.GetRenderPath(vid_i);
+                VzRenderPath* render_path_i = gEngineApp->GetRenderPath(vid_i);
                 if (render_path_i != render_path)
                 {
                     void* window_i = nullptr;
@@ -29,7 +29,7 @@ namespace vzm
                     render_path_i->GetCanvas(&w_i, &h_i, &dpi_i, &window_i);
                     if (window_i == window)
                     {
-                        std::string name_i = gEngineApp.GetVzComponent<VzRenderer>(vid_i)->GetName();
+                        std::string name_i = gEngineApp->GetVzComponent<VzRenderer>(vid_i)->GetName();
                         render_path_i->SetCanvas(w_i, h_i, dpi_i, nullptr);
                         backlog::post("another renderer (" + name_i + ") has the same window handle, so force to set nullptr!", backlog::LogLevel::Warning);
                     }
@@ -1142,7 +1142,7 @@ namespace vzm
 
     VZRESULT VzRenderer::Render(const VID vidScene, const VID vidCam)
     {
-        VzRenderPath* render_path = gEngineApp.GetRenderPath(GetVID());
+        VzRenderPath* render_path = gEngineApp->GetRenderPath(GetVID());
         if (render_path == nullptr)
         {
             backlog::post("invalid render path", backlog::LogLevel::Error);
@@ -1150,7 +1150,7 @@ namespace vzm
         }
 
         View* view = render_path->GetView();
-        Scene* scene = gEngineApp.GetScene(vidScene);
+        Scene* scene = gEngineApp->GetScene(vidScene);
         Camera * camera = gEngine->getCameraComponent(utils::Entity::import(vidCam));
         if (view == nullptr || scene == nullptr || camera == nullptr)
         {
@@ -1163,7 +1163,7 @@ namespace vzm
         view->setScene(scene);
         view->setCamera(camera);
         //view->setVisibleLayers(0x4, 0x4);
-        //SceneVID vid_scene = gEngineApp.GetSceneVidBelongTo(vidCam);
+        //SceneVID vid_scene = gEngineApp->GetSceneVidBelongTo(vidCam);
         //assert(vid_scene != INVALID_VID);
 
         if (!UTILS_HAS_THREADING)
@@ -1171,7 +1171,7 @@ namespace vzm
             gEngine->execute();
         }
 
-        VzCameraRes* cam_res = gEngineApp.GetCameraRes(vidCam);
+        VzCameraRes* cam_res = gEngineApp->GetCameraRes(vidCam);
         cam_res->UpdateCameraWithCM(render_path->deltaTime);
 
         if (cam_res->FRAMECOUNT == 0)
@@ -1200,7 +1200,7 @@ namespace vzm
         // Update the cube distortion matrix used for frustum visualization.
         const Camera* lightmapCamera = view->getDirectionalShadowCamera();
         if (lightmapCamera) {
-            VzSceneRes* scene_res = gEngineApp.GetSceneRes(vidScene);
+            VzSceneRes* scene_res = gEngineApp->GetSceneRes(vidScene);
             Cube* lightmapCube = scene_res->GetLightmapCube();
             lightmapCube->mapFrustum(*gEngine, lightmapCamera);
         }
@@ -1209,21 +1209,21 @@ namespace vzm
             cameraCube->mapFrustum(*gEngine, camera);
         }
 
-        ResourceLoader* resource_loader = gEngineApp.GetGltfResourceLoader();
+        ResourceLoader* resource_loader = gEngineApp->GetGltfResourceLoader();
         if (resource_loader)
         {
             resource_loader->asyncUpdateLoad();
 
             //static std::set<Texture*> regTexMap;
-            VzAssetRes* asset_res = gEngineApp.GetAssetRes(gEngineApp.activeAsyncAsset);
+            VzAssetRes* asset_res = gEngineApp->GetAssetRes(gEngineApp->activeAsyncAsset);
             if (asset_res && resource_loader->asyncGetLoadProgress() >= 1.)
             {
                 int count = 0;
-                gEngineApp.activeAsyncAsset = INVALID_VID;
+                gEngineApp->activeAsyncAsset = INVALID_VID;
                 filament::gltfio::FFilamentAsset* fasset = downcast(asset_res->asset);
                 for (auto& it : asset_res->asyncTextures)
                 {
-                    VzTextureRes* tex_res = gEngineApp.GetTextureRes(it.second);
+                    VzTextureRes* tex_res = gEngineApp->GetTextureRes(it.second);
                     tex_res->texture = fasset->mTextures[it.first].texture;
                     tex_res->isAsyncLocked = false;
                 }
@@ -1232,12 +1232,12 @@ namespace vzm
             }
         }
 
-        std::unordered_map<AssetVID, std::unique_ptr<VzAssetRes>>& assetResMap = *gEngineApp.GetAssetResMap();
+        std::unordered_map<AssetVID, std::unique_ptr<VzAssetRes>>& assetResMap = *gEngineApp->GetAssetResMap();
 
         for (auto& it : assetResMap)
         {
             VzAssetRes* asset_res = it.second.get();
-            VzAsset* v_asset = gEngineApp.GetVzComponent<VzAsset>(it.first);
+            VzAsset* v_asset = gEngineApp->GetVzComponent<VzAsset>(it.first);
             assert(v_asset);
             vzm::VzAsset::Animator* animator = v_asset->GetAnimator();
             if (animator->IsPlayScene(vidScene))
@@ -1269,13 +1269,13 @@ namespace vzm
         scene->forEach([&tcm, &restore_billboard_tr, &u, &v](Entity ett) {
             VID vid = ett.getId();
 
-            VzSceneComp* comp = gEngineApp.GetVzComponent<VzSceneComp>(vid);
+            VzSceneComp* comp = gEngineApp->GetVzComponent<VzSceneComp>(vid);
             if (comp && comp->IsMatrixAutoUpdate())
             {
                 comp->UpdateMatrix();
             }
 
-            VzActorRes* actor_res = gEngineApp.GetActorRes(vid);
+            VzActorRes* actor_res = gEngineApp->GetActorRes(vid);
             if (actor_res && actor_res->isBillboard)
             {
                 auto ti = tcm.getInstance(ett);
@@ -1294,7 +1294,7 @@ namespace vzm
             }
             });
 
-        filament::Texture* fogColorTexture = gEngineApp.GetSceneRes(vidScene)->GetIBL()->getFogTexture();
+        filament::Texture* fogColorTexture = gEngineApp->GetSceneRes(vidScene)->GetIBL()->getFogTexture();
         render_path->viewSettings.fog.skyColor = fogColorTexture;
         render_path->ApplySettings();
 

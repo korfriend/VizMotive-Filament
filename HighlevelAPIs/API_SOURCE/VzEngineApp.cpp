@@ -12,7 +12,7 @@
 
 extern Engine* gEngine;
 extern Material* gMaterialTransparent; // do not release
-extern vzm::VzEngineApp gEngineApp;
+extern vzm::VzEngineApp* gEngineApp;
 extern gltfio::MaterialProvider* gMaterialProvider;
 
 namespace vzm
@@ -45,15 +45,15 @@ namespace vzm
     void cubeToScene(const VID vidCubeRenderable, const VID vidCube)
     {
         const Entity ettCubeRenderable = Entity::import(vidCubeRenderable);
-        SceneVID vid_scene = gEngineApp.GetSceneVidBelongTo(vidCube);
+        SceneVID vid_scene = gEngineApp->GetSceneVidBelongTo(vidCube);
         if (vid_scene != INVALID_VID)
         {
-            Scene* scene = gEngineApp.GetScene(vid_scene);
+            Scene* scene = gEngineApp->GetScene(vid_scene);
             assert(scene);
             if (!scene->hasEntity(ettCubeRenderable))
             {
                 // safely rearrangement
-                auto& scenes = *gEngineApp.GetScenes();
+                auto& scenes = *gEngineApp->GetScenes();
                 for (auto& it : scenes)
                 {
                     it.second->remove(ettCubeRenderable);
@@ -70,7 +70,7 @@ namespace vzm
     void VzTypesetter::Measure()
     {
         FontVID font = textFormat.font;
-        VzFontRes* font_res = gEngineApp.GetFontRes(font);
+        VzFontRes* font_res = gEngineApp->GetFontRes(font);
         if ((font == INVALID_VID) || (text.empty()))
         {
             return;
@@ -86,7 +86,7 @@ namespace vzm
     }
     int32_t VzTypesetter::MeasureLinesWidth(FontVID font)
     {
-        VzFontRes* font_res = gEngineApp.GetFontRes(font);
+        VzFontRes* font_res = gEngineApp->GetFontRes(font);
         int32_t lineMaxWidth = 0;
         int32_t lineWidth = 0;
         int32_t wordWidth = 0;
@@ -147,7 +147,7 @@ namespace vzm
         textHeight = 0;
         Measure();
         FontVID font = textFormat.font;
-        VzFontRes* font_res = gEngineApp.GetFontRes(font);
+        VzFontRes* font_res = gEngineApp->GetFontRes(font);
         int32_t width = (fixedWidth > 0) ? fixedWidth : textWidth;
         int32_t height = (fixedHeight > 0) ? fixedHeight : textHeight;
         if ((font == INVALID_VID) || (width <= 0) || (height <= 0))
@@ -404,7 +404,7 @@ namespace vzm
     {
         if (isSprite)
         {
-            gEngineApp.RemoveComponent(vidMIs_[0]);
+            gEngineApp->RemoveComponent(vidMIs_[0]);
             gEngine->destroy(intrinsicVB);
             gEngine->destroy(intrinsicIB);
             gEngine->destroy(intrinsicTexture);
@@ -1235,7 +1235,7 @@ namespace vzm
                     m_key.baseColorUV = 0;
                     UvMap uvmap;
                     Material* material = gMaterialProvider->getMaterial((filament::gltfio::MaterialKey*)&m_key, &uvmap, "_PROVIDER_SPRITE_MATERIAL");
-                    vid_m = gEngineApp.CreateMaterial("_PROVIDER_SPRITE_MATERIAL", material, nullptr, true)->GetVID();
+                    vid_m = gEngineApp->CreateMaterial("_PROVIDER_SPRITE_MATERIAL", material, nullptr, true)->GetVID();
                     std::vector<Material::ParameterInfo> params(material->getParameterCount());
                     material->getParameters(&params[0], params.size());
                     for (auto& it : params)
@@ -1278,7 +1278,7 @@ namespace vzm
                     Material* material = Material::Builder()
                         .package(result.getData(), result.getSize())
                         .build(*gEngine);
-                    vid_m = gEngineApp.CreateMaterial("_BUILDER_TEXT_SPRITE_MATERIAL", material, nullptr, true)->GetVID();
+                    vid_m = gEngineApp->CreateMaterial("_BUILDER_TEXT_SPRITE_MATERIAL", material, nullptr, true)->GetVID();
                     std::vector<Material::ParameterInfo> params(material->getParameterCount());
                     material->getParameters(&params[0], params.size());
                     for (auto& it : params) {
@@ -1735,7 +1735,7 @@ namespace vzm
         actors.clear();
         for (size_t i = 0, n = loaded_actors.size(); i < n; ++i)
         {
-            actors.push_back(gEngineApp.GetVzComponent<VzActor>(loaded_actors[i]));
+            actors.push_back(gEngineApp->GetVzComponent<VzActor>(loaded_actors[i]));
         }
         delete meshes;
         return loaded_actors.size();

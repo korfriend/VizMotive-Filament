@@ -3,11 +3,11 @@
 #include "../FIncludes.h"
 
 extern Engine* gEngine;
-extern vzm::VzEngineApp gEngineApp;
+extern vzm::VzEngineApp* gEngineApp;
 
 namespace vzm
 {
-#define COMP_ASSET_ANI(COMP, FAILRET)  VzAssetRes* COMP = gEngineApp.GetAssetRes(vidAsset_); assert(COMP->asset->getAssetInstanceCount() == 1); // later... for multi-instance cases
+#define COMP_ASSET_ANI(COMP, FAILRET)  VzAssetRes* COMP = gEngineApp->GetAssetRes(vidAsset_); assert(COMP->asset->getAssetInstanceCount() == 1); // later... for multi-instance cases
 #define COMP_ASSET_ANI_INST(COMP, INST, FAILRET)  COMP_ASSET_ANI(COMP, FAILRET); FilamentInstance* INST = COMP->asset->getInstance(); if (INST == nullptr) return FAILRET; 
 #define COMP_ASSET_ANI_INST_FANI(COMP, INST, FANI, FAILRET)  COMP_ASSET_ANI_INST(COMP, INST, FAILRET); filament::gltfio::Animator* FANI = INST->getAnimator(); if (FANI == nullptr) return FAILRET; 
     std::vector<VID> VzAsset::GetGLTFRoots()

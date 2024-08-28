@@ -3,7 +3,7 @@
 #include "../FIncludes.h"
 
 extern Engine* gEngine;
-extern VzEngineApp gEngineApp;
+extern VzEngineApp* gEngineApp;
 
 namespace vzm
 {
@@ -53,7 +53,7 @@ namespace vzm
 
     void VzCamera::SetCameraCubeVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits)
     {
-        VzCameraRes* cam_res = gEngineApp.GetCameraRes(GetVID());
+        VzCameraRes* cam_res = gEngineApp->GetCameraRes(GetVID());
         if (cam_res == nullptr) return;
 
         Cube* camera_cube = cam_res->GetCameraCube();
@@ -145,7 +145,7 @@ namespace vzm
 
     VzCamera::Controller* VzCamera::GetController()
     {
-        VzCameraRes* cam_res = gEngineApp.GetCameraRes(GetVID());
+        VzCameraRes* cam_res = gEngineApp->GetCameraRes(GetVID());
         if (cam_res == nullptr) return nullptr;
         CameraManipulator* cm = cam_res->GetCameraManipulator();
         Controller* cc = cam_res->GetCameraController();
@@ -157,7 +157,7 @@ namespace vzm
         }
         return cc;
     }
-#define GET_CM(CAMRES, CM) VzCameraRes* CAMRES = gEngineApp.GetCameraRes(GetCameraVID()); if (CAMRES == nullptr) return;  CameraManipulator* CM = CAMRES->GetCameraManipulator();
+#define GET_CM(CAMRES, CM) VzCameraRes* CAMRES = gEngineApp->GetCameraRes(GetCameraVID()); if (CAMRES == nullptr) return;  CameraManipulator* CM = CAMRES->GetCameraManipulator();
 #define GET_CM_WARN(CAMRES, CM) GET_CM(CAMRES, CM) if (CM == nullptr) { backlog::post("camera manipulator is not set!", backlog::LogLevel::Warning); return; }
     void VzCamera::Controller::UpdateControllerSettings()
     {

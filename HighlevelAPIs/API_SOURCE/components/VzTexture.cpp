@@ -9,7 +9,7 @@
 #include <stb_image.h>
 
 extern Engine* gEngine;
-extern vzm::VzEngineApp gEngineApp;
+extern vzm::VzEngineApp* gEngineApp;
 
 using namespace image;
 namespace vzm
@@ -20,7 +20,7 @@ namespace vzm
     {
         // need 'safe check'
         // check if the texture is async texture
-        VzTextureRes* tex_res = gEngineApp.GetTextureRes(GetVID());
+        VzTextureRes* tex_res = gEngineApp->GetTextureRes(GetVID());
         ASYNCCHECK;
 
         bool isNew = false;
@@ -127,7 +127,7 @@ namespace vzm
         TextureVID tex_vid = GetVID();
         for (MInstanceVID mi_vid : tex_res->assignedMIs)
         {
-            VzMIRes* mi_res = gEngineApp.GetMIRes(mi_vid);
+            VzMIRes* mi_res = gEngineApp->GetMIRes(mi_vid);
             assert(mi_res);
             for (auto& tex_map_kv : mi_res->texMap)
             {
@@ -144,7 +144,7 @@ namespace vzm
 
     std::string VzTexture::GetImageFileName()
     {
-        VzTextureRes* tex_res = gEngineApp.GetTextureRes(GetVID());
+        VzTextureRes* tex_res = gEngineApp->GetTextureRes(GetVID());
         if (tex_res == nullptr)
         {
             return "";
@@ -154,32 +154,32 @@ namespace vzm
 
     void VzTexture::SetMinFilter(const SamplerMinFilter filter)
     {
-        VzTextureRes* tex_res = gEngineApp.GetTextureRes(GetVID());
+        VzTextureRes* tex_res = gEngineApp->GetTextureRes(GetVID());
         tex_res->sampler.setMinFilter((TextureSampler::MinFilter)filter);
         UpdateTimeStamp();
     }
     void VzTexture::SetMagFilter(const SamplerMagFilter filter)
     {
-        VzTextureRes* tex_res = gEngineApp.GetTextureRes(GetVID());
+        VzTextureRes* tex_res = gEngineApp->GetTextureRes(GetVID());
         tex_res->sampler.setMagFilter((TextureSampler::MagFilter)filter);
         UpdateTimeStamp();
     }
     void VzTexture::SetWrapModeS(const SamplerWrapMode mode)
     {
-        VzTextureRes* tex_res = gEngineApp.GetTextureRes(GetVID());
+        VzTextureRes* tex_res = gEngineApp->GetTextureRes(GetVID());
         tex_res->sampler.setWrapModeS((TextureSampler::WrapMode)mode);
         UpdateTimeStamp();
     }
     void VzTexture::SetWrapModeT(const SamplerWrapMode mode)
     {
-        VzTextureRes* tex_res = gEngineApp.GetTextureRes(GetVID());
+        VzTextureRes* tex_res = gEngineApp->GetTextureRes(GetVID());
         tex_res->sampler.setWrapModeT((TextureSampler::WrapMode)mode);
         UpdateTimeStamp();
     }
 
     bool VzTexture::GenerateMIPs()
     {
-        VzTextureRes* tex_res = gEngineApp.GetTextureRes(GetVID()); 
+        VzTextureRes* tex_res = gEngineApp->GetTextureRes(GetVID()); 
         ASYNCCHECK;
 
         if (tex_res->texture == nullptr) {
