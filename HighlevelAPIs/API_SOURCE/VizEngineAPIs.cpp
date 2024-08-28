@@ -488,7 +488,7 @@ namespace vzm
         return gEngineApp->GetSceneVidBelongTo(parentVid);
     }
 
-    VzScene* AppendSceneCompTo(const VzBaseComp* comp, const VzBaseComp* parentComp)
+    VzScene* AppendSceneCompTo(const VZ_NONNULL VzBaseComp* comp, const VZ_NONNULL VzBaseComp* parentComp)
     {
         CHECK_API_VALIDITY(nullptr);
         return (VzScene*) GetVzComponent(AppendSceneCompVidTo(comp->GetVID(), parentComp->GetVID()));
@@ -789,7 +789,7 @@ namespace vzm
         return v_asset;
     }
     
-    void ExportAssetToGlb(const VzAsset* v_asset, const std::string& filename) 
+    void ExportAssetToGlb(const VZ_NONNULL VzAsset* v_asset, const std::string& filename)
     {
         CHECK_API_VALIDITY( );
         AssetVID vid_asset = v_asset->GetVID();
