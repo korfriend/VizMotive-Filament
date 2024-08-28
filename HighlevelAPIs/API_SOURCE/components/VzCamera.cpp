@@ -219,7 +219,6 @@ namespace vzm
             Bookmark bookmark = *(Bookmark*)&camutilsBookmark;
             float& phi = bookmark.orbit.phi;
             float& theta = bookmark.orbit.theta;
-            vzm::backlog::post("phi: " + std::to_string(phi) + ", theta: " + std::to_string(theta), vzm::backlog::LogLevel::Default);
             float _min = minAzimuthAngle;
             float _max = maxAzimuthAngle;
             if (!isinf(_min) && !isinf(_max))
@@ -237,7 +236,6 @@ namespace vzm
                 }
             }
             const float EPS = 0.000001f;
-            vzm::backlog::post("minPolarAngle: " + std::to_string(minPolarAngle) + ", maxPolarAngle: " + std::to_string(maxPolarAngle), vzm::backlog::LogLevel::Default);
             phi = clamp(phi, minPolarAngle, maxPolarAngle);
             cm->jumpToBookmark(*(camutils::Bookmark<float>*)&bookmark);
         }
