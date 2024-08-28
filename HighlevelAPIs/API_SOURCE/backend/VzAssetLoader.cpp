@@ -5,7 +5,7 @@
 #include <locale>
 #include <memory>
 
-extern vzm::VzEngineApp gEngineApp;
+extern vzm::VzEngineApp* gEngineApp;
 
 namespace filament::gltfio {
     using namespace vzm::backlog;
@@ -99,14 +99,14 @@ namespace filament::gltfio {
         const Material* m = mi->getMaterial();
         if (!mMaterialMap.contains(m))
         {
-            mMaterialMap[m] = gEngineApp.CreateMaterial(m->getName(), m, nullptr, true)->GetVID();
+            mMaterialMap[m] = gEngineApp->CreateMaterial(m->getName(), m, nullptr, true)->GetVID();
         }
         MaterialVID vid_m = mMaterialMap[m];
         assert(vid_m != INVALID_VID);
 
         // note:
         // gltf support the same material instance
-        MInstanceVID mi_vid = gEngineApp.CreateMaterialInstance(mi->getName(), vid_m, mi)->GetVID();
+        MInstanceVID mi_vid = gEngineApp->CreateMaterialInstance(mi->getName(), vid_m, mi)->GetVID();
         //assert(!mMIMap.contains(mi));
         mMIMap[mi] = mi_vid;
     }
@@ -182,7 +182,7 @@ namespace filament::gltfio {
 
             if (isNewTexture)
             {
-                tex_vid = gEngineApp.CreateTexture(name, info.texture, nullptr, false)->GetVID();
+                tex_vid = gEngineApp->CreateTexture(name, info.texture, nullptr, false)->GetVID();
                 image_tex_map[image_index] = tex_vid;
             }
             else
@@ -191,7 +191,7 @@ namespace filament::gltfio {
                 assert(it != image_tex_map.end());
                 tex_vid = it->second;
             }
-            VzTextureRes* tex_res = gEngineApp.GetTextureRes(tex_vid);
+            VzTextureRes* tex_res = gEngineApp->GetTextureRes(tex_vid);
             tex_res->sampler = sampler;
             tex_res->fileName = name;
             tex_res->isAsyncLocked = true;
@@ -203,7 +203,7 @@ namespace filament::gltfio {
             tex_vid = it_tex->second;
         }
 
-        VzMIRes* mi_res = gEngineApp.GetMIRes(vidMI);
+        VzMIRes* mi_res = gEngineApp->GetMIRes(vidMI);
         
         assert(mi_res && tex_vid);
         mi_res->texMap[miMapName] = tex_vid;
@@ -291,7 +291,7 @@ namespace filament::gltfio {
         }
 
         // Create a single root node with an identity transform as a convenience to the client.
-        VID vid_gltf_root = gEngineApp.CreateSceneComponent(SCENE_COMPONENT_TYPE::ACTOR, "gltf root")->GetVID();
+        VID vid_gltf_root = gEngineApp->CreateSceneComponent(SCENE_COMPONENT_TYPE::ACTOR, "gltf root")->GetVID();
         //fAsset->mRoot = mEntityManager.create();
         //mTransformManager.create(fAsset->mRoot);
         fAsset->mRoot = Entity::import(vid_gltf_root);
@@ -367,7 +367,7 @@ namespace filament::gltfio {
         auto rootTransform = mTransformManager.getInstance(fAsset->mRoot);
         //Entity instanceRoot = mEntityManager.create();
         //mTransformManager.create(instanceRoot, rootTransform);
-        ActorVID vid_ins_root = gEngineApp.CreateSceneComponent(SCENE_COMPONENT_TYPE::ACTOR, "instance root")->GetVID();
+        ActorVID vid_ins_root = gEngineApp->CreateSceneComponent(SCENE_COMPONENT_TYPE::ACTOR, "instance root")->GetVID();
         Entity instanceRoot = Entity::import(vid_ins_root);
         
         mMaterialInstanceCache = MaterialInstanceCache(srcAsset);
@@ -521,7 +521,7 @@ namespace filament::gltfio {
 
         // If the node has a mesh, then create a renderable component.
         if (node->mesh) {
-            gEngineApp.CreateSceneComponent(SCENE_COMPONENT_TYPE::ACTOR, name, entity.getId());
+            gEngineApp->CreateSceneComponent(SCENE_COMPONENT_TYPE::ACTOR, name, entity.getId());
             createRenderable(node, entity, name, fAsset);
             if (srcAsset->variants_count > 0) {
                 createMaterialVariants(node->mesh, entity, fAsset, instance);
@@ -535,11 +535,11 @@ namespace filament::gltfio {
             switch (node->light->type)
             {
             case cgltf_light_type_directional:
-                gEngineApp.CreateSceneComponent(SCENE_COMPONENT_TYPE::LIGHT_SUN, name, entity.getId()); break;
+                gEngineApp->CreateSceneComponent(SCENE_COMPONENT_TYPE::LIGHT_SUN, name, entity.getId()); break;
             case cgltf_light_type_point:
-                gEngineApp.CreateSceneComponent(SCENE_COMPONENT_TYPE::LIGHT_POINT, name, entity.getId()); break;
+                gEngineApp->CreateSceneComponent(SCENE_COMPONENT_TYPE::LIGHT_POINT, name, entity.getId()); break;
             case cgltf_light_type_spot:
-                gEngineApp.CreateSceneComponent(SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT, name, entity.getId()); break;
+                gEngineApp->CreateSceneComponent(SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT, name, entity.getId()); break;
             }
             
             mLightMap[entity.getId()] = name;
@@ -547,7 +547,7 @@ namespace filament::gltfio {
 
         if (node->camera) {
             createCamera(node->camera, entity, fAsset);
-            gEngineApp.CreateSceneComponent(SCENE_COMPONENT_TYPE::CAMERA, name, entity.getId());
+            gEngineApp->CreateSceneComponent(SCENE_COMPONENT_TYPE::CAMERA, name, entity.getId());
             mCameraMap[entity.getId()] = name;
         }
         if (node->camera == nullptr && node->light == nullptr && node->mesh == nullptr)
@@ -562,7 +562,7 @@ namespace filament::gltfio {
             }
             else
             {
-                gEngineApp.CreateSceneComponent(SCENE_COMPONENT_TYPE::ACTOR, name, entity.getId());
+                gEngineApp->CreateSceneComponent(SCENE_COMPONENT_TYPE::ACTOR, name, entity.getId());
                 mNodeActorMap[entity.getId()] = name;
             }
         }
@@ -646,7 +646,7 @@ namespace filament::gltfio {
             CopyFPrim2VFrim(&outputPrim, &v_prim);
             v_prims.push_back(v_prim);
         }
-        mGeometryMap[(cgltf_mesh*)(mesh - gltf->meshes)] = gEngineApp.CreateGeometry(name, v_prims)->GetVID();
+        mGeometryMap[(cgltf_mesh*)(mesh - gltf->meshes)] = gEngineApp->CreateGeometry(name, v_prims)->GetVID();
 
         mat4f worldTransform;
         cgltf_node_transform_world(node, &worldTransform[0][0]);
@@ -823,7 +823,7 @@ namespace filament::gltfio {
         auto it = mGeometryMap.find((cgltf_mesh*)(mesh - srcAsset->meshes));
         assert(it != mGeometryMap.end());
         GeometryVID vid_geo = it->second;
-        VzGeometryRes* geo_res = gEngineApp.GetGeometryRes(vid_geo);
+        VzGeometryRes* geo_res = gEngineApp->GetGeometryRes(vid_geo);
         assert(geo_res);
         std::vector<VzPrimitive>& v_primitives = *geo_res->Get();
         outputPrim = prims.data();
@@ -833,7 +833,7 @@ namespace filament::gltfio {
             v_primitives[index].ptype = ptype_vids[index];
         }
         assert(mi_vids.size() == primitiveCount);
-        VzActorRes* actor_res = gEngineApp.GetActorRes(entity.getId());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(entity.getId());
         actor_res->SetGeometry(vid_geo);
         actor_res->SetMIs(mi_vids);
 
@@ -866,7 +866,7 @@ namespace filament::gltfio {
         FFilamentAsset* fAsset, FFilamentInstance* instance) {
         UvMap uvmap{};
 
-        VzActorRes* actor_res = gEngineApp.GetActorRes(entity.getId());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(entity.getId());
         std::vector<std::vector<MInstanceVID>>& vid_mi_variants = actor_res->GetMIVariants();
         vid_mi_variants.clear();
 

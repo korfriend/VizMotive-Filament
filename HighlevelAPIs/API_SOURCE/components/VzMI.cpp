@@ -3,7 +3,7 @@
 #include "../FIncludes.h"
 
 extern Engine* gEngine;
-extern vzm::VzEngineApp gEngineApp;
+extern vzm::VzEngineApp* gEngineApp;
 
 extern std::vector<std::string> gMProp;
 
@@ -34,7 +34,7 @@ namespace vzm
         COMP_MI(mi, mi_res, TransparencyMode::DEFAULT);
         return (TransparencyMode)mi->getTransparencyMode();
     }
-#define SET_PARAM_COMP(COMP, RES, M_RES, FAILRET) COMP_MI(COMP, RES, FAILRET); VzMaterialRes* M_RES = gEngineApp.GetMaterialRes(RES->vidMaterial); if (!M_RES->allowedParamters.contains(name)) return FAILRET;
+#define SET_PARAM_COMP(COMP, RES, M_RES, FAILRET) COMP_MI(COMP, RES, FAILRET); VzMaterialRes* M_RES = gEngineApp->GetMaterialRes(RES->vidMaterial); if (!M_RES->allowedParamters.contains(name)) return FAILRET;
     bool VzMI::SetParameter(const std::string& name, const vzm::UniformType vType, const void* v)
     {
         SET_PARAM_COMP(mi, mi_res, m_res, false);
@@ -119,7 +119,7 @@ namespace vzm
                           const bool retainSampler) {
         SET_PARAM_COMP(mi, mi_res, m_res, false);
         
-        VzTextureRes* tex_res = gEngineApp.GetTextureRes(vidTexture);
+        VzTextureRes* tex_res = gEngineApp->GetTextureRes(vidTexture);
         
         if (tex_res->texture == nullptr) {
           return false;
@@ -127,7 +127,7 @@ namespace vzm
         
         if (retainSampler) {
           VID prev_texture = GetTexture(name);
-          VzTextureRes* prev_tex_res = gEngineApp.GetTextureRes(prev_texture);
+          VzTextureRes* prev_tex_res = gEngineApp->GetTextureRes(prev_texture);
         
           if (prev_tex_res->texture == nullptr) {
             return false;
@@ -164,8 +164,8 @@ namespace vzm
 
     bool VzMI::SetMaterial(const VID vidMaterial)
     {
-      VzMaterialRes* mat_res = gEngineApp.GetMaterialRes(vidMaterial);
-      VzMIRes* mi_res = gEngineApp.GetMIRes(GetVID());
+      VzMaterialRes* mat_res = gEngineApp->GetMaterialRes(vidMaterial);
+      VzMIRes* mi_res = gEngineApp->GetMIRes(GetVID());
       MaterialInstance* mi = mat_res->material->createInstance(GetName().c_str());
       mi_res->vidMaterial = vidMaterial;
       mi_res->mi = mi;

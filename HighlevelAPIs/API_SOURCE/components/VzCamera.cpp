@@ -3,7 +3,7 @@
 #include "../FIncludes.h"
 
 extern Engine* gEngine;
-extern VzEngineApp gEngineApp;
+extern VzEngineApp* gEngineApp;
 
 namespace vzm
 {
@@ -53,7 +53,7 @@ namespace vzm
 
     void VzCamera::SetCameraCubeVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits)
     {
-        VzCameraRes* cam_res = gEngineApp.GetCameraRes(GetVID());
+        VzCameraRes* cam_res = gEngineApp->GetCameraRes(GetVID());
         if (cam_res == nullptr) return;
 
         Cube* camera_cube = cam_res->GetCameraCube();
@@ -145,7 +145,7 @@ namespace vzm
 
     VzCamera::Controller* VzCamera::GetController()
     {
-        VzCameraRes* cam_res = gEngineApp.GetCameraRes(GetVID());
+        VzCameraRes* cam_res = gEngineApp->GetCameraRes(GetVID());
         if (cam_res == nullptr) return nullptr;
         CameraManipulator* cm = cam_res->GetCameraManipulator();
         Controller* cc = cam_res->GetCameraController();
@@ -157,8 +157,33 @@ namespace vzm
         }
         return cc;
     }
-#define GET_CM(CAMRES, CM) VzCameraRes* CAMRES = gEngineApp.GetCameraRes(GetCameraVID()); if (CAMRES == nullptr) return;  CameraManipulator* CM = CAMRES->GetCameraManipulator();
+#define GET_CM(CAMRES, CM) VzCameraRes* CAMRES = gEngineApp->GetCameraRes(GetCameraVID()); if (CAMRES == nullptr) return;  CameraManipulator* CM = CAMRES->GetCameraManipulator();
 #define GET_CM_WARN(CAMRES, CM) GET_CM(CAMRES, CM) if (CM == nullptr) { backlog::post("camera manipulator is not set!", backlog::LogLevel::Warning); return; }
+    struct Bookmark
+    {
+        struct MapParams
+        {
+            float extent;
+            float center[2];
+        };
+        struct OrbitParams
+        {
+            float phi;
+            float theta;
+            float distance;
+            float pivot[3];
+        };
+        struct FlightParams
+        {
+            float pitch;
+            float yaw;
+            float position[3];
+        };
+        vzm::VzCamera::Controller::Mode mode;
+        MapParams map;
+        OrbitParams orbit;
+        FlightParams flight;
+    };
     void VzCamera::Controller::UpdateControllerSettings()
     {
         GET_CM(cam_res, cm);
@@ -190,37 +215,29 @@ namespace vzm
         cm->grabUpdate(x, y);
         if (mode == Mode::ORBIT)
         {
-            float3 eyePosition, targetPosition, upward;
-            cm->getLookAt(&eyePosition, &targetPosition, &upward);
-            float radius = length(eyePosition);
-            float theta = atan2(eyePosition.x, eyePosition.z);
-            float phi = acos(clamp(eyePosition.y / radius, -1.0f, 1.0f));
-            float min = minAzimuthAngle;
-            float max = maxAzimuthAngle;
-            if (!isinf(min) && !isinf(max))
+            camutils::Bookmark<float> camutilsBookmark = cm->getCurrentBookmark();
+            Bookmark bookmark = *(Bookmark*)&camutilsBookmark;
+            float& phi = bookmark.orbit.phi;
+            float& theta = bookmark.orbit.theta;
+            float _min = minAzimuthAngle;
+            float _max = maxAzimuthAngle;
+            if (!isinf(_min) && !isinf(_max))
             {
-                if (min < -VZ_PI) min += VZ_2PI; else if (min > VZ_PI) min -= VZ_2PI;
-                if (max < -VZ_PI) max += VZ_2PI; else if (max > VZ_PI) max -= VZ_2PI;
-                if (min <= max) {
-                    if ((theta < min) || (theta > max))
-                    {
-                        cm->jumpToBookmark(cam_res->previousBookmark);
-                    }
+                if (_min < -VZ_PI) _min += VZ_2PI; else if (_min > VZ_PI) _min -= VZ_2PI;
+                if (_max < -VZ_PI) _max += VZ_2PI; else if (_max > VZ_PI) _max -= VZ_2PI;
+                if (_min <= _max)
+                {
+                    theta = clamp(theta, _min, _max);
                 }
                 else
                 {
-                    if (((theta > (min + max) / 2.0f) && (theta < min)) ||
-                        ((theta < (min + max) / 2.0f) && (theta > max)))
-                    {
-                        cm->jumpToBookmark(cam_res->previousBookmark);
-                    }
+                    theta = (theta > (_min + _max) / 2) ? max(_min, theta)
+                                                        : min(_max, theta);
                 }
             }
-            if ((phi < minPolarAngle) || (phi > maxPolarAngle))
-            {
-                cm->jumpToBookmark(cam_res->previousBookmark);
-            }
-            cam_res->previousBookmark = cm->getCurrentBookmark();
+            const float EPS = 0.000001f;
+            phi = clamp(phi, minPolarAngle, maxPolarAngle);
+            cm->jumpToBookmark(*(camutils::Bookmark<float>*)&bookmark);
         }
     }
     void VzCamera::Controller::GrabEnd()

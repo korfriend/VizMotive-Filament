@@ -6,13 +6,13 @@
 #include <iostream>
 
 extern Engine* gEngine;
-extern vzm::VzEngineApp gEngineApp;
+extern vzm::VzEngineApp* gEngineApp;
 
 namespace vzm
 {
     bool VzFont::ReadFont(const std::string& fileName, const uint32_t fontSize)
     {
-        VzFontRes* font_res = gEngineApp.GetFontRes(GetVID());
+        VzFontRes* font_res = gEngineApp->GetFontRes(GetVID());
 
         Path file_name(fileName);
         if (!file_name.exists()) {
@@ -23,14 +23,14 @@ namespace vzm
         font_res->path_ = fileName;
         font_res->size_ = fontSize > 0 ? fontSize : 10;
 
-        if (!gEngineApp.ftLibrary) {
+        if (!gEngineApp->ftLibrary) {
             backlog::post("FreeType library is not initialized!", backlog::LogLevel::Error);
             return false;
         }
 
         FT_Error error;
 
-        error = FT_New_Face(gEngineApp.ftLibrary, fileName.c_str(), 0, &font_res->ftFace_);
+        error = FT_New_Face(gEngineApp->ftLibrary, fileName.c_str(), 0, &font_res->ftFace_);
         if (error) {
             backlog::post("Failed to load font: " + fileName, backlog::LogLevel::Error);
             return false;
@@ -47,7 +47,7 @@ namespace vzm
 
     std::string VzFont::GetFontFileName()
     {
-        VzFontRes* font_res = gEngineApp.GetFontRes(GetVID());
+        VzFontRes* font_res = gEngineApp->GetFontRes(GetVID());
         if (font_res == nullptr)
         {
             return "";

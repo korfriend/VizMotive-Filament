@@ -1031,6 +1031,9 @@ int main(int, char**) {
   clock_t currentTime = clock();
 
   int seqIndex = 0;
+
+  std::unordered_map<VID, std::vector<float>> morphWeights;
+
   // Main loop
   while (!glfwWindowShouldClose(window)) {
     g_renderer->Render(g_scene, current_cam);
@@ -1815,6 +1818,22 @@ int main(int, char**) {
                   lightComponent->SetShadowOptions(sOpts);
                 }
               }
+            }
+            ImGui::Unindent();
+          }
+          if (ImGui::CollapsingHeader(
+                  "Morphing",
+                  ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Indent();
+            if (type == vzm::SCENE_COMPONENT_TYPE::ACTOR) {
+              vzm::VzActor* actor = (vzm::VzActor*)component;
+              std::vector<float>& weights = morphWeights[actor->GetVID()];
+              weights.resize(actor->GetMorphTargetCount());
+              for (size_t i = 0; i < weights.size(); i++) {
+                ImGui::SliderFloat(std::to_string(i).c_str(), &weights[i], 0.0f,
+                                   1.0f);
+              }
+              actor->SetMorphWeights(weights.data(), (int)weights.size());
             }
             ImGui::Unindent();
           }

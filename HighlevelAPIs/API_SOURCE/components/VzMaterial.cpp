@@ -3,7 +3,7 @@
 #include "../FIncludes.h"
 
 extern Engine* gEngine;
-extern vzm::VzEngineApp gEngineApp;
+extern vzm::VzEngineApp* gEngineApp;
 extern gltfio::MaterialProvider* gMaterialProvider;
 
 namespace vzm
@@ -92,7 +92,7 @@ namespace vzm
     }
     
     bool VzMaterial::SetStandardMaterialByKey(const vzm::VzMaterial::MaterialKey& materialKey) {
-      VzMaterialRes* mat_res = gEngineApp.GetMaterialRes(GetVID());
+      VzMaterialRes* mat_res = gEngineApp->GetMaterialRes(GetVID());
       if (mat_res->material) {
         gEngine->destroy(mat_res->material);
         mat_res->material = nullptr;

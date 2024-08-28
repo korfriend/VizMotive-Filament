@@ -3,7 +3,7 @@
 #include "../FIncludes.h"
 
 extern Engine* gEngine;
-extern vzm::VzEngineApp gEngineApp;
+extern vzm::VzEngineApp* gEngineApp;
 
 namespace vzm
 {
@@ -11,7 +11,7 @@ namespace vzm
     std::vector<VID> VzSkeleton::GetBones()
     {
         std::vector<VID> root_vids;
-        VzSkeletonRes* skeleton_res = gEngineApp.GetSkeletonRes(GetVID());
+        VzSkeletonRes* skeleton_res = gEngineApp->GetSkeletonRes(GetVID());
         if (skeleton_res == nullptr) return root_vids;
 
         root_vids.reserve(skeleton_res->bones.size());

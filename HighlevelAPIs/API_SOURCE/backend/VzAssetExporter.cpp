@@ -8,7 +8,7 @@
 #include <cgltf_write.h>
 #include <viewer/Settings.h>
 
-extern vzm::VzEngineApp gEngineApp;
+extern vzm::VzEngineApp* gEngineApp;
 
 namespace filament::gltfio {
 
@@ -21,7 +21,7 @@ void VzAssetExpoter::ExportToGlb(const vzm::VzAsset* v_asset,
     return;
   }
   AssetVID vid_asset = v_asset->GetVID();
-  VzAssetRes& asset_res = *gEngineApp.GetAssetRes(vid_asset);
+  VzAssetRes& asset_res = *gEngineApp->GetAssetRes(vid_asset);
 
   FFilamentAsset* fasset = downcast(asset_res.asset);
   cgltf_data* data = (cgltf_data*)fasset->getSourceAsset();

@@ -3,7 +3,7 @@
 
 using namespace vzm;
 extern Engine* gEngine;
-extern VzEngineApp gEngineApp;
+extern VzEngineApp* gEngineApp;
 
 namespace vzm
 {

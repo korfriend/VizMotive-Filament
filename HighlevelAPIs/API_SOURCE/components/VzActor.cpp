@@ -3,7 +3,7 @@
 #include "../FIncludes.h"
 
 extern Engine* gEngine;
-extern vzm::VzEngineApp gEngineApp;
+extern vzm::VzEngineApp* gEngineApp;
 
 namespace vzm
 {
@@ -19,13 +19,13 @@ namespace vzm
 {
     void VzActor::SetMI(const VID vidMI, const int slot)
     {
-        VzMIRes* mi_res = gEngineApp.GetMIRes(vidMI);
+        VzMIRes* mi_res = gEngineApp->GetMIRes(vidMI);
         if (mi_res == nullptr)
         {
             backlog::post("invalid material instance!", backlog::LogLevel::Error);
             return;
         }
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         if (!actor_res->SetMI(vidMI, slot))
         {
             return;
@@ -53,27 +53,27 @@ namespace vzm
     }
     void VzActor::SetRenderableRes(const VID vidGeo, const std::vector<VID>& vidMIs)
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         actor_res->SetGeometry(vidGeo);
         actor_res->SetMIs(vidMIs);
-        gEngineApp.BuildRenderable(GetVID());
+        gEngineApp->BuildRenderable(GetVID());
         UpdateTimeStamp();
     }
     std::vector<VID> VzActor::GetMIs()
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         return actor_res->GetMIVids();
     }
     VID VzActor::GetMI(const int slot)
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         return actor_res->GetMIVid(slot);
     }
     VID VzActor::GetMaterial(const int slot)
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         MInstanceVID vid_mi = actor_res->GetMIVid(slot);
-        VzMIRes* mi_res = gEngineApp.GetMIRes(vid_mi);
+        VzMIRes* mi_res = gEngineApp->GetMIRes(vid_mi);
         if (mi_res == nullptr)
         {
             return INVALID_VID;
@@ -82,14 +82,23 @@ namespace vzm
         assert(mi);
         const Material* mat = mi->getMaterial();
         assert(mat != nullptr);
-        return gEngineApp.FindMaterialVID(mat);
+        return gEngineApp->FindMaterialVID(mat);
     }
     VID VzActor::GetGeometry()
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         return actor_res->GetGeometryVid();
     }
-
+    void VzActor::SetMorphWeights(const float* weights, const int count)
+    {
+        COMP_ACTOR(rcm, ett, ins, );
+        rcm.setMorphWeights(ins, weights, count);
+    }
+    int VzActor::GetMorphTargetCount()
+    {
+        COMP_ACTOR(rcm, ett, ins, 0);
+        return (int)rcm.getMorphTargetCount(ins);
+    }
 }
 
 
@@ -97,7 +106,7 @@ namespace vzm
 {
     void VzBaseSprite::EnableBillboard(const bool billboardEnabled)
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(baseActor_->GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(baseActor_->GetVID());
         actor_res->isBillboard = billboardEnabled;
         baseActor_->UpdateTimeStamp();
     }
@@ -113,7 +122,7 @@ namespace vzm
 {
     void buildQuadGeometry(const VID vid, const float w, const float h, const float anchorU, const float anchorV)
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(vid);
+        VzActorRes* actor_res = gEngineApp->GetActorRes(vid);
         assert(actor_res->isSprite);
         if (actor_res->intrinsicVB) gEngine->destroy(actor_res->intrinsicVB);
         if (actor_res->intrinsicIB) gEngine->destroy(actor_res->intrinsicIB);
@@ -157,7 +166,7 @@ namespace vzm
 
         RenderableManager::Builder builder(1);
 
-        MaterialInstance* mi = gEngineApp.GetMIRes(actor_res->GetMIVids()[0])->mi;
+        MaterialInstance* mi = gEngineApp->GetMIRes(actor_res->GetMIVids()[0])->mi;
         assert(mi);
         builder.material(0, mi);
         builder.geometry(0, RenderableManager::PrimitiveType::TRIANGLES, actor_res->intrinsicVB, actor_res->intrinsicIB);
@@ -173,7 +182,7 @@ namespace vzm
 
     VzSpriteActor& VzSpriteActor::SetSpriteWidth(const float w)
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         assert(actor_res->isSprite);
         actor_res->spriteWidth = w;
         UpdateTimeStamp();
@@ -181,7 +190,7 @@ namespace vzm
     }
     VzSpriteActor& VzSpriteActor::SetSpriteHeight(const float h)
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         assert(actor_res->isSprite);
         actor_res->spriteHeight = h;
         UpdateTimeStamp();
@@ -189,7 +198,7 @@ namespace vzm
     }
     VzSpriteActor& VzSpriteActor::SetAnchorU(const float u)
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         assert(actor_res->isSprite);
         actor_res->anchorU = u;
         UpdateTimeStamp();
@@ -197,7 +206,7 @@ namespace vzm
     }
     VzSpriteActor& VzSpriteActor::SetAnchorV(const float v)
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         assert(actor_res->isSprite);
         actor_res->anchorV = v;
         UpdateTimeStamp();
@@ -206,7 +215,7 @@ namespace vzm
 
     bool VzSpriteActor::Build()
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         assert(actor_res->isSprite);
         buildQuadGeometry(GetVID(), actor_res->spriteWidth, actor_res->spriteHeight, actor_res->anchorU, actor_res->anchorV);
         UpdateTimeStamp();
@@ -215,14 +224,14 @@ namespace vzm
 
     void VzSpriteActor::SetTexture(const VID vidTexture)
     {
-        VzTextureRes* tex_res = gEngineApp.GetTextureRes(vidTexture);
+        VzTextureRes* tex_res = gEngineApp->GetTextureRes(vidTexture);
         if (tex_res->texture == nullptr) {
             backlog::post("invalid texture!", backlog::LogLevel::Error);
             return;
         }
 
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
-        MaterialInstance* mi = gEngineApp.GetMIRes(actor_res->GetMIVid(0))->mi;
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
+        MaterialInstance* mi = gEngineApp->GetMIRes(actor_res->GetMIVid(0))->mi;
         assert(mi);
 
         mi->setParameter("baseColorMap", tex_res->texture, tex_res->sampler);
@@ -242,19 +251,19 @@ namespace vzm
 {
     void VzTextSpriteActor::SetFont(const VID vidFont)
     {
-        VzFontRes* font_res = gEngineApp.GetFontRes(vidFont);
+        VzFontRes* font_res = gEngineApp->GetFontRes(vidFont);
         if (font_res->ftFace_ == nullptr)
         {
             backlog::post("invalid font!", backlog::LogLevel::Error);
             return;
         }
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         actor_res->textField.typesetter.textFormat.font = vidFont;
         UpdateTimeStamp();
     }
 
     VzTextSpriteActor& VzTextSpriteActor::SetText(const std::string& text) {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         assert(actor_res->isSprite);
         actor_res->textField.typesetter.text = std::wstring(text.begin(), text.end());
         UpdateTimeStamp();
@@ -263,7 +272,7 @@ namespace vzm
 
     VzTextSpriteActor& VzTextSpriteActor::SetText(const std::wstring& text)
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         assert(actor_res->isSprite);
         actor_res->textField.typesetter.text = text;
         UpdateTimeStamp();
@@ -272,7 +281,7 @@ namespace vzm
 
     VzTextSpriteActor& VzTextSpriteActor::SetAnchorU(const float anchorU)
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         assert(actor_res->isSprite);
         actor_res->anchorU = anchorU;
         UpdateTimeStamp();
@@ -281,7 +290,7 @@ namespace vzm
 
     VzTextSpriteActor& VzTextSpriteActor::SetAnchorV(const float anchorV)
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         assert(actor_res->isSprite);
         actor_res->anchorV = anchorV;
         UpdateTimeStamp();
@@ -290,7 +299,7 @@ namespace vzm
 
     VzTextSpriteActor& VzTextSpriteActor::SetColor(const float color[4])
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         assert(actor_res->isSprite);
         actor_res->textField.textColor[0] = color[0];
         actor_res->textField.textColor[1] = color[1];
@@ -302,7 +311,7 @@ namespace vzm
 
     VzTextSpriteActor& VzTextSpriteActor::SetFontHeight(const float fontHeight)
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         assert(actor_res->isSprite);
         actor_res->fontHeight = fontHeight;
         UpdateTimeStamp();
@@ -311,7 +320,7 @@ namespace vzm
 
     VzTextSpriteActor& VzTextSpriteActor::SetMaxWidth(const float maxWidth)
     {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         assert(actor_res->isSprite);
         actor_res->spriteWidth = maxWidth;
         UpdateTimeStamp();
@@ -319,12 +328,11 @@ namespace vzm
     }
 
     void VzTextSpriteActor::Build() {
-        VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         assert(actor_res->isSprite);
-        if (actor_res->intrinsicTexture) gEngine->destroy(actor_res->intrinsicTexture);
 
         FontVID font = actor_res->textField.typesetter.textFormat.font;
-        VzFontRes* font_res = gEngineApp.GetFontRes(font);
+        VzFontRes* font_res = gEngineApp->GetFontRes(font);
         if ((font == INVALID_VID) || (font_res->ftFace_ == nullptr))
         {
             backlog::post("invalid font!", backlog::LogLevel::Error);
@@ -339,16 +347,17 @@ namespace vzm
         if (typesetter.text.empty()) typesetter.text = L" ";
         typesetter.fixedWidth = (int32_t) (actor_res->spriteWidth / actor_res->fontHeight * (float) font_res->GetLineHeight());
         typesetter.Typeset();
-        actor_res->intrinsicTexture = typesetter.texture;
 
-        MaterialInstance* mi = gEngineApp.GetMIRes(actor_res->GetMIVids()[0])->mi;
+        MaterialInstance* mi = gEngineApp->GetMIRes(actor_res->GetMIVids()[0])->mi;
         TextureSampler sampler;
         sampler.setMagFilter(TextureSampler::MagFilter::LINEAR);
         sampler.setMinFilter(TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR);
         sampler.setWrapModeS(TextureSampler::WrapMode::REPEAT);
         sampler.setWrapModeT(TextureSampler::WrapMode::REPEAT); 
         mi->setParameter("baseColorFactor", (filament::RgbaType) RgbaType::LINEAR, *(float4*) actor_res->textField.textColor);
-        mi->setParameter("textTexture", actor_res->intrinsicTexture, sampler);
+        mi->setParameter("textTexture", typesetter.texture, sampler);
+        if (actor_res->intrinsicTexture) gEngine->destroy(actor_res->intrinsicTexture);
+        actor_res->intrinsicTexture = typesetter.texture;
 
         size_t text_image_w = typesetter.texture->getWidth();
         size_t text_image_h = typesetter.texture->getHeight();

@@ -27,6 +27,9 @@ namespace vzm
         VID GetMI(const int slot = 0);
         VID GetMaterial(const int slot = 0);
         VID GetGeometry();
+
+        void SetMorphWeights(const float* weights, const int count);
+        int GetMorphTargetCount();
     };
 
     struct API_EXPORT VzBaseSprite

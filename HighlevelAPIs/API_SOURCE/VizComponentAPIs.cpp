@@ -4,7 +4,7 @@
 #include "FIncludes.h"
 
 extern Engine* gEngine;
-extern vzm::VzEngineApp gEngineApp;
+extern vzm::VzEngineApp* gEngineApp;
 
 namespace vzm
 {
@@ -228,7 +228,7 @@ namespace vzm
     }
     VID VzSceneComp::GetScene()
     {
-        return gEngineApp.GetSceneVidBelongTo(GetVID());
+        return gEngineApp->GetSceneVidBelongTo(GetVID());
     }
     void VzSceneComp::GetPosition(float position[3]) const
     {
