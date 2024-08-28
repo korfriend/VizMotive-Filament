@@ -72,13 +72,13 @@ namespace vzm
         // A value of (0.5, 0.5) corresponds to the midpoint of the sprite. 
         // A value of (0, 0) corresponds to the lower left corner of the sprite. The default is (0.5, 0.5).
         // basic local frame is x:(1, 0, 0), y:(0, 1, 0), z:(0, 0, 1), sprite plane is defined on xy-plane
+        VzTextSpriteActor& SetText(const std::string& text);
         VzTextSpriteActor& SetText(const std::wstring& text);
         VzTextSpriteActor& SetAnchorU(const float anchorU);
         VzTextSpriteActor& SetAnchorV(const float anchorV);
         VzTextSpriteActor& SetColor(const float color[4]);
         VzTextSpriteActor& SetFontHeight(const float fontHeight);
         VzTextSpriteActor& SetMaxWidth(const float maxWidth);
-
         void Build();
     };
 }
