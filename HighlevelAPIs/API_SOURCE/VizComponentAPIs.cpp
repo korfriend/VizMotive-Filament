@@ -159,7 +159,7 @@ namespace vzm
     {
         COMP_TRANSFORM(tc, ett, ins, );
         const math::mat4f& mat = tc.getWorldTransform(ins);
-        *(float3*)v = mat[0].xyz;
+        *(float3*)v = -mat[0].xyz;
     }
     void VzSceneComp::GetWorldUp(float v[3])
     {
