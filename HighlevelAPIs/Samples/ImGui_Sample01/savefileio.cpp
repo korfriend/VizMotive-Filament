@@ -737,7 +737,7 @@ void ImportGlobalSettings(const rapidjson::Value& globalSettings,
     float vignetteColorArr[3] = {VignetteColor[0].GetFloat(),
                                  VignetteColor[1].GetFloat(),
                                  VignetteColor[2].GetFloat()};
-    g_renderer->SetFogColor(vignetteColorArr);
+    g_renderer->SetVignetteColor(vignetteColorArr);
   }
   {
     const rapidjson::Value& Scene = globalSettings["Scene"];
