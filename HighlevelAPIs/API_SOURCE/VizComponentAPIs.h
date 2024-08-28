@@ -180,12 +180,12 @@ namespace vzm
     struct API_EXPORT VzSceneComp : VzBaseComp
     {
     public:
-        enum class EULER_ORDER { XYZ,YXZ, ZXY, ZYX, YZX, XZY };
+        enum class EULER_ORDER { ZXY, ZYX, XYZ,YXZ, YZX, XZY };
     private:
         SCENE_COMPONENT_TYPE scenecompType_ = SCENE_COMPONENT_TYPE::SCENEBASE;
         float position_[3] = {0.0f, 0.0f, 0.0f};
         float rotation_[3] = {0.0f, 0.0f, 0.0f};
-        EULER_ORDER order_ = EULER_ORDER::XYZ;
+        EULER_ORDER order_ = EULER_ORDER::ZXY; // mainly used in CG convention (roll->pitch->yaw)
         float quaternion_[4] = {0.0f, 0.0f, 0.0f, 1.0f};
         float scale_[3] = {1.0f, 1.0f, 1.0f};
         bool matrixAutoUpdate_ = false;
