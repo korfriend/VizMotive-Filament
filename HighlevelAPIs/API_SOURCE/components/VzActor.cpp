@@ -321,7 +321,6 @@ namespace vzm
     void VzTextSpriteActor::Build() {
         VzActorRes* actor_res = gEngineApp.GetActorRes(GetVID());
         assert(actor_res->isSprite);
-        if (actor_res->intrinsicTexture) gEngine->destroy(actor_res->intrinsicTexture);
 
         FontVID font = actor_res->textField.typesetter.textFormat.font;
         VzFontRes* font_res = gEngineApp.GetFontRes(font);
@@ -339,7 +338,6 @@ namespace vzm
         if (typesetter.text.empty()) typesetter.text = L" ";
         typesetter.fixedWidth = (int32_t) (actor_res->spriteWidth / actor_res->fontHeight * (float) font_res->GetLineHeight());
         typesetter.Typeset();
-        actor_res->intrinsicTexture = typesetter.texture;
 
         MaterialInstance* mi = gEngineApp.GetMIRes(actor_res->GetMIVids()[0])->mi;
         TextureSampler sampler;
@@ -348,7 +346,9 @@ namespace vzm
         sampler.setWrapModeS(TextureSampler::WrapMode::REPEAT);
         sampler.setWrapModeT(TextureSampler::WrapMode::REPEAT); 
         mi->setParameter("baseColorFactor", (filament::RgbaType) RgbaType::LINEAR, *(float4*) actor_res->textField.textColor);
-        mi->setParameter("textTexture", actor_res->intrinsicTexture, sampler);
+        mi->setParameter("textTexture", typesetter.texture, sampler);
+        if (actor_res->intrinsicTexture) gEngine->destroy(actor_res->intrinsicTexture);
+        actor_res->intrinsicTexture = typesetter.texture;
 
         size_t text_image_w = typesetter.texture->getWidth();
         size_t text_image_h = typesetter.texture->getHeight();

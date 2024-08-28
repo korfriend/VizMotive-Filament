@@ -174,6 +174,7 @@ namespace vzm
 
         gEngineConfig.stereoscopicEyeCount = gConfig.stereoscopicEyeCount;
         gEngineConfig.stereoscopicType = Engine::StereoscopicType::INSTANCED;
+        gEngineConfig.disableHandleUseAfterFreeCheck = true;  // TODO: remove this line after fixing the issue
         // to do : gConfig and gEngineConfig
         // using vzm::ParamMap<std::string>& argument
         //gConfig.headless = true;
