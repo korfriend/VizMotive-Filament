@@ -673,6 +673,8 @@ int render_height = 1080;
 
 VID currentVID = -1;
 
+std::unordered_map<VID, std::vector<float>> morphWeights;
+
 void resize(int width, int height) {
   if (current_cam == g_cam) {
     g_cam->GetController()->SetViewport(width, height);
@@ -874,6 +876,7 @@ std::wstring OpenFileDialog(const wchar_t* pStrFilter) {
 }
 
 void initViewer() {
+  morphWeights.clear();
   g_scene = vzm::NewScene("my scene");
   g_scene->LoadIBL("../../../VisualStudio/samples/assets/ibl/lightroom_14b");
   //g_scene->LoadIBL("lightroom_14b");
@@ -1032,7 +1035,6 @@ int main(int, char**) {
 
   int seqIndex = 0;
 
-  std::unordered_map<VID, std::vector<float>> morphWeights;
 
   // Main loop
   while (!glfwWindowShouldClose(window)) {
