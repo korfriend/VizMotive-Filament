@@ -114,6 +114,9 @@ add_definitions(-DFILAMENT_IBL_LITE=1)
 
 add_definitions(-DGLTFIO_DRACO_SUPPORTED=1)
 
+option(FILAMENT_SUPPORTS_VULKAN "Enables Vulkan on Android" ON)
+option(FILAMENT_ENABLE_MATDBG "Enables Material debugger" ON)
+
 # ==================================================================================================
 # Sources and headers
 # ==================================================================================================
@@ -181,10 +184,15 @@ set(PRIVATE_HDRS
 # specify where our headers are
 include_directories(../API_SOURCE)
 
+
+set(FILAMENT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../out/${CMAKE_BUILD_TYPE}/filament)
+
 # we're building a library
 add_library(${PROJECT_NAME} SHARED ${PRIVATE_HDRS} ${PUBLIC_HDRS} ${SRCS})
 
-target_include_directories(${PROJECT_NAME} PRIVATE
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+    ../includes
     ../../libs/filabridge/include
     ../../filament/backend/include
     ../../filament/src
@@ -203,41 +211,56 @@ set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX d)
 # Dependencies
 # ==================================================================================================
 
-set(FILAMENT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../out/${CMAKE_BUILD_TYPE}/filament)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libs/libfreetype.a
+    ${FILAMENT_DIR}/lib/x86_64/libfilament.a
     ${FILAMENT_DIR}/lib/x86_64/libbackend.a
-    ${FILAMENT_DIR}/lib/x86_64/libbasis_transcoder.a
+    ${FILAMENT_DIR}/lib/x86_64/libfilaflat.a
+    ${FILAMENT_DIR}/lib/x86_64/libfilabridge.a
+    EGL
     ${FILAMENT_DIR}/lib/x86_64/libbluegl.a
     ${FILAMENT_DIR}/lib/x86_64/libbluevk.a
     ${FILAMENT_DIR}/lib/x86_64/libcamutils.a
     ${FILAMENT_DIR}/lib/x86_64/libcivetweb.a
-    ${FILAMENT_DIR}/lib/x86_64/libdracodec.a
-    ${FILAMENT_DIR}/lib/x86_64/libfilabridge.a
-    ${FILAMENT_DIR}/lib/x86_64/libfilaflat.a
-    ${FILAMENT_DIR}/lib/x86_64/libfilamat.a
-    ${FILAMENT_DIR}/lib/x86_64/libfilament.a
-    ${FILAMENT_DIR}/lib/x86_64/libfilament-iblprefilter.a
+
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/libs/filamentapp/libfilamentapp.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/libs/filamentapp/libfilamentapp-resources.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/samples/libgltf-demo-resources.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/samples/libsample-resources.a
+
     ${FILAMENT_DIR}/lib/x86_64/libfilameshio.a
-    ${FILAMENT_DIR}/lib/x86_64/libgeometry.a
     ${FILAMENT_DIR}/lib/x86_64/libgltfio.a
     ${FILAMENT_DIR}/lib/x86_64/libgltfio_core.a
+
+    ${FILAMENT_DIR}/lib/x86_64/libmatdbg.a
+    ${FILAMENT_DIR}/lib/x86_64/libfilamat.a
+
+    ${FILAMENT_DIR}/lib/x86_64/libviewer.a
+    ${FILAMENT_DIR}/lib/x86_64/libuberarchive.a
+    ${FILAMENT_DIR}/lib/x86_64/libuberzlib.a
+    ${FILAMENT_DIR}/lib/x86_64/libgeometry.a
+    ${FILAMENT_DIR}/lib/x86_64/libdracodec.a
     ${FILAMENT_DIR}/lib/x86_64/libibl.a
     ${FILAMENT_DIR}/lib/x86_64/libibl-lite.a
-    ${FILAMENT_DIR}/lib/x86_64/libimage.a
+    ${FILAMENT_DIR}/lib/x86_64/libfilament-iblprefilter.a
+    ${FILAMENT_DIR}/lib/x86_64/libstb.a
+
     ${FILAMENT_DIR}/lib/x86_64/libktxreader.a
-    ${FILAMENT_DIR}/lib/x86_64/libmatdbg.a
     ${FILAMENT_DIR}/lib/x86_64/libmeshoptimizer.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/libs/imageio/libimageio.a
+    ${FILAMENT_DIR}/lib/x86_64/libimage.a
     ${FILAMENT_DIR}/lib/x86_64/libmikktspace.a
     ${FILAMENT_DIR}/lib/x86_64/libshaders.a
     ${FILAMENT_DIR}/lib/x86_64/libsmol-v.a
-    ${FILAMENT_DIR}/lib/x86_64/libstb.a
-    ${FILAMENT_DIR}/lib/x86_64/libuberarchive.a
-    ${FILAMENT_DIR}/lib/x86_64/libuberzlib.a
-    ${FILAMENT_DIR}/lib/x86_64/libutils.a
-    ${FILAMENT_DIR}/lib/x86_64/libviewer.a
     ${FILAMENT_DIR}/lib/x86_64/libvkshaders.a
+
+    ${FILAMENT_DIR}/lib/x86_64/libutils.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/third_party/libpng/tnt/libpng.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/third_party/tinyexr/tnt/libtinyexr.a
+    ${FILAMENT_DIR}/lib/x86_64/libbasis_transcoder.a
     ${FILAMENT_DIR}/lib/x86_64/libzstd.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/third_party/libz/tnt/libz.a
 )
 
 # ==============================================================================================
