@@ -27,8 +27,8 @@
 #define VZ_WARNNING 3
 
 #if defined(__clang__)
-#define VZ_NONNULL _Nonnull
-#define VZ_NULLABLE _Nullable
+#define VZ_NONNULL //_Nonnull
+#define VZ_NULLABLE //_Nullable
 #else
 #define VZ_NONNULL
 #define VZ_NULLABLE
