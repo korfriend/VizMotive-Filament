@@ -150,9 +150,11 @@ set(PUBLIC_HDRS
 set(SRCS
         ../API_SOURCE/backend/VzAssetExporter.cpp
         ../API_SOURCE/backend/VzAssetLoader.cpp
+        ../API_SOURCE/backend/VzMeshAssimp.cpp
         ../API_SOURCE/components/VzActor.cpp
         ../API_SOURCE/components/VzAsset.cpp
         ../API_SOURCE/components/VzCamera.cpp
+        ../API_SOURCE/components/VzFont.cpp
         ../API_SOURCE/components/VzGeometry.cpp
         ../API_SOURCE/components/VzLight.cpp
         ../API_SOURCE/components/VzMaterial.cpp
@@ -171,6 +173,7 @@ set(SRCS
 set(PRIVATE_HDRS
         ../API_SOURCE/backend/VzAssetExporter.h
         ../API_SOURCE/backend/VzAssetLoader.h
+        ../API_SOURCE/backend/VzMeshAssimp.h
         ../API_SOURCE/FIncludes.h
         ../API_SOURCE/VizCoreUtils.h
         ../API_SOURCE/VzEngineApp.h
@@ -228,6 +231,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/libs/filamentapp/libfilamentapp-resources.a
     ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/samples/libgltf-demo-resources.a
     ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/samples/libsample-resources.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/samples/libsuzanne-resources.a
 
     ${FILAMENT_DIR}/lib/x86_64/libfilameshio.a
     ${FILAMENT_DIR}/lib/x86_64/libgltfio.a
@@ -261,6 +265,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${FILAMENT_DIR}/lib/x86_64/libbasis_transcoder.a
     ${FILAMENT_DIR}/lib/x86_64/libzstd.a
     ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/third_party/libz/tnt/libz.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/third_party/libassimp/tnt/libassimp.a
 )
 
 # ==============================================================================================

@@ -657,7 +657,8 @@ namespace filament::assimp {
                         prim.indices->setBuffer(mEngine,
                             IndexBuffer::BufferDescriptor(is->data(), is->size(), State<uint32_t>::free, is));
 
-                        prim.aabb = Aabb(mesh.aabb.getMin(), mesh.aabb.getMax());
+                        prim.aabb.min = mesh.aabb.getMin();
+                        prim.aabb.max = mesh.aabb.getMax();
                         prim.ptype = PrimitiveType::TRIANGLES;
 
                         std::string name_mi = n == 1? actor_name + " (MI)" : actor_name + " Part[" + std::to_string(i) + "] (MI)";

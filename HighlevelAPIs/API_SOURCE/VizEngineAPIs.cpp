@@ -185,7 +185,7 @@ namespace vzm
 
         gConfig.title = "hellopbr";
         //gConfig.iblDirectory = FilamentApp::getRootAssetsPath() + IBL_FOLDER;
-        auto api = arguments.GetParam("api", std::string("vulkan"));
+        auto api = arguments.GetParam("api", std::string("opengl"));
         if (api == "opengl")
         {
             gConfig.backend = filament::Engine::Backend::OPENGL;
