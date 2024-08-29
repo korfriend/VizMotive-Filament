@@ -180,7 +180,7 @@ std::tuple<VkImage, VkDeviceMemory, void * UTILS_NULLABLE> createImageAndMemoryH
   if (sizeof(void*) == 8) {
     handleValue = (void*)(long long)fd;
   } else {
-    handleValue = (void*)fd;
+    handleValue = (void*)(long)fd;
   }
 #endif
 
