@@ -25,6 +25,7 @@ set(VIZAPI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../VizAPIs_Linux/dist)
 add_definitions(-D__linux__)
 
 target_include_directories(MyExecutable  PRIVATE
+    ../libs
     ${VIZAPI_DIR}/include
 )
 
