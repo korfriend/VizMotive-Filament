@@ -125,6 +125,7 @@ set(COMPONENT_HDRS
         ../API_SOURCE/components/VzActor.h
         ../API_SOURCE/components/VzAsset.h
         ../API_SOURCE/components/VzCamera.h
+        ../API_SOURCE/components/VzFont.h
         ../API_SOURCE/components/VzGeometry.h
         ../API_SOURCE/components/VzLight.h
         ../API_SOURCE/components/VzMaterial.h
