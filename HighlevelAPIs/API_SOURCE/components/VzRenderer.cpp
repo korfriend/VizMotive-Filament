@@ -126,6 +126,18 @@ namespace vzm
         COMP_RENDERPATH(render_path, false);
         return render_path->viewSettings.msaa.enabled;
     }
+    void VzRenderer::SetMsaaSampleCount(int samples)
+    {
+        COMP_RENDERPATH(render_path, );
+        render_path->viewSettings.msaa.sampleCount = samples;
+        render_path->dirtyFlags |= VzRenderPath::DirtyFlags::MSAA;
+        UpdateTimeStamp();
+    }
+    int VzRenderer::GetMsaaSampleCount()
+    {
+        COMP_RENDERPATH(render_path, 4);
+        return render_path->viewSettings.msaa.sampleCount;
+    }
     void VzRenderer::SetMsaaCustomResolve(bool customResolve)
     {
         COMP_RENDERPATH(render_path, );
