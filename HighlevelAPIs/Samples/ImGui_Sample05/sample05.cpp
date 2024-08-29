@@ -11,6 +11,14 @@
 #endif
 #include <GLFW/glfw3native.h>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/glm.hpp"
+#include "glm/gtc/constants.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "glm/gtx/transform.hpp"
+#include "glm/gtx/vector_angle.hpp"
+
 #include <iostream>
 
 vzm::VzCamera* g_cam = nullptr;
@@ -57,7 +65,7 @@ void setMouseScroll(GLFWwindow* window, double xOffset, double yOffset) {
   glfwGetCursorPos(window, &x, &y);
 
   g_cam->GetController()->Scroll(static_cast<int>(x), static_cast<int>(y),
-                                 -5.0f * (float)yOffset);
+                                 -10.0f * (float)yOffset);
 }
 
 // Main code
@@ -114,15 +122,15 @@ int main(int, char**) {
   }
 
   g_cam = (vzm::VzCamera*)vzm::NewSceneComponent(
-      vzm::SCENE_COMPONENT_TYPE::CAMERA, "my camera", 0);
-  float p[3] = {0, 0, 10};
-  float at[3] = {0, 0, -4};
-  float u[3] = {0, 1, 0};
+      vzm::SCENE_COMPONENT_TYPE::CAMERA, "mycamera", 0);
+  glm::fvec3 p(0, 0, 10);
+  glm::fvec3 at(0, 0, -4);
+  glm::fvec3 u(0, 1, 0);
   g_cam->SetWorldPose((float*)&p, (float*)&at, (float*)&u);
   g_cam->SetPerspectiveProjection(0.1f, 1000.f, 45.f, (float)w / (float)h);
   g_cam->SetMatrixAutoUpdate(false);
   vzm::VzCamera::Controller* cc = g_cam->GetController();
-  *(float**)cc->orbitHomePosition = p;
+  *(glm::fvec3*)cc->orbitHomePosition = p;
   cc->UpdateControllerSettings();
   cc->SetViewport(w, h);
 
