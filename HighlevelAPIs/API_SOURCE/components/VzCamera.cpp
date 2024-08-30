@@ -56,7 +56,7 @@ namespace vzm
         VzCameraRes* cam_res = gEngineApp->GetCameraRes(GetVID());
         if (cam_res == nullptr) return;
 
-        Cube* camera_cube = cam_res->GetCameraCube();
+        VzCube* camera_cube = cam_res->GetCameraCube();
         auto& rcm = gEngine->getRenderableManager();
         rcm.setLayerMask(rcm.getInstance(camera_cube->getSolidRenderable()), layerBits, maskBits);
         rcm.setLayerMask(rcm.getInstance(camera_cube->getWireFrameRenderable()), layerBits, maskBits);

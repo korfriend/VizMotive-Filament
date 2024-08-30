@@ -59,6 +59,15 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)components\VzFont.cpp">
       <Filter>components</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)backend\resource_internal.c">
+      <Filter>backend</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzIBL.cpp">
+      <Filter>backend\FA_Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzCube.cpp">
+      <Filter>backend\FA_Helpers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)VizEngineAPIs.h" />
@@ -128,6 +137,21 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)components\VzFont.h">
       <Filter>components</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)backend\resource_internal.h">
+      <Filter>backend</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzIBL.h">
+      <Filter>backend\FA_Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzCube.h">
+      <Filter>backend\FA_Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzConfig.h">
+      <Filter>backend\FA_Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)PreDefs.h">
+      <Filter>common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="components">
@@ -141,6 +165,9 @@
     </Filter>
     <Filter Include="common">
       <UniqueIdentifier>{445478bb-73e7-42ca-96f7-d24dab3d09f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="backend\FA_Helpers">
+      <UniqueIdentifier>{0920c56b-8aef-479e-b6cf-75ab7bbadf27}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

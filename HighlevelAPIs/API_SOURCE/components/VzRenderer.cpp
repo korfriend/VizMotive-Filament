@@ -1213,10 +1213,10 @@ namespace vzm
         const Camera* lightmapCamera = view->getDirectionalShadowCamera();
         if (lightmapCamera) {
             VzSceneRes* scene_res = gEngineApp->GetSceneRes(vidScene);
-            Cube* lightmapCube = scene_res->GetLightmapCube();
+            VzCube* lightmapCube = scene_res->GetLightmapCube();
             lightmapCube->mapFrustum(*gEngine, lightmapCamera);
         }
-        Cube* cameraCube = cam_res->GetCameraCube();
+        VzCube* cameraCube = cam_res->GetCameraCube();
         if (cameraCube) {
             cameraCube->mapFrustum(*gEngine, camera);
         }

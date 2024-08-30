@@ -57,8 +57,8 @@ namespace filament::gltfio {
     struct VzAssetExpoter;
 }
 
-class IBL;
-class Cube;
+class VzIBL;
+class VzCube;
 // component contents
 namespace vzm
 {
@@ -138,21 +138,21 @@ namespace vzm
     struct VzSceneRes
     {
     private:
-        IBL* ibl_ = nullptr;
-        Cube* lightmapCube_ = nullptr; // note current filament supports only one directional light's shadowmap
+        VzIBL* ibl_ = nullptr;
+        VzCube* lightmapCube_ = nullptr; // note current filament supports only one directional light's shadowmap
     public:
         VzSceneRes();
         ~VzSceneRes();
         void Destory();
-        IBL* GetIBL();
-        IBL* NewIBL();
-        Cube* GetLightmapCube();
+        VzIBL* GetIBL();
+        VzIBL* NewIBL();
+        VzCube* GetLightmapCube();
     };
     struct VzCameraRes
     {
     private:
         filament::Camera* camera_ = nullptr;
-        Cube* cameraCube_ = nullptr;
+        VzCube* cameraCube_ = nullptr;
         VzCamera::Controller camController_ = VzCamera::Controller(0);
         CameraManipulator* cameraManipulator_;
     public:
@@ -166,7 +166,7 @@ namespace vzm
 
         void SetCamera(Camera* camera);
         Camera* GetCamera();
-        Cube* GetCameraCube();
+        VzCube* GetCameraCube();
         void NewCameraManipulator(const VzCamera::Controller& camController);
         VzCamera::Controller* GetCameraController();
         CameraManipulator* GetCameraManipulator();

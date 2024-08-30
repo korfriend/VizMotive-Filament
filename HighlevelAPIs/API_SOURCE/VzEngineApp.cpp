@@ -274,22 +274,22 @@ namespace vzm
             lightmapCube_ = nullptr;
         }
     }
-    IBL* VzSceneRes::GetIBL() { return ibl_; }
-    IBL* VzSceneRes::NewIBL()
+    VzIBL* VzSceneRes::GetIBL() { return ibl_; }
+    VzIBL* VzSceneRes::NewIBL()
     {
         if (ibl_) {
             delete ibl_;
         }
-        ibl_ = new IBL(*gEngine);
+        ibl_ = new VzIBL(*gEngine);
         return ibl_;
     }
-    Cube* VzSceneRes::GetLightmapCube()
+    VzCube* VzSceneRes::GetLightmapCube()
     {
         if (lightmapCube_)
         {
             return lightmapCube_;
         }
-        lightmapCube_ = new Cube(*gEngine, gMaterialTransparent, { 0, 1, 0 }, false);
+        lightmapCube_ = new VzCube(*gEngine, gMaterialTransparent, { 0, 1, 0 }, false);
         return lightmapCube_;
     }
 #pragma endregion
@@ -308,13 +308,13 @@ namespace vzm
     }
     void VzCameraRes::SetCamera(Camera* camera) { camera_ = camera; }
     Camera* VzCameraRes::GetCamera() { return camera_; }
-    Cube* VzCameraRes::GetCameraCube()
+    VzCube* VzCameraRes::GetCameraCube()
     {
         if (cameraCube_)
         {
             return cameraCube_;
         }
-        cameraCube_ = new Cube(*gEngine, gMaterialTransparent, { 1, 0, 0 });
+        cameraCube_ = new VzCube(*gEngine, gMaterialTransparent, { 1, 0, 0 });
         return cameraCube_;
     }
     void VzCameraRes::NewCameraManipulator(const VzCamera::Controller& camController)
@@ -1981,7 +1981,7 @@ namespace vzm
             if (it_camres != camResMap_.end())
             {
                 VzCameraRes& cam_res = *it_camres->second.get();
-                Cube* cam_cube = cam_res.GetCameraCube();
+                VzCube* cam_cube = cam_res.GetCameraCube();
                 if (cam_cube)
                 {
                     SceneVID vid_scene = GetSceneVidBelongTo(vid);
