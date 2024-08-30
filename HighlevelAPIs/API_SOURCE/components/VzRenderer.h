@@ -34,6 +34,9 @@ namespace vzm
         void SetMsaaEnabled(bool enabled);
         bool IsMsaaEnabled();
 
+        void SetMsaaSampleCount(int samples);
+        int GetMsaaSampleCount();
+
         void SetMsaaCustomResolve(bool customResolve);
         bool IsMsaaCustomResolve();
 

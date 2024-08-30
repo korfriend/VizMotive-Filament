@@ -13,6 +13,12 @@ namespace vzm
         rcm.setLayerMask(ins, layerBits, maskBits);
         UpdateTimeStamp();
     }
+    void VzBaseActor::SetPriority(const uint8_t priority)
+    {
+        COMP_ACTOR(rcm, ett, ins, );
+        rcm.setPriority(ins, priority);
+        UpdateTimeStamp();
+    }
 }
 
 namespace vzm

@@ -673,6 +673,11 @@ int render_height = 1080;
 
 VID currentVID = -1;
 
+std::unordered_map<VID, std::vector<float>> morphWeights;
+std::unordered_map<VID, bool> castShadows;
+std::unordered_map<VID, bool> receiveShadows;
+std::unordered_map<VID, bool> screenSpaceContactShadows;
+
 void resize(int width, int height) {
   if (current_cam == g_cam) {
     g_cam->GetController()->SetViewport(width, height);
@@ -874,6 +879,11 @@ std::wstring OpenFileDialog(const wchar_t* pStrFilter) {
 }
 
 void initViewer() {
+  morphWeights.clear();
+  castShadows.clear();
+  receiveShadows.clear();
+  screenSpaceContactShadows.clear();
+
   g_scene = vzm::NewScene("my scene");
   g_scene->LoadIBL("../../../VisualStudio/samples/assets/ibl/lightroom_14b");
   //g_scene->LoadIBL("lightroom_14b");
@@ -1032,7 +1042,6 @@ int main(int, char**) {
 
   int seqIndex = 0;
 
-  std::unordered_map<VID, std::vector<float>> morphWeights;
 
   // Main loop
   while (!glfwWindowShouldClose(window)) {
@@ -1817,6 +1826,45 @@ int main(int, char**) {
                   sOpts.cascadeSplitPositions[2] = splitPos2;
                   lightComponent->SetShadowOptions(sOpts);
                 }
+              }
+            }
+            ImGui::Unindent();
+          }
+          if (ImGui::CollapsingHeader(
+                  "Shadow",
+                  ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Indent();
+            if (type == vzm::SCENE_COMPONENT_TYPE::ACTOR) {
+              vzm::VzActor* actor = (vzm::VzActor*)component;
+              VID actorVID = actor->GetVID();
+              if (castShadows.find(actorVID) == castShadows.end()) {
+                castShadows[actorVID] = false;
+              }
+              if (receiveShadows.find(actorVID) == receiveShadows.end()) {
+                receiveShadows[actorVID] = false;
+              }
+              if (screenSpaceContactShadows.find(actorVID) ==
+                  screenSpaceContactShadows.end()) {
+                screenSpaceContactShadows[actorVID] = false;
+              }
+
+              bool bCastShadow = castShadows[actorVID];
+              bool bReceiveShadow = receiveShadows[actorVID];
+              bool bScreenSpaceContactShadows = screenSpaceContactShadows[actorVID];
+
+              if (ImGui::Checkbox("CastShadows", &bCastShadow)) {
+                actor->SetCastShadows(bCastShadow);
+                castShadows[actorVID] = bCastShadow;
+              }
+              if (ImGui::Checkbox("ReceiveShadows", &bReceiveShadow)) {
+                actor->SetReceiveShadows(bReceiveShadow);
+                receiveShadows[actorVID] = bReceiveShadow;
+              }
+              if (ImGui::Checkbox("ScreenSpaceContactShadows",
+                                  &bScreenSpaceContactShadows)) {
+                actor->SetScreenSpaceContactShadows(bScreenSpaceContactShadows);
+                screenSpaceContactShadows[actorVID] =
+                    bScreenSpaceContactShadows;
               }
             }
             ImGui::Unindent();

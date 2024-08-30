@@ -114,9 +114,8 @@ std::tuple<VkImage, VkDeviceMemory, void * UTILS_NULLABLE> createImageAndMemoryH
 
   VkImage image;
   VkResult result = vkCreateImage(device, &imageInfo, VKALLOC, &image);
-  if (result != VK_SUCCESS) {
-    throw std::runtime_error("Unable to create image");
-  }
+  FILAMENT_CHECK_POSTCONDITION(result == VK_SUCCESS)
+      << "Unable to create image: " << static_cast<int32_t>(result);
 
   // Allocate memory for the VkImage and bind it.
   VkMemoryRequirements memReqs;
@@ -143,14 +142,10 @@ std::tuple<VkImage, VkDeviceMemory, void * UTILS_NULLABLE> createImageAndMemoryH
 
   VkDeviceMemory imageMemory;
   result = vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory);
-  if (result != VK_SUCCESS) {
-    throw std::runtime_error("Unable to allocate image memory");
-  }
+  FILAMENT_CHECK_POSTCONDITION(result == VK_SUCCESS) << "Unable to allocate image memory.";
 
   result = vkBindImageMemory(device, image, imageMemory, 0);
-  if (result != VK_SUCCESS) {
-    throw std::runtime_error("Unable to bind image memory");
-  }
+  FILAMENT_CHECK_POSTCONDITION(result == VK_SUCCESS) << "Unable to bind image.";
 
   #ifdef _WIN32
   VkMemoryGetWin32HandleInfoKHR getWin32HandleInfo = {};
@@ -161,9 +156,7 @@ std::tuple<VkImage, VkDeviceMemory, void * UTILS_NULLABLE> createImageAndMemoryH
 
   HANDLE handle = nullptr;
   result = vkGetMemoryWin32HandleKHR(device, &getWin32HandleInfo, &handle);
-  if (result != VK_SUCCESS) {
-    throw std::runtime_error("Failed to get memory handle");
-  }
+  FILAMENT_CHECK_POSTCONDITION(result == VK_SUCCESS) << "Failed to get memory handle";
   handleValue = (void*)handle;
   
   #elif __linux__
@@ -174,9 +167,7 @@ std::tuple<VkImage, VkDeviceMemory, void * UTILS_NULLABLE> createImageAndMemoryH
 
   int fd = -1;
   result = vkGetMemoryFdKHR(device, &getFdInfo, &fd);
-  if (result != VK_SUCCESS) {
-    throw std::runtime_error("Failed to get memory file descriptor");
-  }
+  FILAMENT_CHECK_POSTCONDITION(result == VK_SUCCESS) << "Failed to get memory handle";
   if (sizeof(void*) == 8) {
     handleValue = (void*)(long long)fd;
   } else {
