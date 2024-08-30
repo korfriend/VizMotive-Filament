@@ -153,7 +153,7 @@ namespace vzm
     {
         COMP_TRANSFORM(tc, ett, ins, );
         const math::mat4f& mat = tc.getWorldTransform(ins);
-        *(float3*)v = mat[2].xyz; // view
+        *(float3*)v = mat[2].xyz; // z-axis
     }
     void VzSceneComp::GetWorldRight(float v[3])
     {
