@@ -1299,7 +1299,7 @@ namespace vzm
                 double4 p_ws_h = os2ws * double4(0, 0, 0, 1);
                 double3 p_ws = p_ws_h.xyz / p_ws_h.w; // fixed
 
-                mat4 os2ws_new = mat4::lookTo(-v, p_ws, u);
+                mat4 os2ws_new = mat4::lookTo(v, p_ws, u);
                 mat4 os2parent_new = inverse(parent2ws) * os2ws_new;
 
                 tcm.setTransform(ti, os2parent_new);
