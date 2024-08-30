@@ -365,6 +365,9 @@ void ExportMaterials(rapidjson::Value& jsonNode,
                 paramObj.AddMember("value", valueArray, allocator);
                 break;
               }
+              default:
+                std::cout << "처리되지 않은 uniform type" << std::endl;
+                break;
             }
           }
           // string(texture 경로)

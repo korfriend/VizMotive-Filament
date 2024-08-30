@@ -678,6 +678,45 @@ std::unordered_map<VID, bool> castShadows;
 std::unordered_map<VID, bool> receiveShadows;
 std::unordered_map<VID, bool> screenSpaceContactShadows;
 
+float g_uv[2] = {0.5f, 0.5f};
+float g_localPosition[3] = {0.0f, 0.0f, 0.0f};
+float g_width = 1.0f;
+float g_height = 1.0f;
+char g_texturePath[300];
+int g_priority = 0;
+
+float g_text_color[3] = {1.0f, 1.0f, 1.0f};
+float g_font_height = 0.01f;
+float g_max_width = 0.125f;
+char g_text[100] = {
+    0,
+};
+
+vzm::VzSpriteActor* makeSprite(const vzm::VzBaseComp* parent,
+                               std::string texturePath, std::string name,
+                               float width, float height, float uv[2],
+                               float localPosition[3]) {
+  vzm::VzTexture* texture = (vzm::VzTexture*)vzm::NewResComponent(
+      vzm::RES_COMPONENT_TYPE::TEXTURE, "texture");
+  texture->ReadImage(texturePath);
+
+  vzm::VzSpriteActor* sprite = (vzm::VzSpriteActor*)vzm::NewSceneComponent(
+      vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR, name);
+
+  sprite->SetSpriteWidth(width)
+      .SetSpriteHeight(height)
+      .SetAnchorU(uv[0])
+      .SetAnchorV(uv[1])
+      .Build();
+
+  sprite->SetTexture(texture->GetVID());
+  sprite->SetPosition(localPosition);
+  sprite->EnableBillboard(true);
+
+  vzm::AppendSceneCompTo(sprite, parent);
+
+  return sprite;
+}
 void resize(int width, int height) {
   if (current_cam == g_cam) {
     g_cam->GetController()->SetViewport(width, height);
@@ -885,8 +924,8 @@ void initViewer() {
   screenSpaceContactShadows.clear();
 
   g_scene = vzm::NewScene("my scene");
-  g_scene->LoadIBL("../../../VisualStudio/samples/assets/ibl/lightroom_14b");
-  //g_scene->LoadIBL("lightroom_14b");
+  //g_scene->LoadIBL("../../../VisualStudio/samples/assets/ibl/lightroom_14b");
+  g_scene->LoadIBL("lightroom_14b");
   g_cam = (vzm::VzCamera*)vzm::NewSceneComponent(
       vzm::SCENE_COMPONENT_TYPE::CAMERA, "UserCamera");
   glm::fvec3 p(0, 0, 10);
@@ -1041,7 +1080,6 @@ int main(int, char**) {
   clock_t currentTime = clock();
 
   int seqIndex = 0;
-
 
   // Main loop
   while (!glfwWindowShouldClose(window)) {
@@ -1463,6 +1501,54 @@ int main(int, char**) {
           vzm::SCENE_COMPONENT_TYPE type = component->GetSceneCompType();
           ImGui::Text(component->GetName().c_str());
           ImGui::PushID(component->GetName().c_str());
+
+          if (ImGui::CollapsingHeader(
+                  "Sprite Generator",
+                  ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::InputFloat("width", &g_width);
+            ImGui::InputFloat("height", &g_height);
+            ImGui::InputFloat2("uv", g_uv);
+            ImGui::InputFloat3("localPosition", g_localPosition);
+            ImGui::InputText("texturePath", g_texturePath, 300);
+            ImGui::InputInt("priority", &g_priority);
+            //"../assets/testimage.png"
+            if (ImGui::Button("make test sprite")) {
+              vzm::VzSpriteActor* sprite = makeSprite(component, std::string(g_texturePath), "test sprite",
+                         g_width, g_height, g_uv, g_localPosition);
+              sprite->SetPriority((uint8_t)g_priority);
+            }
+          }
+          if (ImGui::CollapsingHeader(
+                  "Text Generator",
+                  ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::InputFloat2("uv", g_uv);
+            ImGui::InputFloat3("localPosition", g_localPosition);
+            ImGui::InputInt("priority", &g_priority);
+            ImGui::InputFloat3("textcolor", g_text_color);
+            ImGui::InputFloat("font height", &g_font_height);
+            ImGui::InputFloat("max width", &g_max_width);
+            ImGui::InputText("text", g_text, 100);
+
+            //"../assets/testimage.png"
+            if (ImGui::Button("make text")) {
+              //vzm::VzFont* font = (vzm::VzFont*)vzm::NewResComponent(
+              //    vzm::RES_COMPONENT_TYPE::FONT, "font");
+              //font->ReadFont("font/HyundaiSansUI_JP_KR_Latin-Regular.ttf", 30);
+
+              //vzm::VzTextSpriteActor* text_actor_ =
+              //    (vzm::VzTextSpriteActor*)vzm::NewSceneComponent(
+              //    vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR, "text actor");
+
+              //text_actor_->SetFont(font->GetVID());
+              //text_actor_->SetColor(g_text_color)
+              //    .SetFontHeight(g_font_height)
+              //    .SetMaxWidth(g_max_width)
+              //    .Build();
+              //text_actor_->SetPosition(g_localPosition);
+              //vzm::AppendSceneCompTo(text_actor_, component);
+              //text_actor_->SetPriority((uint8_t)g_priority);
+            }
+          }
           if (ImGui::CollapsingHeader(
                   "Transform",
                   ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -1516,7 +1602,7 @@ int main(int, char**) {
                   if (ImGui::Checkbox(ulLabelName.c_str(), &bUnlit)) {
                     matkey.unlit = bUnlit;
                     ma->SetStandardMaterialByKey(matkey);
-                    
+
                     mi->SetMaterial(ma->GetVID());
                     actor->SetMI(mi->GetVID(), prim);
                   }*/
@@ -1644,8 +1730,14 @@ int main(int, char**) {
                             ImGuiColorEditFlags_DefaultOptions_) {
                           mi->SetParameter(paramInfo.name, paramInfo.type,
                                            (void*)v.data());
-                          break;
                         }
+                        break;
+                      default:
+                        std::cout
+                            << "처리되지 않은 UniformType" << paramInfo.name
+                            << ", TYPE: " << std::to_string((int)paramInfo.type)
+                            << std::endl;
+                        break;
                     }
                     ImGui::PopItemWidth();
                     ImGui::EndGroup();
@@ -1850,7 +1942,8 @@ int main(int, char**) {
 
               bool bCastShadow = castShadows[actorVID];
               bool bReceiveShadow = receiveShadows[actorVID];
-              bool bScreenSpaceContactShadows = screenSpaceContactShadows[actorVID];
+              bool bScreenSpaceContactShadows =
+                  screenSpaceContactShadows[actorVID];
 
               if (ImGui::Checkbox("CastShadows", &bCastShadow)) {
                 actor->SetCastShadows(bCastShadow);
@@ -1885,6 +1978,12 @@ int main(int, char**) {
             }
             ImGui::Unindent();
           }
+
+          if (ImGui::Button("Remove")) {
+            vzm::RemoveComponent(component->GetVID());
+            currentVID = -1;
+          }
+
           ImGui::PopID();
           break;
         }
