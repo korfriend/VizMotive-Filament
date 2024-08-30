@@ -158,6 +158,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     vzm::AppendSceneCompTo(sprite, scene);
     vzm::AppendSceneCompTo(actor, scene);
     vzm::AppendSceneCompTo(actor_axis, actor);
+    //vzm::AppendSceneCompTo(actor_axis, nullptr);
     vzm::AppendSceneCompTo(light, scene);
     vzm::AppendSceneCompTo(cam, scene);
 

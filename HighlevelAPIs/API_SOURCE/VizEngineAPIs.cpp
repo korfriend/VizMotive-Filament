@@ -488,10 +488,10 @@ namespace vzm
         return gEngineApp->GetSceneVidBelongTo(parentVid);
     }
 
-    VzScene* AppendSceneCompTo(const VZ_NONNULL VzBaseComp* comp, const VZ_NONNULL VzBaseComp* parentComp)
+    VzScene* AppendSceneCompTo(const VZ_NONNULL VzBaseComp* comp, const VZ_NULLABLE VzBaseComp* parentComp)
     {
         CHECK_API_VALIDITY(nullptr);
-        return (VzScene*) GetVzComponent(AppendSceneCompVidTo(comp->GetVID(), parentComp->GetVID()));
+        return (VzScene*) GetVzComponent(AppendSceneCompVidTo(comp->GetVID(), parentComp ? parentComp->GetVID() : 0));
     };
 
     VzBaseComp* GetVzComponent(const VID vid)

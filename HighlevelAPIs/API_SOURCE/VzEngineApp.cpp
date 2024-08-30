@@ -1098,11 +1098,13 @@ namespace vzm
         }
         else if (vidSrc != vid_scene_src && vidDst == vid_scene_dst)
         {
-            // case 3. src is actor and dst is scene
+            // case 3. src is actor and dst is scene or zero
             // scene_src == scene_dst means that 
             //    vidSrc is appended to its root
 
             auto ins_src = tcm.getInstance(ett_src);
+            auto ins_null = tcm.getInstance(utils::Entity::import(0));
+            tcm.setParent(ins_src, ins_null);
             assert(ins_src.asValue() != 0 && "vidSrc is invalid");
 
             entities_moving.push_back(ett_src);
@@ -1147,7 +1149,7 @@ namespace vzm
                 itc->second = 0;
             if (scene_src)
             {
-                scene_src->remove(ett_src);
+                scene_src->remove(it);
             }
         }
 
