@@ -9,6 +9,7 @@ namespace vzm
             : VzSceneComp(vid, originFrom, typeName, scenecompType) {}
 
         void SetVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits);
+        void SetPriority(const uint8_t priority);
     };
 
     struct API_EXPORT VzActor : VzBaseActor
