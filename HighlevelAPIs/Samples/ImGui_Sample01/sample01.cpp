@@ -678,45 +678,22 @@ std::unordered_map<VID, bool> castShadows;
 std::unordered_map<VID, bool> receiveShadows;
 std::unordered_map<VID, bool> screenSpaceContactShadows;
 
-float g_uv[2] = {0.5f, 0.5f};
-float g_localPosition[3] = {0.0f, 0.0f, 0.0f};
+float g_sprite_uv[2] = {0.5f, 0.5f};
+float g_text_uv[2] = {0.5f, 0.5f};
 float g_width = 1.0f;
 float g_height = 1.0f;
-char g_texturePath[300];
-int g_priority = 0;
+char g_texturePath[300] = "testimage.png";
+int g_sprite_priority = 0;
+int g_text_priority = 0;
+bool g_billboard = true;
 
 float g_text_color[3] = {1.0f, 1.0f, 1.0f};
-float g_font_height = 0.01f;
-float g_max_width = 0.125f;
+float g_font_height = 0.5f;
+float g_max_width = 2.0f;
 char g_text[100] = {
     0,
 };
 
-vzm::VzSpriteActor* makeSprite(const vzm::VzBaseComp* parent,
-                               std::string texturePath, std::string name,
-                               float width, float height, float uv[2],
-                               float localPosition[3]) {
-  vzm::VzTexture* texture = (vzm::VzTexture*)vzm::NewResComponent(
-      vzm::RES_COMPONENT_TYPE::TEXTURE, "texture");
-  texture->ReadImage(texturePath);
-
-  vzm::VzSpriteActor* sprite = (vzm::VzSpriteActor*)vzm::NewSceneComponent(
-      vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR, name);
-
-  sprite->SetSpriteWidth(width)
-      .SetSpriteHeight(height)
-      .SetAnchorU(uv[0])
-      .SetAnchorV(uv[1])
-      .Build();
-
-  sprite->SetTexture(texture->GetVID());
-  sprite->SetPosition(localPosition);
-  sprite->EnableBillboard(true);
-
-  vzm::AppendSceneCompTo(sprite, parent);
-
-  return sprite;
-}
 void resize(int width, int height) {
   if (current_cam == g_cam) {
     g_cam->GetController()->SetViewport(width, height);
@@ -1507,24 +1484,42 @@ int main(int, char**) {
                   ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::InputFloat("width", &g_width);
             ImGui::InputFloat("height", &g_height);
-            ImGui::InputFloat2("uv", g_uv);
-            ImGui::InputFloat3("localPosition", g_localPosition);
+            ImGui::InputFloat2("uv##sprite", g_sprite_uv);
             ImGui::InputText("texturePath", g_texturePath, 300);
-            ImGui::InputInt("priority", &g_priority);
+            ImGui::InputInt("priority##sprite", &g_sprite_priority);
+            ImGui::Checkbox("Is Billboard", &g_billboard);
+
             //"../assets/testimage.png"
             if (ImGui::Button("make test sprite")) {
-              vzm::VzSpriteActor* sprite = makeSprite(component, std::string(g_texturePath), "test sprite",
-                         g_width, g_height, g_uv, g_localPosition);
-              sprite->SetPriority((uint8_t)g_priority);
+              vzm::VzTexture* spritetexture = (vzm::VzTexture*)vzm::NewResComponent(
+                  vzm::RES_COMPONENT_TYPE::TEXTURE, "texture");
+              spritetexture->ReadImage(g_texturePath);
+
+              vzm::VzSpriteActor* msprite =
+                  (vzm::VzSpriteActor*)vzm::NewSceneComponent(
+                      vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR, "test sprite");
+
+              msprite->SetSpriteWidth(g_width)
+                  .SetSpriteHeight(g_height)
+                  .SetAnchorU(g_sprite_uv[0])
+                  .SetAnchorV(g_sprite_uv[1])
+                  .Build();
+
+              msprite->SetTexture(spritetexture->GetVID());
+              msprite->EnableBillboard(g_billboard);
+
+              vzm::AppendSceneCompTo(msprite, component);
+              float position[3] = {0, 0, 0};
+              msprite->SetPosition(position);
+              msprite->SetPriority((uint8_t)g_sprite_priority);
             }
           }
           if (ImGui::CollapsingHeader(
                   "Text Generator",
                   ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::InputFloat2("uv", g_uv);
-            ImGui::InputFloat3("localPosition", g_localPosition);
-            ImGui::InputInt("priority", &g_priority);
-            ImGui::InputFloat3("textcolor", g_text_color);
+            ImGui::InputFloat2("uv##text", g_text_uv);
+            ImGui::InputInt("priority##text", &g_text_priority);
+            ImGui::ColorEdit3("textcolor", g_text_color);
             ImGui::InputFloat("font height", &g_font_height);
             ImGui::InputFloat("max width", &g_max_width);
             ImGui::InputText("text", g_text, 100);
@@ -1545,9 +1540,8 @@ int main(int, char**) {
                   .SetMaxWidth(g_max_width)
                   .SetText(g_text)
                   .Build();
-              text_actor_->SetPosition(g_localPosition);
               vzm::AppendSceneCompTo(text_actor_, component);
-              text_actor_->SetPriority((uint8_t)g_priority);
+              text_actor_->SetPriority((uint8_t)g_text_priority);
             }
           }
           if (ImGui::CollapsingHeader(
