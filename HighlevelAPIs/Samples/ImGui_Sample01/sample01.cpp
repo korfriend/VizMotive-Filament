@@ -1531,22 +1531,23 @@ int main(int, char**) {
 
             //"../assets/testimage.png"
             if (ImGui::Button("make text")) {
-              //vzm::VzFont* font = (vzm::VzFont*)vzm::NewResComponent(
-              //    vzm::RES_COMPONENT_TYPE::FONT, "font");
-              //font->ReadFont("font/HyundaiSansUI_JP_KR_Latin-Regular.ttf", 30);
+              vzm::VzFont* font = (vzm::VzFont*)vzm::NewResComponent(
+                  vzm::RES_COMPONENT_TYPE::FONT, "font");
+              font->ReadFont("font/HyundaiSansUI_JP_KR_Latin-Regular.ttf", 30);
 
-              //vzm::VzTextSpriteActor* text_actor_ =
-              //    (vzm::VzTextSpriteActor*)vzm::NewSceneComponent(
-              //    vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR, "text actor");
+              vzm::VzTextSpriteActor* text_actor_ =
+                  (vzm::VzTextSpriteActor*)vzm::NewSceneComponent(
+                  vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR, "text actor");
 
-              //text_actor_->SetFont(font->GetVID());
-              //text_actor_->SetColor(g_text_color)
-              //    .SetFontHeight(g_font_height)
-              //    .SetMaxWidth(g_max_width)
-              //    .Build();
-              //text_actor_->SetPosition(g_localPosition);
-              //vzm::AppendSceneCompTo(text_actor_, component);
-              //text_actor_->SetPriority((uint8_t)g_priority);
+              text_actor_->SetFont(font->GetVID());
+              text_actor_->SetColor(g_text_color)
+                  .SetFontHeight(g_font_height)
+                  .SetMaxWidth(g_max_width)
+                  .SetText(g_text)
+                  .Build();
+              text_actor_->SetPosition(g_localPosition);
+              vzm::AppendSceneCompTo(text_actor_, component);
+              text_actor_->SetPriority((uint8_t)g_priority);
             }
           }
           if (ImGui::CollapsingHeader(
