@@ -77,7 +77,7 @@ function build_android_target {
     if [[ ! -d "CMakeFiles" ]] || [[ "${ISSUE_CMAKE_ALWAYS}" == "true" ]]; then
         cmake \
             -G "${BUILD_GENERATOR}" \
-            -DCMAKE_BUILD_TYPE="$1" \
+            -DCMAKE_BUILD_TYPE="${lc_target}" \
             -DFILAMENT_NDK_VERSION="${FILAMENT_NDK_VERSION}" \
             -DCMAKE_INSTALL_PREFIX="../dist/${arch}" \
             -DCMAKE_TOOLCHAIN_FILE="../../build/toolchain-${arch}-linux-android.cmake" \
