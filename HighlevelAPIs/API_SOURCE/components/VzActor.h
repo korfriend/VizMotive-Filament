@@ -83,6 +83,21 @@ namespace vzm
         VzTextSpriteActor& SetColor(const float color[4]);
         VzTextSpriteActor& SetFontHeight(const float fontHeight);
         VzTextSpriteActor& SetMaxWidth(const float maxWidth);
+        enum class TEXT_ALIGN : uint8_t {
+            LEFT = 1,
+            CENTER = 2,
+            RIGHT = 3,
+            TOP_LEFT = 4,
+            TOP_CENTER = 5,
+            TOP_RIGHT = 6,
+            MIDDLE_LEFT = 7,
+            MIDDLE_CENTER = 8,
+            MIDDLE_RIGHT = 9,
+            BOTTOM_LEFT = 10,
+            BOTTOM_CENTER = 11,
+            BOTTOM_RIGHT = 12
+        };
+        VzTextSpriteActor& SetTextAlign(const TEXT_ALIGN textAlign);
         void Build();
     };
 }
