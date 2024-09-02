@@ -658,7 +658,7 @@ vzm::VzCamera* current_cam;
 int current_cam_idx = 0;
 std::vector<VID> cameras;
 
-bool g_lightEnabled = false;
+bool g_lightEnabled = true;
 vzm::VzSunLight* g_light;
 
 vzm::VzAsset* g_asset;
@@ -2461,6 +2461,11 @@ int main(int, char**) {
               float sunRadius = g_light->GetSunAngularRadius();
 
               if (ImGui::Checkbox("Enable sunlight", &g_lightEnabled)) {
+                if (g_lightEnabled) {
+                  vzm::AppendSceneCompTo(g_light, g_scene);
+                } else {
+                  vzm::AppendSceneCompTo(g_light, nullptr);
+                }
               }
 
               if (ImGui::InputFloat("Sun intensity", &intensity)) {

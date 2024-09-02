@@ -1,13 +1,6 @@
 #pragma once
-//////////////////////////////
-// filament intrinsics
-#pragma warning (disable : 4251)
-#pragma warning (disable : 4819)
-// FEngine Warnings
-#pragma warning (disable : 4146)
-#pragma warning (disable : 4068)
-#pragma warning (disable : 4267)
-#pragma warning (disable : 4244)
+
+#include "PreDefs.h"
 
 #include <filament/Engine.h>
 #include <filament/LightManager.h>
@@ -46,14 +39,16 @@
 
 #include <filameshio/MeshReader.h>
 
-#include <filamentapp/Config.h>
-#include <filamentapp/Cube.h>
-#include <filamentapp/IBL.h>
+#include "backend/VzConfig.h"
+#include "backend/VzCube.h"
+#include "backend/VzIBL.h"
 
+
+#include "backend/resource_internal.h"
 #include "../../VisualStudio/samples/generated/resources/resources.h"
 #include "../../VisualStudio/samples/generated/resources/monkey.h"
 #include "../../VisualStudio/samples/generated/resources/gltf_demo.h"
-#include "../../VisualStudio/libs/filamentapp/generated/resources/filamentapp.h"
+//#include "../../VisualStudio/libs/filamentapp/generated/resources/filamentapp.h"
 #include "../../VisualStudio/libs/gltfio/materials/uberarchive.h"
 
 // FEngine

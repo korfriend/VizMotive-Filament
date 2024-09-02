@@ -16,7 +16,7 @@ namespace vzm
     bool VzScene::LoadIBL(const std::string& path)
     {
         VzSceneRes* scene_res = gEngineApp->GetSceneRes(GetVID());
-        IBL* ibl = scene_res->NewIBL();
+        VzIBL* ibl = scene_res->NewIBL();
         Path iblPath(path);
         if (!iblPath.exists()) {
             backlog::post("The specified IBL path does not exist: " + path, backlog::LogLevel::Error);
@@ -45,26 +45,26 @@ namespace vzm
     float VzScene::GetIBLIntensity()
     {
         VzSceneRes* scene_res = gEngineApp->GetSceneRes(GetVID());
-        IBL* ibl = scene_res->GetIBL();
+        VzIBL* ibl = scene_res->GetIBL();
         return ibl->getIndirectLight()->getIntensity();
     }
     float VzScene::GetIBLRotation()
     {
         VzSceneRes* scene_res = gEngineApp->GetSceneRes(GetVID());
-        IBL* ibl = scene_res->GetIBL();
+        VzIBL* ibl = scene_res->GetIBL();
         return iblRotation_;
     }
     void VzScene::SetIBLIntensity(float intensity)
     {
         VzSceneRes* scene_res = gEngineApp->GetSceneRes(GetVID());
-        IBL* ibl = scene_res->GetIBL();
+        VzIBL* ibl = scene_res->GetIBL();
         ibl->getIndirectLight()->setIntensity(intensity);
         UpdateTimeStamp();
     }
     void VzScene::SetIBLRotation(float rotation)
     {
         VzSceneRes* scene_res = gEngineApp->GetSceneRes(GetVID());
-        IBL* ibl = scene_res->GetIBL();
+        VzIBL* ibl = scene_res->GetIBL();
         ibl->getIndirectLight()->setRotation(math::mat3f::rotation(rotation, math::float3{0, 1, 0}));
         iblRotation_ = rotation;
         UpdateTimeStamp();
@@ -72,7 +72,7 @@ namespace vzm
     void VzScene::SetSkyboxVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits)
     {
         VzSceneRes* scene_res = gEngineApp->GetSceneRes(GetVID());
-        IBL* ibl = scene_res->GetIBL();
+        VzIBL* ibl = scene_res->GetIBL();
         ibl->getSkybox()->setLayerMask(layerBits, maskBits);
         UpdateTimeStamp();
     }
@@ -80,7 +80,7 @@ namespace vzm
     {
         VzSceneRes* scene_res = gEngineApp->GetSceneRes(GetVID());
         // create once
-        Cube* light_cube = scene_res->GetLightmapCube();
+        VzCube* light_cube = scene_res->GetLightmapCube();
 
         auto& rcm = gEngine->getRenderableManager();
         rcm.setLayerMask(rcm.getInstance(light_cube->getSolidRenderable()), layerBits, maskBits);

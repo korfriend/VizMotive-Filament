@@ -660,7 +660,25 @@ void ImportGlobalSettings(const rapidjson::Value& globalSettings,
       g_scene->SetIBLIntensity(LightSettings["IBLIntensity"].GetFloat());
       g_scene->SetIBLRotation(LightSettings["IBLRotation"].GetFloat());
     }
-    // TODO: sunlight enabled
+    
+    //EnableSunLight가 아니면 Scene 하위에서 제거
+    if (LightSettings.HasMember("EnableSunlight")) {
+      if (LightSettings["EnableSunlight"].GetBool()) {
+        bool bSceneHasLight = false;
+        std::vector<VID> sceneChildVids = g_scene->GetSceneCompChildren();
+        for (int i = 0; i < sceneChildVids.size(); i++) {
+          if (sceneChildVids[i] == g_light->GetVID()) {
+            bSceneHasLight = true;
+            break;
+          }
+        }
+        if (!bSceneHasLight) {
+          vzm::AppendSceneCompTo(g_light, g_scene);
+        }
+      } else {
+        vzm::AppendSceneCompTo(g_light, nullptr);
+      }
+    }
     g_light->SetIntensity(LightSettings["Intensity"].GetFloat());
     g_light->SetSunHaloSize(LightSettings["SunHaloSize"].GetFloat());
     g_light->SetSunHaloFalloff(LightSettings["SunHaloFalloff"].GetFloat());
@@ -939,6 +957,15 @@ void ExportGlobalSettings(rapidjson::Value& globalSettings,
     LightSettings.AddMember("IBLRotation", g_scene->GetIBLRotation(),
                             allocator);
     // sunlight
+    bool sunLightEnabled = false;
+    std::vector<VID> sceneChildVids = g_scene->GetSceneCompChildren();
+    for (int i = 0; i < sceneChildVids.size(); i++) {
+      if (sceneChildVids[i] == g_light->GetVID()) {
+        sunLightEnabled = true;
+        break;
+      }
+    }
+    LightSettings.AddMember("EnableSunlight", sunLightEnabled, allocator);
     LightSettings.AddMember("Intensity", g_light->GetIntensity(), allocator);
     LightSettings.AddMember("SunHaloSize", g_light->GetSunHaloSize(),
                             allocator);

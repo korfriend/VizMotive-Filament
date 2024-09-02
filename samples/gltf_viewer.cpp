@@ -602,7 +602,7 @@ int main(int argc, char** argv) {
             return 1;
         }
     }
-    filename = "D:\\data\\showroom1\\car_action_08.gltf";
+    filename = "D:\\data\\car_gltf\\ioniq.gltf";
 
     auto loadAsset = [&app](const utils::Path& filename) {
         // Peek at the file size to allow pre-allocation.
@@ -626,6 +626,8 @@ int main(int argc, char** argv) {
             std::cerr << "Unable to parse " << filename << std::endl;
             exit(1);
         }
+
+        FilamentApp::get().loadIBL(DEFAULT_IBL);
 
         // pre-compile all material variants
         std::set<Material*> materials;
@@ -784,6 +786,12 @@ int main(int argc, char** argv) {
             app.instance = app.asset->getInstance();
         } else {
             loadAsset(filename);
+
+            //const size_t cameraCount = app.asset->getCameraEntityCount();
+            //utils::Entity ett_cam = app.asset->getCameraEntities()[0];
+            //Camera* cam_gltf = engine->getCameraComponent(ett_cam);
+            //app.mainCamera = cam_gltf;
+            //view->setCamera(cam_gltf);
         }
 
         loadResources(filename);
@@ -1073,9 +1081,9 @@ int main(int argc, char** argv) {
         FilamentApp::get().setCameraFocalLength(viewerOptions.cameraFocalLength);
         FilamentApp::get().setCameraNearFar(viewerOptions.cameraNear, viewerOptions.cameraFar);
 
-        const size_t cameraCount = app.asset->getCameraEntityCount();
         view->setCamera(app.mainCamera);
 
+        const size_t cameraCount = app.asset->getCameraEntityCount();
         const int currentCamera = app.viewer->getCurrentCamera();
         if (currentCamera > 0 && currentCamera <= cameraCount) {
             const utils::Entity* cameras = app.asset->getCameraEntities();
@@ -1086,8 +1094,8 @@ int main(int argc, char** argv) {
             // Override the aspect ratio in the glTF file and adjust the aspect ratio of this
             // camera to the viewport.
             const Viewport& vp = view->getViewport();
-            double const aspectRatio = (double) vp.width / vp.height;
-            camera->setScaling({1.0 / aspectRatio, 1.0});
+            double const aspectRatio = (double)vp.width / vp.height;
+            camera->setScaling({ 1.0 / aspectRatio, 1.0 });
         }
 
         static bool stereoscopicEnabled = false;
@@ -1108,7 +1116,7 @@ int main(int argc, char** argv) {
         // technically we don't need to do this each frame
         auto& tcm = engine->getTransformManager();
         TransformManager::Instance const& root = tcm.getInstance(app.rootTransformEntity);
-        tcm.setParent(tcm.getInstance(camera.getEntity()), root);
+        //tcm.setParent(tcm.getInstance(camera.getEntity()), root);
         tcm.setParent(tcm.getInstance(app.asset->getRoot()), root);
         tcm.setParent(tcm.getInstance(view->getFogEntity()), root);
 
