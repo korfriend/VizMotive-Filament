@@ -47,10 +47,6 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
                      vzm::VzSceneComp* component) {
   vzm::SCENE_COMPONENT_TYPE type = component->GetSceneCompType();
 
-  if (jsonNode.HasMember("name")) {
-    // component->SetName(jsonNode["name"].GetString());
-  }
-
   switch (type) {
     case vzm::SCENE_COMPONENT_TYPE::ACTOR: {
       vzm::VzActor* actor = (vzm::VzActor*)component;
@@ -65,8 +61,6 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
               (vzm::VzMaterial*)vzm::GetVzComponent(mi->GetMaterial());
           std::map<std::string, vzm::VzMaterial::ParameterInfo> pram;
           ma->GetAllowedParameters(pram);
-
-          std::string matName = materials[i]["name"].GetString();
 
           const rapidjson::Value& parameters = materials[i]["parameters"];
 
@@ -255,9 +249,6 @@ void ExportMaterials(rapidjson::Value& jsonNode,
   vzm::SCENE_COMPONENT_TYPE type = component->GetSceneCompType();
 
   jsonNode.SetObject();
-  jsonNode.AddMember("name",
-                     rapidjson::Value(component->GetName().c_str(), allocator),
-                     allocator);
 
   switch (type) {
     case vzm::SCENE_COMPONENT_TYPE::ACTOR: {
@@ -507,8 +498,8 @@ void ExportMaterials(rapidjson::Value& jsonNode,
   for (const VID childVID : childrenVIDs) {
     rapidjson::Value childJsonNode;
     ExportMaterials(childJsonNode, allocator, childVID);
-
-    std::string childName = childJsonNode["name"].GetString();
+    
+    std::string childName = vzm::GetVzComponent(childVID)->GetName();
     children.AddMember(rapidjson::Value(childName.c_str(), allocator),
                        childJsonNode, allocator);
   }
