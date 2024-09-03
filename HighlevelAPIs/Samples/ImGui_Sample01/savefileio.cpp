@@ -135,8 +135,13 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
                     mi->SetParameter(name, type, &value);
                     break;
                   }
+                  //TODO: MAT3 (uv map) 처리
+                  case vzm::UniformType::MAT3: {
+                      break;
+                  }
                   default: {
-                    std::cerr << "type error" << std::endl;
+                    std::cout << "type error, type:" << (int)type << ", param name:" << name
+                        << ", actor name: " << actor->GetName() << std::endl;
                     break;
                   }
                 }
