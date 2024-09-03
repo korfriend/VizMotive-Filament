@@ -156,7 +156,7 @@ namespace vzm
         }
         uint8_t* pixels = new uint8_t[width * height];
         memset(pixels, 0, width * height);
-        TextAlign textAlign = textFormat.textAlign;
+        VzTextSpriteActor::TEXT_ALIGN textAlign = textFormat.textAlign;
         int32_t numberOfLines = linesWidth.size();
         int32_t lineX = GetLeftBlankWidth(textAlign, linesWidth[0], width);
         int32_t lineY = GetTopBlankHeight(textAlign, textHeight, height);
@@ -225,34 +225,34 @@ namespace vzm
         texture->setImage(*gEngine, 0, std::move(buffer));
         texture->generateMipmaps(*gEngine);
     }
-    int32_t VzTypesetter::GetLeftBlankWidth(const TextAlign textAlign, const int32_t lineWidth, const int32_t width)
+    int32_t VzTypesetter::GetLeftBlankWidth(const VzTextSpriteActor::TEXT_ALIGN textAlign, const int32_t lineWidth, const int32_t width)
     {
         switch (textAlign) {
-            case TextAlign::RIGHT:
-            case TextAlign::TOP_RIGHT:
-            case TextAlign::MIDDLE_RIGHT:
-            case TextAlign::BOTTOM_RIGHT:
+            case VzTextSpriteActor::TEXT_ALIGN::RIGHT:
+            case VzTextSpriteActor::TEXT_ALIGN::TOP_RIGHT:
+            case VzTextSpriteActor::TEXT_ALIGN::MIDDLE_RIGHT:
+            case VzTextSpriteActor::TEXT_ALIGN::BOTTOM_RIGHT:
                 return width - lineWidth;
-            case TextAlign::CENTER:
-            case TextAlign::TOP_CENTER:
-            case TextAlign::MIDDLE_CENTER:
-            case TextAlign::BOTTOM_CENTER:
+            case VzTextSpriteActor::TEXT_ALIGN::CENTER:
+            case VzTextSpriteActor::TEXT_ALIGN::TOP_CENTER:
+            case VzTextSpriteActor::TEXT_ALIGN::MIDDLE_CENTER:
+            case VzTextSpriteActor::TEXT_ALIGN::BOTTOM_CENTER:
                 return (width - lineWidth) / 2;
             default:
                 return 0;
         }
     }
-    int32_t VzTypesetter::GetTopBlankHeight(const TextAlign textAlign, const int32_t textHeight, const int32_t height)
+    int32_t VzTypesetter::GetTopBlankHeight(const VzTextSpriteActor::TEXT_ALIGN textAlign, const int32_t textHeight, const int32_t height)
     {
         switch (textAlign)
         {
-            case TextAlign::MIDDLE_LEFT:
-            case TextAlign::MIDDLE_CENTER:
-            case TextAlign::MIDDLE_RIGHT:
+            case VzTextSpriteActor::TEXT_ALIGN::MIDDLE_LEFT:
+            case VzTextSpriteActor::TEXT_ALIGN::MIDDLE_CENTER:
+            case VzTextSpriteActor::TEXT_ALIGN::MIDDLE_RIGHT:
                 return (height - textHeight) / 2;
-            case TextAlign::BOTTOM_LEFT:
-            case TextAlign::BOTTOM_CENTER:
-            case TextAlign::BOTTOM_RIGHT:
+            case VzTextSpriteActor::TEXT_ALIGN::BOTTOM_LEFT:
+            case VzTextSpriteActor::TEXT_ALIGN::BOTTOM_CENTER:
+            case VzTextSpriteActor::TEXT_ALIGN::BOTTOM_RIGHT:
                 return height - textHeight;
             default:
                 return 0;
@@ -274,22 +274,22 @@ namespace vzm
             lightmapCube_ = nullptr;
         }
     }
-    IBL* VzSceneRes::GetIBL() { return ibl_; }
-    IBL* VzSceneRes::NewIBL()
+    VzIBL* VzSceneRes::GetIBL() { return ibl_; }
+    VzIBL* VzSceneRes::NewIBL()
     {
         if (ibl_) {
             delete ibl_;
         }
-        ibl_ = new IBL(*gEngine);
+        ibl_ = new VzIBL(*gEngine);
         return ibl_;
     }
-    Cube* VzSceneRes::GetLightmapCube()
+    VzCube* VzSceneRes::GetLightmapCube()
     {
         if (lightmapCube_)
         {
             return lightmapCube_;
         }
-        lightmapCube_ = new Cube(*gEngine, gMaterialTransparent, { 0, 1, 0 }, false);
+        lightmapCube_ = new VzCube(*gEngine, gMaterialTransparent, { 0, 1, 0 }, false);
         return lightmapCube_;
     }
 #pragma endregion
@@ -308,13 +308,13 @@ namespace vzm
     }
     void VzCameraRes::SetCamera(Camera* camera) { camera_ = camera; }
     Camera* VzCameraRes::GetCamera() { return camera_; }
-    Cube* VzCameraRes::GetCameraCube()
+    VzCube* VzCameraRes::GetCameraCube()
     {
         if (cameraCube_)
         {
             return cameraCube_;
         }
-        cameraCube_ = new Cube(*gEngine, gMaterialTransparent, { 1, 0, 0 });
+        cameraCube_ = new VzCube(*gEngine, gMaterialTransparent, { 1, 0, 0 });
         return cameraCube_;
     }
     void VzCameraRes::NewCameraManipulator(const VzCamera::Controller& camController)
@@ -1098,11 +1098,13 @@ namespace vzm
         }
         else if (vidSrc != vid_scene_src && vidDst == vid_scene_dst)
         {
-            // case 3. src is actor and dst is scene
+            // case 3. src is actor and dst is scene or zero
             // scene_src == scene_dst means that 
             //    vidSrc is appended to its root
 
             auto ins_src = tcm.getInstance(ett_src);
+            auto ins_null = tcm.getInstance(utils::Entity::import(0));
+            tcm.setParent(ins_src, ins_null);
             assert(ins_src.asValue() != 0 && "vidSrc is invalid");
 
             entities_moving.push_back(ett_src);
@@ -1147,7 +1149,7 @@ namespace vzm
                 itc->second = 0;
             if (scene_src)
             {
-                scene_src->remove(ett_src);
+                scene_src->remove(it);
             }
         }
 
@@ -1271,8 +1273,13 @@ namespace vzm
                         .require(MaterialBuilder::VertexAttribute::UV0)
                         .doubleSided(true)
                         .flipUV(false)
-                        .optimization(MaterialBuilder::Optimization::NONE)
-                        .material(code);
+                        .optimization(MaterialBuilder::Optimization::NONE);
+
+                    if (gEngine->getBackend() == filament::backend::Backend::VULKAN)
+                    {
+                        builder.targetApi(MaterialBuilder::TargetApi::VULKAN);
+                    }
+                    builder.material(code);
                     Package result = builder.build(gEngine->getJobSystem());
                     assert(result.isValid());
                     Material* material = Material::Builder()
@@ -1979,7 +1986,7 @@ namespace vzm
             if (it_camres != camResMap_.end())
             {
                 VzCameraRes& cam_res = *it_camres->second.get();
-                Cube* cam_cube = cam_res.GetCameraCube();
+                VzCube* cam_cube = cam_res.GetCameraCube();
                 if (cam_cube)
                 {
                     SceneVID vid_scene = GetSceneVidBelongTo(vid);

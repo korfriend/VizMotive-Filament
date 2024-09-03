@@ -60,7 +60,8 @@
 
 #include <backend/DriverEnums.h>
 
-#include "../../VisualStudio/libs/filamentapp/generated/resources/filamentapp.h"
+#include "resource_internal.h"
+//#include "../../VisualStudio/libs/filamentapp/generated/resources/filamentapp.h"
 
 using namespace filament;
 using namespace filamat;
@@ -101,6 +102,7 @@ namespace filament::assimp {
     uint64_t hashMaterialConfig(MaterialConfig config) {
         uint64_t bitmask = 0;
         memcpy(&bitmask, &config.maskThreshold, sizeof(config.maskThreshold));
+        appendBooleanToBitMask(bitmask, config.doubleSided);
         appendBooleanToBitMask(bitmask, config.doubleSided);
         appendBooleanToBitMask(bitmask, config.unlit);
         appendBooleanToBitMask(bitmask, config.hasVertexColors);
@@ -271,7 +273,7 @@ namespace filament::assimp {
         if (mat_res == nullptr)
         {
             mDefaultColorMaterial = Material::Builder()
-                .package(FILAMENTAPP_AIDEFAULTMAT_DATA, FILAMENTAPP_AIDEFAULTMAT_SIZE)
+                .package(INTERNAL_AIDEFAULTMAT_DATA, FILAMENTAPP_AIDEFAULTMAT_SIZE)
                 .build(mEngine);
 
             mDefaultColorMaterial->setDefaultParameter("baseColor", RgbType::LINEAR, float3{ 0.8 });
@@ -290,7 +292,7 @@ namespace filament::assimp {
         if (mat_res == nullptr)
         {
             mDefaultTransparentColorMaterial = Material::Builder()
-                .package(FILAMENTAPP_AIDEFAULTTRANS_DATA, FILAMENTAPP_AIDEFAULTTRANS_SIZE)
+                .package(INTERNAL_AIDEFAULTTRANS_DATA, FILAMENTAPP_AIDEFAULTTRANS_SIZE)
                 .build(mEngine);
 
             mDefaultTransparentColorMaterial->setDefaultParameter("baseColor", RgbType::LINEAR, float3{ 0.8 });
@@ -657,7 +659,8 @@ namespace filament::assimp {
                         prim.indices->setBuffer(mEngine,
                             IndexBuffer::BufferDescriptor(is->data(), is->size(), State<uint32_t>::free, is));
 
-                        prim.aabb = Aabb(mesh.aabb.getMin(), mesh.aabb.getMax());
+                        prim.aabb.min = mesh.aabb.getMin();
+                        prim.aabb.max = mesh.aabb.getMax();
                         prim.ptype = PrimitiveType::TRIANGLES;
 
                         std::string name_mi = n == 1? actor_name + " (MI)" : actor_name + " Part[" + std::to_string(i) + "] (MI)";

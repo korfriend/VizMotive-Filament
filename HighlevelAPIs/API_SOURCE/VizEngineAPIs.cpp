@@ -1,6 +1,8 @@
 #include "VizEngineAPIs.h" 
 #include "VzEngineApp.h"
 
+#include "PreDefs.h"
+
 #if FILAMENT_DISABLE_MATOPT
 #define OPTIMIZE_MATERIALS false
 #else
@@ -84,7 +86,7 @@ auto failRet = [](const std::string& err_str, const bool _warn = false)
     };
 
 
-Config gConfig;
+VzConfig gConfig;
 Engine::Config gEngineConfig = {};
 filament::backend::VulkanPlatform* gVulkanPlatform = nullptr;
 filament::SwapChain* gDummySwapChain = nullptr;
@@ -185,7 +187,7 @@ namespace vzm
 
         gConfig.title = "hellopbr";
         //gConfig.iblDirectory = FilamentApp::getRootAssetsPath() + IBL_FOLDER;
-        auto api = arguments.GetParam("api", std::string("vulkan"));
+        auto api = arguments.GetParam("api", std::string("opengl"));
         if (api == "opengl")
         {
             gConfig.backend = filament::Engine::Backend::OPENGL;
@@ -242,7 +244,7 @@ namespace vzm
         // default resources
         {
             Material* material = Material::Builder()
-                .package(FILAMENTAPP_DEPTHVISUALIZER_DATA, FILAMENTAPP_DEPTHVISUALIZER_SIZE)
+                .package(INTERNAL_DEPTHVISUALIZER_DATA, FILAMENTAPP_DEPTHVISUALIZER_SIZE)
                 .build(*gEngine);
             vzmMaterials.push_back(gEngineApp->CreateMaterial("_DEFAULT_DEPTH_MATERIAL", material, nullptr, true)->GetVID());
 
@@ -258,7 +260,7 @@ namespace vzm
             vzmMaterials.push_back(gEngineApp->CreateMaterial("_DEFAULT_UNLIT_MATERIAL", material, nullptr, true)->GetVID());
 
             material = Material::Builder()
-                .package(FILAMENTAPP_TRANSPARENTCOLOR_DATA, FILAMENTAPP_TRANSPARENTCOLOR_SIZE)
+                .package(INTERNAL_TRANSPARENTCOLOR_DATA, FILAMENTAPP_TRANSPARENTCOLOR_SIZE)
                 .build(*gEngine);
             vzmMaterials.push_back(gEngineApp->CreateMaterial("_DEFAULT_TRANSPARENT_MATERIAL", material, nullptr, true)->GetVID());
 
@@ -488,10 +490,10 @@ namespace vzm
         return gEngineApp->GetSceneVidBelongTo(parentVid);
     }
 
-    VzScene* AppendSceneCompTo(const VZ_NONNULL VzBaseComp* comp, const VZ_NONNULL VzBaseComp* parentComp)
+    VzScene* AppendSceneCompTo(const VZ_NONNULL VzBaseComp* comp, const VZ_NULLABLE VzBaseComp* parentComp)
     {
         CHECK_API_VALIDITY(nullptr);
-        return (VzScene*) GetVzComponent(AppendSceneCompVidTo(comp->GetVID(), parentComp->GetVID()));
+        return (VzScene*) GetVzComponent(AppendSceneCompVidTo(comp->GetVID(), parentComp ? parentComp->GetVID() : 0));
     };
 
     VzBaseComp* GetVzComponent(const VID vid)

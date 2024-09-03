@@ -126,6 +126,18 @@ namespace vzm
         COMP_RENDERPATH(render_path, false);
         return render_path->viewSettings.msaa.enabled;
     }
+    void VzRenderer::SetMsaaSampleCount(int samples)
+    {
+        COMP_RENDERPATH(render_path, );
+        render_path->viewSettings.msaa.sampleCount = samples;
+        render_path->dirtyFlags |= VzRenderPath::DirtyFlags::MSAA;
+        UpdateTimeStamp();
+    }
+    int VzRenderer::GetMsaaSampleCount()
+    {
+        COMP_RENDERPATH(render_path, 4);
+        return render_path->viewSettings.msaa.sampleCount;
+    }
     void VzRenderer::SetMsaaCustomResolve(bool customResolve)
     {
         COMP_RENDERPATH(render_path, );
@@ -1201,10 +1213,10 @@ namespace vzm
         const Camera* lightmapCamera = view->getDirectionalShadowCamera();
         if (lightmapCamera) {
             VzSceneRes* scene_res = gEngineApp->GetSceneRes(vidScene);
-            Cube* lightmapCube = scene_res->GetLightmapCube();
+            VzCube* lightmapCube = scene_res->GetLightmapCube();
             lightmapCube->mapFrustum(*gEngine, lightmapCamera);
         }
-        Cube* cameraCube = cam_res->GetCameraCube();
+        VzCube* cameraCube = cam_res->GetCameraCube();
         if (cameraCube) {
             cameraCube->mapFrustum(*gEngine, camera);
         }
@@ -1287,7 +1299,7 @@ namespace vzm
                 double4 p_ws_h = os2ws * double4(0, 0, 0, 1);
                 double3 p_ws = p_ws_h.xyz / p_ws_h.w; // fixed
 
-                mat4 os2ws_new = mat4::lookTo(-v, p_ws, u);
+                mat4 os2ws_new = mat4::lookTo(v, p_ws, u);
                 mat4 os2parent_new = inverse(parent2ws) * os2ws_new;
 
                 tcm.setTransform(ti, os2parent_new);

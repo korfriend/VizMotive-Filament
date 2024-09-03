@@ -38,7 +38,7 @@ namespace vzm
     // Append Component to the parent component
     //  - return sceneId containing the parent component 
     extern "C" API_EXPORT VID AppendSceneCompVidTo(const VID vid, const VID parentVid);
-    extern "C" API_EXPORT VzScene* AppendSceneCompTo(const VZ_NONNULL VzBaseComp* comp, const VZ_NONNULL VzBaseComp* parentComp);
+    extern "C" API_EXPORT VzScene* AppendSceneCompTo(const VZ_NONNULL VzBaseComp* comp, const VZ_NULLABLE VzBaseComp* parentComp);
     // Get Component IDs in a scene
     //  - return # of scene Components 
     extern "C" API_EXPORT size_t GetSceneCompoenentVids(const SCENE_COMPONENT_TYPE compType, const VID sceneVid, std::vector<VID>& vids, const bool isRenderableOnly = false);	// Get CameraParams and return its pointer registered in renderer

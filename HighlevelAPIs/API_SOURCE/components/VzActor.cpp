@@ -13,6 +13,12 @@ namespace vzm
         rcm.setLayerMask(ins, layerBits, maskBits);
         UpdateTimeStamp();
     }
+    void VzBaseActor::SetPriority(const uint8_t priority)
+    {
+        COMP_ACTOR(rcm, ett, ins, );
+        rcm.setPriority(ins, priority);
+        UpdateTimeStamp();
+    }
 }
 
 namespace vzm
@@ -222,6 +228,18 @@ namespace vzm
         return true;
     }
 
+    VID VzSpriteActor::GetTexture() {
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        VzMIRes* mi_res = gEngineApp->GetMIRes(actor_res->GetMIVid(0));
+        auto it = mi_res->texMap.find("baseColorMap");
+        if (it == mi_res->texMap.end())
+        {
+            return INVALID_VID;
+        }
+        return it->second;
+    }
+
     void VzSpriteActor::SetTexture(const VID vidTexture)
     {
         VzTextureRes* tex_res = gEngineApp->GetTextureRes(vidTexture);
@@ -231,11 +249,13 @@ namespace vzm
         }
 
         VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
-        MaterialInstance* mi = gEngineApp->GetMIRes(actor_res->GetMIVid(0))->mi;
+        VzMIRes* mi_res = gEngineApp->GetMIRes(actor_res->GetMIVid(0));
+        MaterialInstance* mi = mi_res->mi;
         assert(mi);
 
         mi->setParameter("baseColorMap", tex_res->texture, tex_res->sampler);
-        //mi->getMaterial()->get
+
+        mi_res->texMap["baseColorMap"] = vidTexture;
         tex_res->assignedMIs.insert(GetVID());
 
         UpdateTimeStamp();
@@ -327,6 +347,15 @@ namespace vzm
         return *this;
     }
 
+    VzTextSpriteActor& VzTextSpriteActor::SetTextAlign(const TEXT_ALIGN textAlign)
+    {
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        actor_res->textField.typesetter.textFormat.textAlign = textAlign;
+        UpdateTimeStamp();
+        return *this;
+    }
+
     void VzTextSpriteActor::Build() {
         VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         assert(actor_res->isSprite);
@@ -345,7 +374,14 @@ namespace vzm
         //      * unsigned char* as image (rgba) buffer pointer (the allocation will be owned by VzTextSpriteActor)
         VzTypesetter& typesetter = actor_res->textField.typesetter;
         if (typesetter.text.empty()) typesetter.text = L" ";
-        typesetter.fixedWidth = (int32_t) (actor_res->spriteWidth / actor_res->fontHeight * (float) font_res->GetLineHeight());
+        if (actor_res->spriteWidth > 1.f)
+        {
+            typesetter.fixedWidth = (int32_t) (actor_res->spriteWidth / actor_res->fontHeight * (float) font_res->GetLineHeight());
+        }
+        else
+        {
+            typesetter.fixedWidth = 0;
+        }
         typesetter.Typeset();
 
         MaterialInstance* mi = gEngineApp->GetMIRes(actor_res->GetMIVids()[0])->mi;
@@ -362,11 +398,20 @@ namespace vzm
         size_t text_image_w = typesetter.texture->getWidth();
         size_t text_image_h = typesetter.texture->getHeight();
 
-        const float w = actor_res->spriteWidth;
-        const float h = actor_res->spriteWidth / text_image_w * text_image_h;
+        float w, h;
+        if (actor_res->spriteWidth > 1.f)
+        {
+            w = actor_res->spriteWidth;
+            h = actor_res->spriteWidth / text_image_w * text_image_h;
+        }
+        else
+        {
+            h = actor_res->fontHeight * actor_res->textField.typesetter.linesWidth.size();
+            w = h / text_image_h * text_image_w;
+        }
         //if (actor_res->intrinsicVB) gEngine->destroy(actor_res->intrinsicVB);
         //if (actor_res->intrinsicIB) gEngine->destroy(actor_res->intrinsicIB);
-        buildQuadGeometry(GetVID(), actor_res->spriteWidth, h, actor_res->anchorU, actor_res->anchorV);
+        buildQuadGeometry(GetVID(), w, h, actor_res->anchorU, actor_res->anchorV);
 
         UpdateTimeStamp();
     }

@@ -7,7 +7,6 @@
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
-#undef GetObject
 
 // sequence images 관리
 // 좋은 방법은 아니지만 일단 savefileio에서 갖고 있게하기 -> import, export 편의를 위해서..

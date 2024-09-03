@@ -9,6 +9,7 @@ namespace vzm
             : VzSceneComp(vid, originFrom, typeName, scenecompType) {}
 
         void SetVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits);
+        void SetPriority(const uint8_t priority);
     };
 
     struct API_EXPORT VzActor : VzBaseActor
@@ -61,6 +62,7 @@ namespace vzm
         bool Build();
         //void SetAnchorPoint(const float u = 0.5f, const float v = 0.5f);
         //void SetSize(const float w = 1.f, const float h = 1.f);
+        VID GetTexture();
         void SetTexture(const VID vidTexture);
     };
 
@@ -82,6 +84,21 @@ namespace vzm
         VzTextSpriteActor& SetColor(const float color[4]);
         VzTextSpriteActor& SetFontHeight(const float fontHeight);
         VzTextSpriteActor& SetMaxWidth(const float maxWidth);
+        enum class TEXT_ALIGN : uint8_t {
+            LEFT = 1,
+            CENTER = 2,
+            RIGHT = 3,
+            TOP_LEFT = 4,
+            TOP_CENTER = 5,
+            TOP_RIGHT = 6,
+            MIDDLE_LEFT = 7,
+            MIDDLE_CENTER = 8,
+            MIDDLE_RIGHT = 9,
+            BOTTOM_LEFT = 10,
+            BOTTOM_CENTER = 11,
+            BOTTOM_RIGHT = 12
+        };
+        VzTextSpriteActor& SetTextAlign(const TEXT_ALIGN textAlign);
         void Build();
     };
 }
