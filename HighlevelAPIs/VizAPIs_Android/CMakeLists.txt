@@ -231,6 +231,15 @@ set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX d)
 # Dependencies
 # ==================================================================================================
 
+if(DIST_ARCH STREQUAL "arm64-v8a")
+    set(ABI "aarch64")
+elseif(DIST_ARCH STREQUAL "armeabi-v7a")
+    set(ABI "arm7")
+elseif(DIST_ARCH STREQUAL "x86_64")
+    set(ABI "x86_64")
+elseif(DIST_ARCH STREQUAL "x86")
+    set(ABI "x86")
+endif()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../libs/${DIST_ARCH}/libfreetype.a
@@ -268,6 +277,11 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libutils.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libbasis_transcoder.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libzstd.a
+
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/libassimp/tnt/libassimp.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/libpng/tnt/libpng.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/libz/tnt/libz.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/tinyexr/tnt/libtinyexr.a
 )
 
 # ==============================================================================================

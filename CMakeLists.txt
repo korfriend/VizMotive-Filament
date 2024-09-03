@@ -382,7 +382,7 @@ endif()
 # On Android RELEASE builds, we disable exceptions and RTTI to save some space (about 75 KiB
 # saved by -fno-exception and 10 KiB saved by -fno-rtti).
 if (ANDROID OR IOS OR WEBGL)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-exceptions -fno-rtti")
+    # set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-exceptions -fno-rtti")
     set(SPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS ON)
 
     if (ANDROID OR WEBGL)
@@ -778,6 +778,11 @@ if (WEBGL)
     add_subdirectory(web/samples)
 endif()
 
+add_subdirectory(${EXTERNAL}/libassimp/tnt)
+add_subdirectory(${EXTERNAL}/libpng/tnt)
+add_subdirectory(${EXTERNAL}/libz/tnt)
+add_subdirectory(${EXTERNAL}/tinyexr/tnt)
+
 if (IS_HOST_PLATFORM)
     if (FILAMENT_SUPPORTS_OPENGL)
         add_subdirectory(${LIBRARIES}/bluegl)
@@ -789,11 +794,11 @@ if (IS_HOST_PLATFORM)
 
     add_subdirectory(${FILAMENT}/samples)
 
-    add_subdirectory(${EXTERNAL}/libassimp/tnt)
-    add_subdirectory(${EXTERNAL}/libpng/tnt)
+    # add_subdirectory(${EXTERNAL}/libassimp/tnt)
+    # add_subdirectory(${EXTERNAL}/libpng/tnt)
     add_subdirectory(${EXTERNAL}/libsdl2/tnt)
-    add_subdirectory(${EXTERNAL}/libz/tnt)
-    add_subdirectory(${EXTERNAL}/tinyexr/tnt)
+    # add_subdirectory(${EXTERNAL}/libz/tnt)
+    # add_subdirectory(${EXTERNAL}/tinyexr/tnt)
 
     add_subdirectory(${TOOLS}/cmgen)
     add_subdirectory(${TOOLS}/cso-lut)
