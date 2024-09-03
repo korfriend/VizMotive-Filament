@@ -3,6 +3,10 @@
 #include <time.h>
 
 #include <iostream>
+
+#include <sstream>
+#include <iomanip>
+#include <ctime>
 #undef GetObject
 
 using namespace rapidjson;
@@ -47,10 +51,6 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
                      vzm::VzSceneComp* component) {
   vzm::SCENE_COMPONENT_TYPE type = component->GetSceneCompType();
 
-  if (jsonNode.HasMember("name")) {
-    // component->SetName(jsonNode["name"].GetString());
-  }
-
   switch (type) {
     case vzm::SCENE_COMPONENT_TYPE::ACTOR: {
       vzm::VzActor* actor = (vzm::VzActor*)component;
@@ -65,8 +65,6 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
               (vzm::VzMaterial*)vzm::GetVzComponent(mi->GetMaterial());
           std::map<std::string, vzm::VzMaterial::ParameterInfo> pram;
           ma->GetAllowedParameters(pram);
-
-          std::string matName = materials[i]["name"].GetString();
 
           const rapidjson::Value& parameters = materials[i]["parameters"];
 
@@ -86,7 +84,7 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
 
             const rapidjson::Value& values = parameters[j]["value"];
             if (values.IsArray()) {
-              const rapidjson::Value& valueArr = values.GetArray();
+              rapidjson::Value::ConstArray valueArr = values.GetArray();
               std::vector<float> v;
               switch (type) {
                 case vzm::UniformType::FLOAT3:
@@ -101,8 +99,8 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
                 }
               }
 
-              for (rapidjson::SizeType k = 0; k < values.Size(); ++k) {
-                v[k] = values[k].GetFloat();
+              for (rapidjson::SizeType k = 0; k < valueArr.Size(); ++k) {
+                v[k] = valueArr[k].GetFloat();
               }
               mi->SetParameter(name, type, (void*)v.data());
             } else {
@@ -182,7 +180,7 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
       //     (vzm::VzLight::Type)lightNode["lightType"].GetInt());
       lightComponent->SetIntensity(lightNode["intensity"].GetFloat());
 
-      const rapidjson::Value& lightColor = lightNode["color"].GetArray();
+      rapidjson::Value::ConstArray lightColor = lightNode["color"].GetArray();
       float lightColorArr[3] = {lightColor[0].GetFloat(),
                                 lightColor[1].GetFloat(),
                                 lightColor[2].GetFloat()};
@@ -197,13 +195,11 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
         pointLight->SetFalloff(lightNode["falloff"].GetFloat());
       } else if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_SPOT ||
                  type == vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT) {
-        vzm::VzBaseSpotLight* spotLight =
-            (vzm::VzBaseSpotLight*)lightComponent;
+        vzm::VzBaseSpotLight* spotLight = (vzm::VzBaseSpotLight*)lightComponent;
 
         spotLight->SetFalloff(lightNode["falloff"].GetFloat());
-        spotLight->SetSpotLightCone(
-            lightNode["spotLightInnerCone"].GetFloat(),
-            lightNode["spotLightOuterCone"].GetFloat());
+        spotLight->SetSpotLightCone(lightNode["spotLightInnerCone"].GetFloat(),
+                                    lightNode["spotLightOuterCone"].GetFloat());
       }
 
       lightComponent->SetShadowCaster(lightNode["shadowEnabled"].GetBool());
@@ -214,7 +210,7 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
       sOpts.lispsm = lightNode["lispsm"].GetBool();
       sOpts.shadowFar = lightNode["shadowFar"].GetFloat();
 
-      const rapidjson::Value& lightDirection =
+      rapidjson::Value::ConstArray lightDirection =
           lightNode["LightDirection"].GetArray();
       float lightDirectionArr[3] = {lightDirection[0].GetFloat(),
                                     lightDirection[1].GetFloat(),
@@ -226,7 +222,7 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
       sOpts.shadowCascades = lightNode["shadowCascades"].GetInt();
       sOpts.screenSpaceContactShadows =
           lightNode["screenSpaceContactShadows"].GetBool();
-      const rapidjson::Value& splitPos = lightNode["splitPos"].GetArray();
+      rapidjson::Value::ConstArray splitPos = lightNode["splitPos"].GetArray();
       sOpts.cascadeSplitPositions[0] = splitPos[0].GetFloat();
       sOpts.cascadeSplitPositions[1] = splitPos[1].GetFloat();
       sOpts.cascadeSplitPositions[2] = splitPos[2].GetFloat();
@@ -255,9 +251,6 @@ void ExportMaterials(rapidjson::Value& jsonNode,
   vzm::SCENE_COMPONENT_TYPE type = component->GetSceneCompType();
 
   jsonNode.SetObject();
-  jsonNode.AddMember("name",
-                     rapidjson::Value(component->GetName().c_str(), allocator),
-                     allocator);
 
   switch (type) {
     case vzm::SCENE_COMPONENT_TYPE::ACTOR: {
@@ -448,20 +441,16 @@ void ExportMaterials(rapidjson::Value& jsonNode,
 
       } else if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_POINT) {
         vzm::VzPointLight* pointLight = (vzm::VzPointLight*)lightComponent;
-        lightSettings.AddMember("falloff", pointLight->GetFalloff(),
-                                allocator);
+        lightSettings.AddMember("falloff", pointLight->GetFalloff(), allocator);
 
       } else if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_SPOT ||
                  type == vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT) {
         vzm::VzBaseSpotLight* spotLight = (vzm::VzBaseSpotLight*)lightComponent;
-        lightSettings.AddMember("falloff", spotLight->GetFalloff(),
-                                allocator);
+        lightSettings.AddMember("falloff", spotLight->GetFalloff(), allocator);
         lightSettings.AddMember("spotLightInnerCone",
-                                spotLight->GetSpotLightInnerCone(),
-                                allocator);
+                                spotLight->GetSpotLightInnerCone(), allocator);
         lightSettings.AddMember("spotLightOuterCone",
-                                spotLight->GetSpotLightOuterCone(),
-                                allocator);
+                                spotLight->GetSpotLightOuterCone(), allocator);
       }
 
       vzm::VzBaseLight::ShadowOptions sOpts =
@@ -508,7 +497,7 @@ void ExportMaterials(rapidjson::Value& jsonNode,
     rapidjson::Value childJsonNode;
     ExportMaterials(childJsonNode, allocator, childVID);
 
-    std::string childName = childJsonNode["name"].GetString();
+    std::string childName = vzm::GetVzComponent(childVID)->GetName();
     children.AddMember(rapidjson::Value(childName.c_str(), allocator),
                        childJsonNode, allocator);
   }
@@ -525,10 +514,10 @@ void ImportGlobalSettings(const rapidjson::Value& globalSettings,
     //   }
     // }
     //  sequence images
-    const rapidjson::Value& sequenceTextureArray =
+    rapidjson::Value::ConstArray sequenceTextureArray =
         globalSettings["sequenceTextures"].GetArray();
     for (int i = 0; i < SEQ_COUNT; i++) {
-      const rapidjson::Value& perSequenceTextureArray =
+      rapidjson::Value::ConstArray perSequenceTextureArray =
           sequenceTextureArray[i].GetArray();
       std::vector<vzm::VzTexture*> tempSequenceTextures;
       for (int j = 0; j < perSequenceTextureArray.Size(); j++) {
@@ -613,7 +602,7 @@ void ImportGlobalSettings(const rapidjson::Value& globalSettings,
         ssaoOptions["SsaoSsctDepthSlopeBias"].GetFloat());
     g_renderer->SetSsaoSsctSampleCount(
         ssaoOptions["SsaoSsctSampleCount"].GetInt());
-    const rapidjson::Value& lightDirection =
+    rapidjson::Value::ConstArray lightDirection =
         ssaoOptions["SsaoSsctLightDirection"].GetArray();
     float lightDirectionArr[3] = {lightDirection[0].GetFloat(),
                                   lightDirection[1].GetFloat(),
@@ -657,8 +646,8 @@ void ImportGlobalSettings(const rapidjson::Value& globalSettings,
       g_scene->SetIBLIntensity(LightSettings["IBLIntensity"].GetFloat());
       g_scene->SetIBLRotation(LightSettings["IBLRotation"].GetFloat());
     }
-    
-    //EnableSunLight가 아니면 Scene 하위에서 제거
+
+    // EnableSunLight가 아니면 Scene 하위에서 제거
     if (LightSettings.HasMember("EnableSunlight")) {
       if (LightSettings["EnableSunlight"].GetBool()) {
         bool bSceneHasLight = false;
@@ -687,7 +676,7 @@ void ImportGlobalSettings(const rapidjson::Value& globalSettings,
     sOpts.lispsm = LightSettings["lispsm"].GetBool();
     sOpts.shadowFar = LightSettings["shadowFar"].GetFloat();
 
-    const rapidjson::Value& lightDirection =
+      rapidjson::Value::ConstArray lightDirection =
         LightSettings["LightDirection"].GetArray();
     float lightDirectionArr[3] = {lightDirection[0].GetFloat(),
                                   lightDirection[1].GetFloat(),
@@ -699,7 +688,8 @@ void ImportGlobalSettings(const rapidjson::Value& globalSettings,
     sOpts.shadowCascades = LightSettings["shadowCascades"].GetInt();
     sOpts.screenSpaceContactShadows =
         LightSettings["screenSpaceContactShadows"].GetBool();
-    const rapidjson::Value& splitPos = LightSettings["splitPos"].GetArray();
+    rapidjson::Value::ConstArray splitPos =
+        LightSettings["splitPos"].GetArray();
     sOpts.cascadeSplitPositions[0] = splitPos[0].GetFloat();
     sOpts.cascadeSplitPositions[1] = splitPos[1].GetFloat();
     sOpts.cascadeSplitPositions[2] = splitPos[2].GetFloat();
@@ -732,7 +722,7 @@ void ImportGlobalSettings(const rapidjson::Value& globalSettings,
     g_renderer->SetFogColorSource(
         (vzm::VzRenderer::FogColorSource)Fog["FogColorSource"].GetInt());
 
-    const rapidjson::Value& FogColor = Fog["FogColor"].GetArray();
+    rapidjson::Value::ConstArray FogColor = Fog["FogColor"].GetArray();
     float fogColorArr[3] = {FogColor[0].GetFloat(), FogColor[1].GetFloat(),
                             FogColor[2].GetFloat()};
     g_renderer->SetFogColor(fogColorArr);
@@ -751,7 +741,8 @@ void ImportGlobalSettings(const rapidjson::Value& globalSettings,
     g_renderer->SetVignetteMidPoint(Camera["VignetteMidPoint"].GetFloat());
     g_renderer->SetVignetteRoundness(Camera["VignetteRoundness"].GetFloat());
     g_renderer->SetVignetteFeather(Camera["VignetteFeather"].GetFloat());
-    const rapidjson::Value& VignetteColor = Camera["VignetteColor"].GetArray();
+    rapidjson::Value::ConstArray VignetteColor =
+        Camera["VignetteColor"].GetArray();
     float vignetteColorArr[3] = {VignetteColor[0].GetFloat(),
                                  VignetteColor[1].GetFloat(),
                                  VignetteColor[2].GetFloat()};
@@ -1087,7 +1078,11 @@ void ExportGlobalSettings(rapidjson::Value& globalSettings,
 void importSettings(VID root, std::string filePath, vzm::VzRenderer* renderer,
                     vzm::VzScene* scene, vzm::VzSunLight* sunLight) {
   FILE* fp;
+#if _WIN32
   fopen_s(&fp, filePath.c_str(), "r");
+#elif __linux__
+  fp = fopen(filePath.c_str(), "r");
+#endif
   if (fp == nullptr) return;
 
   char readBuffer[65536];
@@ -1122,14 +1117,33 @@ void exportSettings(VID root, vzm::VzRenderer* renderer, vzm::VzScene* scene,
 
   time_t rawtime;
   time(&rawtime);
-  struct tm local_timeinfo;
-  localtime_s(&local_timeinfo, &rawtime);
+  struct tm* local_timeinfo;
 
-  std::string exportFileName =
-      std::format("savefile[{:02}-{:02}-{:02}].json", local_timeinfo.tm_hour,
-                  local_timeinfo.tm_min, local_timeinfo.tm_sec);
+#if _WIN32
+  struct tm local_timeinfo_data;
+  local_timeinfo = &local_timeinfo_data;
+  localtime_s(local_timeinfo, &rawtime);
+#elif __linux
+  local_timeinfo = localtime(&rawtime);
+#endif
+
+  //std::string exportFileName =
+  //    std::format("savefile[{:02}-{:02}-{:02}].json", local_timeinfo->tm_hour,
+  //                local_timeinfo->tm_min, local_timeinfo->tm_sec);
+
+  std::stringstream ss;
+  ss << "savefile[" << std::setw(2) << std::setfill('0')
+     << local_timeinfo->tm_hour << "-" << std::setw(2) << std::setfill('0')
+     << local_timeinfo->tm_min << "-" << std::setw(2) << std::setfill('0')
+     << local_timeinfo->tm_sec << "].json";
+  std::string exportFileName = ss.str();
+
   std::cout << exportFileName << std::endl;
+#if _WIN32
   fopen_s(&outfp, exportFileName.c_str(), "w");
+#elif __linux
+  outfp = fopen(exportFileName.c_str(), "w");
+#endif
   if (outfp == nullptr) return;
 
   char writeBuffer[65536];
