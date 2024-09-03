@@ -252,6 +252,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libcivetweb.a
 
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libfilameshio.a
+    ${FILAMENT_DIR}/lib/${DIST_ARCH}/libgltfio.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libgltfio_core.a
 
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libfilamat.a
@@ -268,6 +269,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libktxreader.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libmeshoptimizer.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/libs/imageio/libimageio.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libimage.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libmikktspace.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libshaders.a
@@ -282,6 +284,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/libpng/tnt/libpng.a
     ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/libz/tnt/libz.a
     ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/tinyexr/tnt/libtinyexr.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/samples/libsuzanne-resources.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/samples/libsample-resources.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/samples/libgltf-demo-resources.a
 )
 
 # ==============================================================================================
