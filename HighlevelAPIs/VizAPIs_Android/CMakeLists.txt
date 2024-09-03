@@ -138,6 +138,7 @@ set(ROOT_HDRS
         ../API_SOURCE/VizComponentAPIs.h
         ../API_SOURCE/VizEngineAPIs.h
         ../API_SOURCE/VzComponents.h
+        ../API_SOURCE/VzJniOnload.h
 )
 
 set(PUBLIC_HDRS
@@ -169,6 +170,7 @@ set(SRCS
         ../API_SOURCE/VizEngineAPIs.cpp
         ../API_SOURCE/VzEngineApp.cpp
         ../API_SOURCE/VzRenderPath.cpp
+        ../API_SOURCE/VzJniOnload.cpp
 )
 
 set(PRIVATE_HDRS
