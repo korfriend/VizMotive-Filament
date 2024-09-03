@@ -5,7 +5,7 @@
 
 namespace vzm{
 
-    void JNI_Onload(JavaVM* vm); {
+    void JNI_Onload(JavaVM* vm) {
       ::filament::VirtualMachineEnv::JNI_OnLoad(vm);
     }
 
