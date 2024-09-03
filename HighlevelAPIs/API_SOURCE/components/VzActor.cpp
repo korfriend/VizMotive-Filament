@@ -228,6 +228,18 @@ namespace vzm
         return true;
     }
 
+    VID VzSpriteActor::GetTexture() {
+        VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
+        assert(actor_res->isSprite);
+        VzMIRes* mi_res = gEngineApp->GetMIRes(actor_res->GetMIVid(0));
+        auto it = mi_res->texMap.find("baseColorMap");
+        if (it == mi_res->texMap.end())
+        {
+            return INVALID_VID;
+        }
+        return it->second;
+    }
+
     void VzSpriteActor::SetTexture(const VID vidTexture)
     {
         VzTextureRes* tex_res = gEngineApp->GetTextureRes(vidTexture);
@@ -237,11 +249,13 @@ namespace vzm
         }
 
         VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
-        MaterialInstance* mi = gEngineApp->GetMIRes(actor_res->GetMIVid(0))->mi;
+        VzMIRes* mi_res = gEngineApp->GetMIRes(actor_res->GetMIVid(0));
+        MaterialInstance* mi = mi_res->mi;
         assert(mi);
 
         mi->setParameter("baseColorMap", tex_res->texture, tex_res->sampler);
-        //mi->getMaterial()->get
+
+        mi_res->texMap["baseColorMap"] = vidTexture;
         tex_res->assignedMIs.insert(GetVID());
 
         UpdateTimeStamp();
