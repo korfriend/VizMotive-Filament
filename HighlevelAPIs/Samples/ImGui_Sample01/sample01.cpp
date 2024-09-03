@@ -1838,10 +1838,10 @@ int main(int, char**) {
               vzm::VzActor* actor = (vzm::VzActor*)component;
               VID actorVID = actor->GetVID();
               if (castShadows.find(actorVID) == castShadows.end()) {
-                castShadows[actorVID] = false;
+                castShadows[actorVID] = true;
               }
               if (receiveShadows.find(actorVID) == receiveShadows.end()) {
-                receiveShadows[actorVID] = false;
+                receiveShadows[actorVID] = true;
               }
               if (screenSpaceContactShadows.find(actorVID) ==
                   screenSpaceContactShadows.end()) {
