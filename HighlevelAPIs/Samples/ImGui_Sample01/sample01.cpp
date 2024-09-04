@@ -2934,8 +2934,10 @@ int main(int, char**) {
               if (ImGui::Button("generate text")) {
                 vzm::VzFont* font = (vzm::VzFont*)vzm::NewResComponent(
                     vzm::RES_COMPONENT_TYPE::FONT, "font");
-                font->ReadFont("font/HyundaiSansUI_JP_KR_Latin-Regular.ttf",
+                font->ReadFont("../assets/NanumBarunGothic.ttf",
                                30);
+                /*font->ReadFont("font/HyundaiSansUI_JP_KR_Latin-Regular.ttf",
+                               30);*/
 
                 vzm::VzTextSpriteActor* text_actor_ =
                     (vzm::VzTextSpriteActor*)vzm::NewSceneComponent(
