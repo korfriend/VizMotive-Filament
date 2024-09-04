@@ -859,6 +859,10 @@ namespace filament::gltfio {
                 weights[i] = node->weights[i];
             }
             mRenderableManager.setMorphWeights(renderable, weights.data(), size);
+            geo_res->morphWeights.resize(size);
+            for (size_t i = 0; i < size; i++) {
+                geo_res->morphWeights[i] = weights[i];
+            }
         }
     }
 

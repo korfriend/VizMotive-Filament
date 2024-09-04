@@ -30,6 +30,7 @@ namespace vzm
         VID GetMaterial(const int slot = 0);
         VID GetGeometry();
 
+        size_t GetMorphWeights(std::vector<float>& weights);
         void SetMorphWeights(const float* weights, const int count);
         int GetMorphTargetCount();
     };

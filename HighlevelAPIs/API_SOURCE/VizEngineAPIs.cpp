@@ -731,6 +731,23 @@ namespace vzm
         asset_res.asset = asset;
         asset_res.asyncTextures = asset_loader->mTextureMap;
 
+        // from asset components
+        {
+#define RegisterFromAsset1(A, B) for (auto& it : B) { A.insert(it.first); }
+#define RegisterFromAsset2(A, B) for (auto& it : B) { A.insert(it.second); }
+
+            RegisterFromAsset1(asset_res.fromAssetLights, asset_loader->mLightMap);
+            RegisterFromAsset1(asset_res.fromAssetCameras, asset_loader->mCameraMap);
+            RegisterFromAsset1(asset_res.fromAssetRenderableActors, asset_loader->mRenderableActorMap);
+            RegisterFromAsset1(asset_res.fromAssetNodes, asset_loader->mNodeActorMap);
+            RegisterFromAsset1(asset_res.fromAssetSketetons, asset_loader->mSkeltonRootMap);
+
+            RegisterFromAsset2(asset_res.fromAssetGeometries, asset_loader->mGeometryMap);
+            RegisterFromAsset2(asset_res.fromAssetMaterials, asset_loader->mMaterialMap);
+            RegisterFromAsset2(asset_res.fromAssetMIs, asset_loader->mMIMap);
+            RegisterFromAsset2(asset_res.fromAssetTextures, asset_loader->mTextureMap);
+        }
+
         for (auto& instance : fasset->mInstances)
         {
             asset_res.rootVIDs.push_back(instance->mRoot.getId());

@@ -224,6 +224,7 @@ namespace vzm
         bool isSystem = false;
         gltfio::FilamentAsset* assetOwner = nullptr; // has ownership
         filament::Aabb aabb;
+        std::vector<float> morphWeights;
         void Set(const std::vector<VzPrimitive>& primitives);
         std::vector<VzPrimitive>* Get();
 
@@ -296,6 +297,17 @@ namespace vzm
         std::vector<VID> rootVIDs;
         std::set<VID> assetOwnershipComponents;
         std::vector<SkeletonVID> skeletons;
+
+        // to identify the entity's origin
+        std::set<GeometryVID> fromAssetGeometries;
+        std::set<MaterialVID> fromAssetMaterials;
+        std::set<MInstanceVID> fromAssetMIs;
+        std::set<TextureVID> fromAssetTextures;
+        std::set<CamVID> fromAssetCameras;
+        std::set<LightVID> fromAssetLights;
+        std::set<ActorVID> fromAssetRenderableActors;
+        std::set<ActorVID> fromAssetNodes;
+        std::set<SkeletonVID> fromAssetSketetons;
 
         VzAsset::Animator animator = VzAsset::Animator(0);
 
