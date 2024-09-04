@@ -2,11 +2,10 @@
 
 #include <time.h>
 
-#include <iostream>
-
-#include <sstream>
-#include <iomanip>
 #include <ctime>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 #undef GetObject
 
 using namespace rapidjson;
@@ -81,68 +80,71 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
             vzm::UniformType type =
                 (vzm::UniformType)parameters[j]["type"].GetInt();
             bool isSampler = parameters[j]["isSampler"].GetBool();
-
-            const rapidjson::Value& values = parameters[j]["value"];
-            if (values.IsArray()) {
-              rapidjson::Value::ConstArray valueArr = values.GetArray();
-              std::vector<float> v;
-              switch (type) {
-                case vzm::UniformType::FLOAT3:
-                  v.resize(3);
-                  break;
-                case vzm::UniformType::FLOAT4:
-                  v.resize(4);
-                  break;
-                default: {
-                  std::cerr << "type(array) error" << std::endl;
-                  break;
-                }
-              }
-
-              for (rapidjson::SizeType k = 0; k < valueArr.Size(); ++k) {
-                v[k] = valueArr[k].GetFloat();
-              }
-              mi->SetParameter(name, type, (void*)v.data());
-            } else {
-              // TODO: 일단 임시로 _붙은 파라미터는 제외, 추후?
-              if (name.find('_') == std::string::npos) {
+            if (parameters[j].HasMember("value")) {
+              const rapidjson::Value& values = parameters[j]["value"];
+              if (values.IsArray()) {
+                rapidjson::Value::ConstArray valueArr = values.GetArray();
+                std::vector<float> v;
                 switch (type) {
-                  case vzm::UniformType::BOOL:
-                    if (isSampler) {
-                      std::string relativePath = values.GetString();
-                      if (relativePath.size() != 0) {
-                        std::string absImagePath = res_path + relativePath;
-                        vzm::VzTexture* texture =
-                            (vzm::VzTexture*)vzm::NewResComponent(
-                                vzm::RES_COMPONENT_TYPE::TEXTURE, "my image");
-                        texture->ReadImage(absImagePath);
-                        mi->SetTexture(name, texture->GetVID());
-                        int sequenceIndex =
-                            parameters[j]["sequenceIndex"].GetInt();
-                        if (sequenceIndex != -1) {
-                          std::string key =
-                              std::to_string(mi->GetVID()) + "_" + name;
-                          sequenceIndexByMIParam[key] = sequenceIndex;
-                        }
-                      }
-                    } else {
-                      bool value = values.GetBool();
-                      mi->SetParameter(name, type, &value);
-                    }
+                  case vzm::UniformType::FLOAT3:
+                    v.resize(3);
                     break;
-                  case vzm::UniformType::FLOAT: {
-                    float value = values.GetFloat();
-                    mi->SetParameter(name, type, &value);
+                  case vzm::UniformType::FLOAT4:
+                    v.resize(4);
                     break;
-                  }
-                  //TODO: MAT3 (uv map) 처리
-                  case vzm::UniformType::MAT3: {
-                      break;
-                  }
                   default: {
-                    std::cout << "type error, type:" << (int)type << ", param name:" << name
-                        << ", actor name: " << actor->GetName() << std::endl;
+                    std::cerr << "type(array) error" << std::endl;
                     break;
+                  }
+                }
+
+                for (rapidjson::SizeType k = 0; k < valueArr.Size(); ++k) {
+                  v[k] = valueArr[k].GetFloat();
+                }
+                mi->SetParameter(name, type, (void*)v.data());
+              } else {
+                // TODO: 일단 임시로 _붙은 파라미터는 제외, 추후?
+                if (name.find('_') == std::string::npos) {
+                  switch (type) {
+                    case vzm::UniformType::BOOL:
+                      if (isSampler) {
+                        std::string relativePath = values.GetString();
+                        if (relativePath.size() != 0) {
+                          std::string absImagePath = res_path + relativePath;
+                          vzm::VzTexture* texture =
+                              (vzm::VzTexture*)vzm::NewResComponent(
+                                  vzm::RES_COMPONENT_TYPE::TEXTURE, "my image");
+                          texture->ReadImage(absImagePath);
+                          mi->SetTexture(name, texture->GetVID());
+                          int sequenceIndex =
+                              parameters[j]["sequenceIndex"].GetInt();
+                          if (sequenceIndex != -1) {
+                            std::string key =
+                                std::to_string(mi->GetVID()) + "_" + name;
+                            sequenceIndexByMIParam[key] = sequenceIndex;
+                          }
+                        }
+                      } else {
+                        bool value = values.GetBool();
+                        mi->SetParameter(name, type, &value);
+                      }
+                      break;
+                    case vzm::UniformType::FLOAT: {
+                      float value = values.GetFloat();
+                      mi->SetParameter(name, type, &value);
+                      break;
+                    }
+                    // TODO: MAT3 (uv map) 처리
+                    case vzm::UniformType::MAT3: {
+                      break;
+                    }
+                    default: {
+                      std::cout << "type error, type:" << (int)type
+                                << ", param name:" << name
+                                << ", actor name: " << actor->GetName()
+                                << std::endl;
+                      break;
+                    }
                   }
                 }
               }
@@ -684,7 +686,7 @@ void ImportGlobalSettings(const rapidjson::Value& globalSettings,
     sOpts.lispsm = LightSettings["lispsm"].GetBool();
     sOpts.shadowFar = LightSettings["shadowFar"].GetFloat();
 
-      rapidjson::Value::ConstArray lightDirection =
+    rapidjson::Value::ConstArray lightDirection =
         LightSettings["LightDirection"].GetArray();
     float lightDirectionArr[3] = {lightDirection[0].GetFloat(),
                                   lightDirection[1].GetFloat(),
@@ -1131,13 +1133,14 @@ void exportSettings(VID root, vzm::VzRenderer* renderer, vzm::VzScene* scene,
   struct tm local_timeinfo_data;
   local_timeinfo = &local_timeinfo_data;
   localtime_s(local_timeinfo, &rawtime);
-#elif __linux
+#elif __linux__
   local_timeinfo = localtime(&rawtime);
 #endif
 
-  //std::string exportFileName =
-  //    std::format("savefile[{:02}-{:02}-{:02}].json", local_timeinfo->tm_hour,
-  //                local_timeinfo->tm_min, local_timeinfo->tm_sec);
+  // std::string exportFileName =
+  //     std::format("savefile[{:02}-{:02}-{:02}].json",
+  //     local_timeinfo->tm_hour,
+  //                 local_timeinfo->tm_min, local_timeinfo->tm_sec);
 
   std::stringstream ss;
   ss << "savefile[" << std::setw(2) << std::setfill('0')
@@ -1149,7 +1152,7 @@ void exportSettings(VID root, vzm::VzRenderer* renderer, vzm::VzScene* scene,
   std::cout << exportFileName << std::endl;
 #if _WIN32
   fopen_s(&outfp, exportFileName.c_str(), "w");
-#elif __linux
+#elif __linux__
   outfp = fopen(exportFileName.c_str(), "w");
 #endif
   if (outfp == nullptr) return;

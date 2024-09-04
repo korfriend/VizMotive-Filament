@@ -62,6 +62,7 @@ namespace vzm
         bool Build();
         //void SetAnchorPoint(const float u = 0.5f, const float v = 0.5f);
         //void SetSize(const float w = 1.f, const float h = 1.f);
+        VID GetTexture();
         void SetTexture(const VID vidTexture);
     };
 
