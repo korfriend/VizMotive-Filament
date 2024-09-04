@@ -244,6 +244,12 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
     for (int i = 0; i < childrenVIDs.size(); ++i) {
       vzm::VzSceneComp* childComponent =
           (vzm::VzSceneComp*)vzm::GetVzComponent(childrenVIDs[i]);
+
+      // sprite, text component 무시
+      if (childComponent->GetSceneCompType() > (vzm::SCENE_COMPONENT_TYPE)7) {
+        continue;
+      }
+
       std::string childName = childComponent->GetName();
       ImportMaterials(children[childName.c_str()], childComponent);
     }
@@ -363,6 +369,9 @@ void ExportMaterials(rapidjson::Value& jsonNode,
                   valueArray.PushBack(val, allocator);
                 }
                 paramObj.AddMember("value", valueArray, allocator);
+                break;
+              }
+              case vzm::UniformType::MAT3: {
                 break;
               }
               default:
@@ -504,6 +513,13 @@ void ExportMaterials(rapidjson::Value& jsonNode,
   rapidjson::Value children;
   children.SetObject();
   for (const VID childVID : childrenVIDs) {
+    //sprite, text component 무시
+    vzm::VzSceneComp* childComp =
+        (vzm::VzSceneComp*)vzm::GetVzComponent(childVID);
+    if (childComp->GetSceneCompType() > (vzm::SCENE_COMPONENT_TYPE)7) {
+      continue;
+    }
+
     rapidjson::Value childJsonNode;
     ExportMaterials(childJsonNode, allocator, childVID);
 

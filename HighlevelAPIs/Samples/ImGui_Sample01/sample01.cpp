@@ -678,21 +678,12 @@ std::unordered_map<VID, bool> castShadows;
 std::unordered_map<VID, bool> receiveShadows;
 std::unordered_map<VID, bool> screenSpaceContactShadows;
 
-float g_sprite_uv[2] = {0.5f, 0.5f};
-float g_text_uv[2] = {0.5f, 0.5f};
-float g_width = 1.0f;
-float g_height = 1.0f;
+// generator
+std::map<VID, int> sequenceIndexBySprite;
 char g_texturePath[300] = "testimage.png";
-int g_sprite_priority = 0;
-int g_text_priority = 0;
+char g_sprite_name[300] = "sprite";
+char g_text_name[300] = "text";
 bool g_billboard = true;
-
-float g_text_color[3] = {1.0f, 1.0f, 1.0f};
-float g_font_height = 0.5f;
-float g_max_width = 2.0f;
-char g_text[100] = {
-    0,
-};
 
 void resize(int width, int height) {
   if (current_cam == g_cam) {
@@ -726,9 +717,9 @@ void setKeyboardButton(GLFWwindow* window, int key, int scancode, int action,
       } else if (key == GLFW_KEY_D) {
         g_cam->GetController()->KeyDown(vzm::VzCamera::Controller::Key::RIGHT);
       } else if (key == GLFW_KEY_Q) {
-        g_cam->GetController()->KeyDown(vzm::VzCamera::Controller::Key::UP);
-      } else if (key == GLFW_KEY_E) {
         g_cam->GetController()->KeyDown(vzm::VzCamera::Controller::Key::DOWN);
+      } else if (key == GLFW_KEY_E) {
+        g_cam->GetController()->KeyDown(vzm::VzCamera::Controller::Key::UP);
       } else if (key == GLFW_KEY_F) {
         g_cam->GetController()->mode =
             vzm::VzCamera::Controller::Mode::FREE_FLIGHT;
@@ -737,7 +728,7 @@ void setKeyboardButton(GLFWwindow* window, int key, int scancode, int action,
         g_cam->GetController()->mode = vzm::VzCamera::Controller::Mode::ORBIT;
         g_cam->GetController()->UpdateControllerSettings();
       }
-      g_cam->GetController()->UpdateCamera(0.3);
+      g_cam->GetController()->UpdateCamera(0.1);
       break;
     case GLFW_RELEASE:
       if (key == GLFW_KEY_W) {
@@ -749,9 +740,9 @@ void setKeyboardButton(GLFWwindow* window, int key, int scancode, int action,
       } else if (key == GLFW_KEY_D) {
         g_cam->GetController()->KeyUp(vzm::VzCamera::Controller::Key::RIGHT);
       } else if (key == GLFW_KEY_Q) {
-        g_cam->GetController()->KeyUp(vzm::VzCamera::Controller::Key::UP);
-      } else if (key == GLFW_KEY_E) {
         g_cam->GetController()->KeyUp(vzm::VzCamera::Controller::Key::DOWN);
+      } else if (key == GLFW_KEY_E) {
+        g_cam->GetController()->KeyUp(vzm::VzCamera::Controller::Key::UP);
       }
       break;
     default:
@@ -901,8 +892,8 @@ void initViewer() {
   screenSpaceContactShadows.clear();
 
   g_scene = vzm::NewScene("my scene");
-  //g_scene->LoadIBL("../../../VisualStudio/samples/assets/ibl/lightroom_14b");
-  g_scene->LoadIBL("lightroom_14b");
+  g_scene->LoadIBL("../../../VisualStudio/samples/assets/ibl/lightroom_14b");
+  //g_scene->LoadIBL("lightroom_14b");
   g_cam = (vzm::VzCamera*)vzm::NewSceneComponent(
       vzm::SCENE_COMPONENT_TYPE::CAMERA, "UserCamera");
   glm::fvec3 p(0, 0, 10);
@@ -1465,6 +1456,10 @@ int main(int, char**) {
           tabIdx = 1;
           ImGui::EndTabItem();
         }
+        if (ImGui::BeginTabItem("Generator")) {
+          tabIdx = 2;
+          ImGui::EndTabItem();
+        }
 
         ImGui::EndTabBar();
       }
@@ -1478,70 +1473,117 @@ int main(int, char**) {
           vzm::SCENE_COMPONENT_TYPE type = component->GetSceneCompType();
           ImGui::Text(component->GetName().c_str());
           ImGui::PushID(component->GetName().c_str());
-
-          if (ImGui::CollapsingHeader(
-                  "Sprite Generator",
-                  ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::InputFloat("width", &g_width);
-            ImGui::InputFloat("height", &g_height);
-            ImGui::InputFloat2("uv##sprite", g_sprite_uv);
-            ImGui::InputText("texturePath", g_texturePath, 300);
-            ImGui::InputInt("priority##sprite", &g_sprite_priority);
-            ImGui::Checkbox("Is Billboard", &g_billboard);
-
-            //"../assets/testimage.png"
-            if (ImGui::Button("make test sprite")) {
-              vzm::VzTexture* spritetexture = (vzm::VzTexture*)vzm::NewResComponent(
-                  vzm::RES_COMPONENT_TYPE::TEXTURE, "texture");
-              spritetexture->ReadImage(g_texturePath);
-
-              vzm::VzSpriteActor* msprite =
-                  (vzm::VzSpriteActor*)vzm::NewSceneComponent(
-                      vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR, "test sprite");
-
-              msprite->SetSpriteWidth(g_width)
-                  .SetSpriteHeight(g_height)
-                  .SetAnchorU(g_sprite_uv[0])
-                  .SetAnchorV(g_sprite_uv[1])
-                  .Build();
-
-              msprite->SetTexture(spritetexture->GetVID());
-              msprite->EnableBillboard(g_billboard);
-
-              vzm::AppendSceneCompTo(msprite, component);
-              float position[3] = {0, 0, 0};
-              msprite->SetPosition(position);
-              msprite->SetPriority((uint8_t)g_sprite_priority);
+          
+          if (type == vzm::SCENE_COMPONENT_TYPE::ACTOR ||
+              type == vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR ||
+              type == vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR) {
+            int actor_priority = (int)((vzm::VzBaseActor*)component)->GetPriority();
+            if (ImGui::SliderInt("priority", &actor_priority, 0, 7)) {
+              ((vzm::VzBaseActor*)component)->SetPriority(actor_priority);
             }
           }
-          if (ImGui::CollapsingHeader(
-                  "Text Generator",
-                  ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::InputFloat2("uv##text", g_text_uv);
-            ImGui::InputInt("priority##text", &g_text_priority);
-            ImGui::ColorEdit3("textcolor", g_text_color);
-            ImGui::InputFloat("font height", &g_font_height);
-            ImGui::InputFloat("max width", &g_max_width);
-            ImGui::InputText("text", g_text, 100);
+          if (type == vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR) {
+            if (ImGui::CollapsingHeader(
+                    "Sprite",
+                    ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+              vzm::VzSpriteActor* spriteComponent =
+                  (vzm::VzSpriteActor*)component;
+              float sprite_width = spriteComponent->GetSpriteWidth();
+              float sprite_height = spriteComponent->GetSpriteHeight();
+              float sprite_anchor[2] = {spriteComponent->GetAnchorU(),
+                                        spriteComponent->GetAnchorV()};
+              if (ImGui::InputFloat("width", &sprite_width)) {
+                spriteComponent->SetSpriteWidth(sprite_width).Build();
+              }
+              if (ImGui::InputFloat("height", &sprite_height)) {
+                spriteComponent->SetSpriteHeight(sprite_height).Build();
+              }
+              if (ImGui::InputFloat2("anchor uv", sprite_anchor)) {
+                spriteComponent->SetAnchorU(sprite_anchor[0])
+                    .SetAnchorV(sprite_anchor[1])
+                    .Build();
+              }
+              //TODO: texture 변경
+              std::string label = "Upload Texture##Sprite";
+              label += spriteComponent->GetVID();
+              if (ImGui::Button(label.c_str())) {
+                vzm::VzTexture* texture = (vzm::VzTexture*)vzm::NewResComponent(
+                    vzm::RES_COMPONENT_TYPE::TEXTURE, "my image");
+                std::wstring filePath = OpenFileDialog(L"Image\0*.png;*.jpg\0");
 
-            //"../assets/testimage.png"
-            if (ImGui::Button("make text")) {
-              vzm::VzFont* font = (vzm::VzFont*)vzm::NewResComponent(
-                  vzm::RES_COMPONENT_TYPE::FONT, "font");
-              font->ReadFont("font/HyundaiSansUI_JP_KR_Latin-Regular.ttf", 30);
+                if (filePath.size() > 0) {
+                  std::string str_path;
+                  str_path.assign(filePath.begin(), filePath.end());
+                  texture->ReadImage(str_path);
+                  spriteComponent->SetTexture(texture->GetVID());
+                  //Build?
+                }
+              }
+              ImGui::SameLine();
+              std::string seqLabel = "sequanceImages##Sprite";
+              seqLabel += spriteComponent->GetVID();
 
-              vzm::VzTextSpriteActor* text_actor_ =
-                  (vzm::VzTextSpriteActor*)vzm::NewSceneComponent(
-                  vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR, "text actor");
+              int sequenceIndex = -1 + 1;
+              VID key = spriteComponent->GetVID();
+              if (sequenceIndexBySprite.contains(key)) {
+                sequenceIndex = sequenceIndexBySprite[key] + 1;
+              }
+              if (ImGui::Combo(seqLabel.c_str(), &sequenceIndex,
+                               "SELECT SEQUENCE IMAGE "
+                               "INDEX\0Index00\0Index01\0Index02\0I"
+                               "ndex03\0Index04\0Index05\0\0")) {
+                sequenceIndex -= 1;
+                if (sequenceIndex == -1) {
+                  sequenceIndexBySprite.erase(key);
+                } else {
+                  // 관리되는 자료구조에 연결
+                  sequenceIndexBySprite[key] = sequenceIndex;
+                }
+              }
+            }
+          } 
+          else if (type == vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR) {
+            if (ImGui::CollapsingHeader(
+                    "Text",
+                    ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+              vzm::VzTextSpriteActor* textComponent =
+                  (vzm::VzTextSpriteActor*)component;
+              float max_width = textComponent->GetMaxWidth();
+              float font_height = textComponent->GetFontHeight();
+              float text_anchor_uv[2] = {textComponent->GetAnchorU(),
+                                         textComponent->GetAnchorV()};
 
-              text_actor_->SetFont(font->GetVID());
-              text_actor_->SetColor(g_text_color)
-                  .SetFontHeight(g_font_height)
-                  .SetMaxWidth(g_max_width)
-                  .SetText(g_text)
-                  .Build();
-              vzm::AppendSceneCompTo(text_actor_, component);
-              text_actor_->SetPriority((uint8_t)g_text_priority);
+              std::string actor_text = textComponent->GetText();
+              char c_actor_text[300];
+              strcpy_s(c_actor_text, 300, actor_text.c_str());
+
+              float text_color[4];
+              textComponent->GetColor(text_color);
+              int text_align = (int)textComponent->GetTextAlign() - 1;
+
+              if (ImGui::InputFloat("max width", &max_width)) {
+                textComponent->SetMaxWidth(max_width).Build();
+              }
+              if (ImGui::InputFloat("font height", &font_height)) {
+                textComponent->SetFontHeight(font_height).Build();
+              }
+              if (ImGui::InputFloat2("anchor uv", text_anchor_uv)) {
+                textComponent->SetAnchorU(text_anchor_uv[0])
+                    .SetAnchorV(text_anchor_uv[1])
+                    .Build();
+              }
+
+              if (ImGui::Combo("text align", &text_align,
+                               "LEFT\0CENTER\0RIGHT\0TOP_LEFT\0TOP_CENTER\0TOP_RIGHT\0MIDDLE_LEFT\0MIDDLE_CENTER\0MIDDLE_RIGHT\0BOTTOM_LEFT\0BOTTOM_CENTER\0BOTTOM_RIGHT\0\0")) {
+                textComponent->SetTextAlign((vzm::TEXT_ALIGN)(text_align + 1))
+                    .Build();
+              }
+              if (ImGui::InputText("text", c_actor_text, 300)) {
+                textComponent->SetText(c_actor_text).Build();
+              }
+              if (ImGui::ColorEdit4("color", text_color)) {
+                textComponent->SetColor(text_color).Build();
+              }
             }
           }
           if (ImGui::CollapsingHeader(
@@ -1549,16 +1591,21 @@ int main(int, char**) {
                   ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent();
             float position[3];
+            float rotation[3];
             float quaternion[4];
             float scale[3];
             component->GetPosition(position);
+            component->GetRotation(rotation);
             component->GetQuaternion(quaternion);
             component->GetScale(scale);
 
             if (ImGui::InputFloat3("Position", position)) {
               component->SetPosition(position);
             }
-            if (ImGui::InputFloat4("Rotation (Quat)", quaternion)) {
+            if (ImGui::InputFloat3("Rotation", rotation)) {
+              component->SetRotation(rotation);
+            }
+            if (ImGui::InputFloat4("Quaternion", quaternion)) {
               component->SetQuaternion(quaternion);
             }
             if (ImGui::InputFloat3("Scale", scale)) {
@@ -2857,6 +2904,63 @@ int main(int, char**) {
             ImGui::Unindent();
           }
           break;
+        case 2: {
+          if (currentVID != -1) {
+            vzm::VzSceneComp* component =
+                (vzm::VzSceneComp*)vzm::GetVzComponent(currentVID);
+            if (ImGui::CollapsingHeader(
+                    "Sprite Generator",
+                    ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+              ImGui::InputText("texture path", g_texturePath, 300);
+              ImGui::Checkbox("Is Billboard", &g_billboard);
+
+              ImGui::InputText("name##spritegenerator", g_sprite_name, 100);
+              if (ImGui::Button("generate sprite")) {
+                vzm::VzTexture* spritetexture =
+                    (vzm::VzTexture*)vzm::NewResComponent(
+                        vzm::RES_COMPONENT_TYPE::TEXTURE, "texture");
+                spritetexture->ReadImage(g_texturePath);
+
+                vzm::VzSpriteActor* sprite =
+                    (vzm::VzSpriteActor*)vzm::NewSceneComponent(
+                        vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR,
+                        std::string(g_sprite_name));
+                
+                sprite->Build();
+
+                sprite->SetTexture(spritetexture->GetVID());
+                sprite->EnableBillboard(g_billboard);
+
+                vzm::AppendSceneCompTo(sprite, component);
+              }
+            }
+            if (ImGui::CollapsingHeader(
+                    "Text Generator",
+                    ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+
+              ImGui::InputText("name##textgenerator", g_text_name, 100);
+              if (ImGui::Button("generate text")) {
+                vzm::VzFont* font = (vzm::VzFont*)vzm::NewResComponent(
+                    vzm::RES_COMPONENT_TYPE::FONT, "font");
+                font->ReadFont("font/HyundaiSansUI_JP_KR_Latin-Regular.ttf",
+                               30);
+
+                vzm::VzTextSpriteActor* text_actor_ =
+                    (vzm::VzTextSpriteActor*)vzm::NewSceneComponent(
+                        vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR,
+                        std::string(g_text_name));
+
+                text_actor_->SetFont(font->GetVID());
+
+                text_actor_->SetText("").Build();
+                vzm::AppendSceneCompTo(text_actor_, component);
+              }
+            }
+          } else {
+            ImGui::Text("Choose Parent Node");
+          }
+          break;
+        }
       }
 
       // right_editUIWidth = ImGui::GetWindowWidth();
@@ -2882,6 +2986,21 @@ int main(int, char**) {
         mi->SetTexture(pname, texture->GetVID());
       }
     }
+    // sprite
+    for (auto iter = sequenceIndexBySprite.begin();
+        iter != sequenceIndexBySprite.end(); iter++) {
+      vzm::VzSpriteActor* spriteActor =
+          (vzm::VzSpriteActor*)vzm::GetVzComponent(iter->first);
+      int seqIdx = iter->second;
+
+      if (sequenceTextures[seqIdx].size() > 0) {
+        int currentTextureIdx = seqIndex % (sequenceTextures[seqIdx].size());
+        vzm::VzTexture* texture = sequenceTextures[seqIdx][currentTextureIdx];
+
+        spriteActor->SetTexture(texture->GetVID());
+      }
+    }
+
     seqIndex++;
 
     // render
