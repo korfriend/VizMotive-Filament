@@ -190,6 +190,7 @@ namespace vzm
             .culling(actor_res->culling) // false
             .castShadows(actor_res->castShadow) // false
             .receiveShadows(actor_res->receiveShadow) // false
+            .priority(actor_res->priority)
             .build(*gEngine, ett_actor);
     }
 
