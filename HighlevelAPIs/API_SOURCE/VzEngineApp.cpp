@@ -156,7 +156,7 @@ namespace vzm
         }
         uint8_t* pixels = new uint8_t[width * height];
         memset(pixels, 0, width * height);
-        VzTextSpriteActor::TEXT_ALIGN textAlign = textFormat.textAlign;
+        TEXT_ALIGN textAlign = textFormat.textAlign;
         int32_t numberOfLines = linesWidth.size();
         int32_t lineX = GetLeftBlankWidth(textAlign, linesWidth[0], width);
         int32_t lineY = GetTopBlankHeight(textAlign, textHeight, height);
@@ -225,34 +225,34 @@ namespace vzm
         texture->setImage(*gEngine, 0, std::move(buffer));
         texture->generateMipmaps(*gEngine);
     }
-    int32_t VzTypesetter::GetLeftBlankWidth(const VzTextSpriteActor::TEXT_ALIGN textAlign, const int32_t lineWidth, const int32_t width)
+    int32_t VzTypesetter::GetLeftBlankWidth(const TEXT_ALIGN textAlign, const int32_t lineWidth, const int32_t width)
     {
         switch (textAlign) {
-            case VzTextSpriteActor::TEXT_ALIGN::RIGHT:
-            case VzTextSpriteActor::TEXT_ALIGN::TOP_RIGHT:
-            case VzTextSpriteActor::TEXT_ALIGN::MIDDLE_RIGHT:
-            case VzTextSpriteActor::TEXT_ALIGN::BOTTOM_RIGHT:
+            case TEXT_ALIGN::RIGHT:
+            case TEXT_ALIGN::TOP_RIGHT:
+            case TEXT_ALIGN::MIDDLE_RIGHT:
+            case TEXT_ALIGN::BOTTOM_RIGHT:
                 return width - lineWidth;
-            case VzTextSpriteActor::TEXT_ALIGN::CENTER:
-            case VzTextSpriteActor::TEXT_ALIGN::TOP_CENTER:
-            case VzTextSpriteActor::TEXT_ALIGN::MIDDLE_CENTER:
-            case VzTextSpriteActor::TEXT_ALIGN::BOTTOM_CENTER:
+            case TEXT_ALIGN::CENTER:
+            case TEXT_ALIGN::TOP_CENTER:
+            case TEXT_ALIGN::MIDDLE_CENTER:
+            case TEXT_ALIGN::BOTTOM_CENTER:
                 return (width - lineWidth) / 2;
             default:
                 return 0;
         }
     }
-    int32_t VzTypesetter::GetTopBlankHeight(const VzTextSpriteActor::TEXT_ALIGN textAlign, const int32_t textHeight, const int32_t height)
+    int32_t VzTypesetter::GetTopBlankHeight(const TEXT_ALIGN textAlign, const int32_t textHeight, const int32_t height)
     {
         switch (textAlign)
         {
-            case VzTextSpriteActor::TEXT_ALIGN::MIDDLE_LEFT:
-            case VzTextSpriteActor::TEXT_ALIGN::MIDDLE_CENTER:
-            case VzTextSpriteActor::TEXT_ALIGN::MIDDLE_RIGHT:
+            case TEXT_ALIGN::MIDDLE_LEFT:
+            case TEXT_ALIGN::MIDDLE_CENTER:
+            case TEXT_ALIGN::MIDDLE_RIGHT:
                 return (height - textHeight) / 2;
-            case VzTextSpriteActor::TEXT_ALIGN::BOTTOM_LEFT:
-            case VzTextSpriteActor::TEXT_ALIGN::BOTTOM_CENTER:
-            case VzTextSpriteActor::TEXT_ALIGN::BOTTOM_RIGHT:
+            case TEXT_ALIGN::BOTTOM_LEFT:
+            case TEXT_ALIGN::BOTTOM_CENTER:
+            case TEXT_ALIGN::BOTTOM_RIGHT:
                 return height - textHeight;
             default:
                 return 0;

@@ -51,8 +51,7 @@ namespace vzm
     float VzScene::GetIBLRotation()
     {
         VzSceneRes* scene_res = gEngineApp->GetSceneRes(GetVID());
-        VzIBL* ibl = scene_res->GetIBL();
-        return iblRotation_;
+        return scene_res->iblRotation;
     }
     void VzScene::SetIBLIntensity(float intensity)
     {
@@ -66,7 +65,7 @@ namespace vzm
         VzSceneRes* scene_res = gEngineApp->GetSceneRes(GetVID());
         VzIBL* ibl = scene_res->GetIBL();
         ibl->getIndirectLight()->setRotation(math::mat3f::rotation(rotation, math::float3{0, 1, 0}));
-        iblRotation_ = rotation;
+        scene_res->iblRotation = rotation;
         UpdateTimeStamp();
     }
     void VzScene::SetSkyboxVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits)
