@@ -148,8 +148,11 @@ set(PUBLIC_HDRS
 )
 
 set(SRCS
+        ../API_SOURCE/backend/resource_internal.c
         ../API_SOURCE/backend/VzAssetExporter.cpp
         ../API_SOURCE/backend/VzAssetLoader.cpp
+        ../API_SOURCE/backend/VzCube.cpp
+        ../API_SOURCE/backend/VzIBL.cpp
         ../API_SOURCE/backend/VzMeshAssimp.cpp
         ../API_SOURCE/components/VzActor.cpp
         ../API_SOURCE/components/VzAsset.cpp
@@ -171,10 +174,15 @@ set(SRCS
 )
 
 set(PRIVATE_HDRS
+        ../API_SOURCE/backend/resource_internal.h
         ../API_SOURCE/backend/VzAssetExporter.h
         ../API_SOURCE/backend/VzAssetLoader.h
+        ../API_SOURCE/backend/VzConfig.h
+        ../API_SOURCE/backend/VzCube.h
+        ../API_SOURCE/backend/VzIBL.h
         ../API_SOURCE/backend/VzMeshAssimp.h
         ../API_SOURCE/FIncludes.h
+        ../API_SOURCE/PreDefs.h
         ../API_SOURCE/VizCoreUtils.h
         ../API_SOURCE/VzEngineApp.h
         ../API_SOURCE/VzNameComponents.hpp
@@ -221,14 +229,11 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${FILAMENT_DIR}/lib/x86_64/libbackend.a
     ${FILAMENT_DIR}/lib/x86_64/libfilaflat.a
     ${FILAMENT_DIR}/lib/x86_64/libfilabridge.a
-    EGL
     ${FILAMENT_DIR}/lib/x86_64/libbluegl.a
     ${FILAMENT_DIR}/lib/x86_64/libbluevk.a
     ${FILAMENT_DIR}/lib/x86_64/libcamutils.a
     ${FILAMENT_DIR}/lib/x86_64/libcivetweb.a
 
-    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/libs/filamentapp/libfilamentapp.a
-    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/libs/filamentapp/libfilamentapp-resources.a
     ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/samples/libgltf-demo-resources.a
     ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/samples/libsample-resources.a
     ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/samples/libsuzanne-resources.a

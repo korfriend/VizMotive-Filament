@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+MOBILE_HOST_TOOLS="matc resgen cmgen filamesh uberz"
+
 function print_help {
     local self_name=$(basename "$0")
     echo "Usage:"
@@ -13,6 +15,9 @@ function print_help {
     echo "        Clean build directories."
     echo "    -f"
     echo "        Always invoke CMake before incremental builds."
+    echo "    -q abi1,abi2,..."
+    echo "        Where platformN is [armeabi-v7a|arm64-v8a|x86|x86_64|all]."
+    echo "        ABIs to build when the platform is Android. Defaults to all."
     echo ""
     echo "Build types:"
     echo "    release"
@@ -39,6 +44,12 @@ ISSUE_CLEAN=false
 ISSUE_DEBUG_BUILD=false
 ISSUE_RELEASE_BUILD=false
 
+# Default: all
+ABI_ARMEABI_V7A=true
+ABI_ARM64_V8A=true
+ABI_X86=true
+ABI_X86_64=true
+
 ISSUE_CMAKE_ALWAYS=false
 
 INSTALL_COMMAND=install
@@ -50,42 +61,83 @@ BUILD_COMMAND=ninja
 
 function build_clean {
     echo "Cleaning build directories..."
-    rm -Rf cmake-*
+    rm -Rf cmake-android-*
     rm -Rf dist
 }
 
-function build_desktop_target {
+function build_android_target {
     local lc_target=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+    local arch=$2
 
-    echo "Building ${lc_target} in cmake-${lc_target}..."
-    mkdir -p "cmake-${lc_target}"
+    echo "Building Android ${lc_target} (${arch})..."
+    mkdir -p "cmake-android-${lc_target}-${arch}"
 
-    pushd "cmake-${lc_target}" > /dev/null
+    pushd "cmake-android-${lc_target}-${arch}" > /dev/null
 
     if [[ ! -d "CMakeFiles" ]] || [[ "${ISSUE_CMAKE_ALWAYS}" == "true" ]]; then
-        CC=/usr/bin/clang CXX=/usr/bin/clang++ CXXFLAGS=-stdlib=libc++ cmake \
+        cmake \
             -G "${BUILD_GENERATOR}" \
             -DCMAKE_BUILD_TYPE="${lc_target}" \
-            -DCMAKE_INSTALL_PREFIX="../dist" \
+            -DFILAMENT_NDK_VERSION="${FILAMENT_NDK_VERSION}" \
+            -DCMAKE_INSTALL_PREFIX="../dist/${arch}" \
+            -DCMAKE_TOOLCHAIN_FILE="../../build/toolchain-${arch}-linux-android.cmake" \
             ..
     fi
-    ${BUILD_COMMAND}
 
-    if [[ "${INSTALL_COMMAND}" ]]; then
-        echo "Installing ${lc_target} in ../dist..."
-        ${BUILD_COMMAND} ${INSTALL_COMMAND}
-    fi
+    ${BUILD_COMMAND} install
 
     popd > /dev/null
 }
 
-function build_desktop {
+function build_android_arch {
+    local arch=$1
+
     if [[ "${ISSUE_DEBUG_BUILD}" == "true" ]]; then
-        build_desktop_target "debug" "$1"
+        build_android_target "Debug" "${arch}"
     fi
 
     if [[ "${ISSUE_RELEASE_BUILD}" == "true" ]]; then
-        build_desktop_target "release" "$1"
+        build_android_target "Release" "${arch}"
+    fi
+}
+
+function ensure_android_build {
+    if [[ "${ANDROID_HOME}" == "" ]]; then
+        echo "Error: ANDROID_HOME is not set, exiting"
+        exit 1
+    fi
+
+    # shellcheck disable=SC2012
+    if [[ -z $(ls "${ANDROID_HOME}/ndk/" | sort -V | grep "^${FILAMENT_NDK_VERSION}") ]]; then
+        echo "Error: Android NDK side-by-side version ${FILAMENT_NDK_VERSION} or compatible must be installed, exiting"
+        exit 1
+    fi
+
+    local cmake_version=$(cmake --version)
+    if [[ "${cmake_version}" =~ ([0-9]+)\.([0-9]+)\.[0-9]+ ]]; then
+        if [[ "${BASH_REMATCH[1]}" -lt "${CMAKE_MAJOR}" ]] || \
+           [[ "${BASH_REMATCH[2]}" -lt "${CMAKE_MINOR}" ]]; then
+            echo "Error: cmake version ${CMAKE_MAJOR}.${CMAKE_MINOR}+ is required," \
+                 "${BASH_REMATCH[1]}.${BASH_REMATCH[2]} installed, exiting"
+            exit 1
+        fi
+    fi
+}
+
+function build_android {
+    ensure_android_build
+
+    if [[ "${ABI_ARM64_V8A}" == "true" ]]; then
+        build_android_arch "aarch64" "aarch64-linux-android"
+    fi
+    if [[ "${ABI_ARMEABI_V7A}" == "true" ]]; then
+        build_android_arch "arm7" "arm-linux-androideabi"
+    fi
+    if [[ "${ABI_X86_64}" == "true" ]]; then
+        build_android_arch "x86_64" "x86_64-linux-android"
+    fi
+    if [[ "${ABI_X86}" == "true" ]]; then
+        build_android_arch "x86" "i686-linux-android"
     fi
 }
 
@@ -177,4 +229,4 @@ if [[ "${ISSUE_CLEAN}" == "true" ]]; then
     build_clean
 fi
 
-check_debug_release_build build_desktop
+check_debug_release_build build_android

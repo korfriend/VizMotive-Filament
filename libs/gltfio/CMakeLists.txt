@@ -201,7 +201,7 @@ if (NOT MSVC)
     target_compile_options(gltfio_core PRIVATE ${GLTFIO_WARNINGS})
 endif()
 
-if (NOT WEBGL AND NOT ANDROID AND NOT IOS)
+# if (NOT WEBGL AND NOT ANDROID AND NOT IOS)
 
     # ==================================================================================================
     # Link the core library with additional dependencies to create the "full" library
@@ -216,7 +216,7 @@ if (NOT WEBGL AND NOT ANDROID AND NOT IOS)
 
     install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
 
-endif()
+# endif()
 
 # ==================================================================================================
 # Tests

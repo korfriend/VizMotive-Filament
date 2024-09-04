@@ -167,7 +167,7 @@ std::tuple<VkImage, VkDeviceMemory, void * UTILS_NULLABLE> createImageAndMemoryH
 
   int fd = -1;
   result = vkGetMemoryFdKHR(device, &getFdInfo, &fd);
-  FILAMENT_CHECK_POSTCONDITION(result == VK_SUCCESS) << "Failed to get memory handle";
+  FILAMENT_CHECK_POSTCONDITION(result == VK_SUCCESS) << "Failed to get memory file descriptor";
   if (sizeof(void*) == 8) {
     handleValue = (void*)(long long)fd;
   } else {

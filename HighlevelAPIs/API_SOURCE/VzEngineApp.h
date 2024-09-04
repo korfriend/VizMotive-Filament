@@ -71,21 +71,6 @@ namespace vzm
         TRIANGLE_STRIP = 5     //!< triangle strip
     };
 
-    enum class TextAlign : uint8_t {
-        LEFT = 1,
-        CENTER = 2,
-        RIGHT = 3,
-        TOP_LEFT = 4,
-        TOP_CENTER = 5,
-        TOP_RIGHT = 6,
-        MIDDLE_LEFT = 7,
-        MIDDLE_CENTER = 8,
-        MIDDLE_RIGHT = 9,
-        BOTTOM_LEFT = 10,
-        BOTTOM_CENTER = 11,
-        BOTTOM_RIGHT = 12
-    };
-
     using namespace filament;
     using namespace filament::gltfio;
 
@@ -107,7 +92,7 @@ namespace vzm
 
     struct VzTextFormat {
         FontVID font = INVALID_VID;
-        TextAlign textAlign = TextAlign::LEFT;
+        TEXT_ALIGN textAlign = TEXT_ALIGN::LEFT;
         uint32_t kerning = 0;
         uint32_t leading = 0;
     };
@@ -116,8 +101,8 @@ namespace vzm
         void Measure();
         int32_t MeasureLinesWidth(FontVID font);
         void Typeset();
-        int32_t GetLeftBlankWidth(const TextAlign textAlign, const int32_t lineWidth, const int32_t width);
-        int32_t GetTopBlankHeight(const TextAlign textAlign, const int32_t lineHeight, const int32_t height);
+        int32_t GetLeftBlankWidth(const TEXT_ALIGN textAlign, const int32_t lineWidth, const int32_t width);
+        int32_t GetTopBlankHeight(const TEXT_ALIGN textAlign, const int32_t lineHeight, const int32_t height);
 
         Texture* texture = nullptr;
         std::wstring text;
@@ -143,6 +128,9 @@ namespace vzm
     public:
         VzSceneRes();
         ~VzSceneRes();
+
+        float iblRotation = 0.f;
+
         void Destory();
         VzIBL* GetIBL();
         VzIBL* NewIBL();
@@ -185,6 +173,7 @@ namespace vzm
         bool culling = true;
         bool castShadow = true;
         bool receiveShadow = true;
+        uint8_t priority = 0x4;
 
         void SetGeometry(const GeometryVID vid);
         void SetMIs(const std::vector<MInstanceVID>& vidMIs);
