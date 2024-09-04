@@ -298,6 +298,17 @@ namespace vzm
         std::set<VID> assetOwnershipComponents;
         std::vector<SkeletonVID> skeletons;
 
+        // to identify the entity's origin
+        std::set<GeometryVID> fromAssetGeometries;
+        std::set<MaterialVID> fromAssetMaterials;
+        std::set<MInstanceVID> fromAssetMIs;
+        std::set<TextureVID> fromAssetTextures;
+        std::set<CamVID> fromAssetCameras;
+        std::set<LightVID> fromAssetLights;
+        std::set<ActorVID> fromAssetRenderableActors;
+        std::set<ActorVID> fromAssetNodes;
+        std::set<SkeletonVID> fromAssetSketetons;
+
         VzAsset::Animator animator = VzAsset::Animator(0);
 
         std::unordered_map<size_t, TextureVID> asyncTextures; // fasset.mTextures
