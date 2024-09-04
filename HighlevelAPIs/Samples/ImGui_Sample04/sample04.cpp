@@ -197,7 +197,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         (vzm::VzTextSpriteActor*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR, "my text-sprite in front of cam");
     textsprite_on_cam->SetFont(font->GetVID());
     glm::fvec4 text_color(0, 0, 1, 1);
-    textsprite_on_cam->SetText(L"Hello world!")
+    textsprite_on_cam->SetTextW(L"Hello world!")
         .SetAnchorU(0.5f)
         .SetAnchorV(0.5f)
         .SetColor(__FP text_color)
