@@ -673,7 +673,6 @@ int render_height = 1080;
 
 VID currentVID = -1;
 
-std::unordered_map<VID, std::vector<float>> morphWeights;
 std::unordered_map<VID, bool> castShadows;
 std::unordered_map<VID, bool> receiveShadows;
 std::unordered_map<VID, bool> screenSpaceContactShadows;
@@ -879,7 +878,6 @@ std::wstring OpenFileDialog(const wchar_t* pStrFilter) {
 }
 
 void initViewer() {
-  morphWeights.clear();
   castShadows.clear();
   receiveShadows.clear();
   screenSpaceContactShadows.clear();
@@ -1875,8 +1873,8 @@ int main(int, char**) {
             ImGui::Indent();
             if (type == vzm::SCENE_COMPONENT_TYPE::ACTOR) {
               vzm::VzActor* actor = (vzm::VzActor*)component;
-              std::vector<float>& weights = morphWeights[actor->GetVID()];
-              weights.resize(actor->GetMorphTargetCount());
+              std::vector<float> weights;
+              actor->GetMorphWeights(weights);
               for (size_t i = 0; i < weights.size(); i++) {
                 ImGui::SliderFloat(std::to_string(i).c_str(), &weights[i], 0.0f,
                                    1.0f);

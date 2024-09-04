@@ -224,6 +224,7 @@ namespace vzm
         bool isSystem = false;
         gltfio::FilamentAsset* assetOwner = nullptr; // has ownership
         filament::Aabb aabb;
+        std::vector<float> morphWeights;
         void Set(const std::vector<VzPrimitive>& primitives);
         std::vector<VzPrimitive>* Get();
 

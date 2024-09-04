@@ -102,10 +102,27 @@ namespace vzm
         VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         return actor_res->GetGeometryVid();
     }
+    size_t VzActor::GetMorphWeights(std::vector<float>& weights) {
+        COMP_ACTOR(rcm, ett, ins, 0);
+        VzGeometryRes* geo_res = gEngineApp->GetGeometryRes(GetGeometry());
+        if (geo_res == nullptr) return 0;
+        size_t count = geo_res->morphWeights.size();
+        weights.resize(count);
+        for (size_t i = 0; i < count; i++) {
+            weights[i] = geo_res->morphWeights[i];
+        }
+        return count;
+    }
     void VzActor::SetMorphWeights(const float* weights, const int count)
     {
         COMP_ACTOR(rcm, ett, ins, );
         rcm.setMorphWeights(ins, weights, count);
+        VzGeometryRes* geo_res = gEngineApp->GetGeometryRes(GetGeometry());
+        if (geo_res == nullptr) return;
+        geo_res->morphWeights.resize(count);
+        for (int i = 0; i < count; i++) {
+            geo_res->morphWeights[i] = weights[i];
+        }
     }
     int VzActor::GetMorphTargetCount()
     {
