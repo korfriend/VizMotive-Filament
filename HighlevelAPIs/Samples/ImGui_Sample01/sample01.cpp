@@ -680,6 +680,7 @@ std::unordered_map<VID, bool> screenSpaceContactShadows;
 
 // generator
 std::map<VID, int> sequenceIndexBySprite;
+//char g_texturePath[300] = "testimage.png";
 char g_texturePath[300] = "../assets/testimage1.png";
 char g_sprite_name[300] = "sprite";
 char g_text_name[300] = "text";
@@ -2748,31 +2749,20 @@ int main(int, char**) {
             ImGui::Unindent();
           }
 
-          // if (ImGui::CollapsingHeader("Scene")) {
-          //    ImGui::Indent();
-          //    vzm::VzRenderer::ClearOptions clearOptions;
-          //    g_renderer->GetClearOptions(clearOptions);
-          //    if (ImGui::Checkbox("Scale to unit cube", &bAny)) {
-          //    }
-          //    ImGui::Checkbox("Automatic instancing", &bAny);
-          //    ImGui::Checkbox("Show skybox", &bAny);
-          //    ImGui::ColorEdit3("Background color", anyVec);
-          //   // We do not yet support ground shadow or scene selection in
-          //   remote mode.
-          //    if (true) {
-          //      ImGui::Checkbox("Ground shadow", &bAny);
-          //      ImGui::Indent();
-          //      ImGui::SliderFloat("Strength", &any, 0.0f, 1.0f);
-          //      ImGui::Unindent();
-          //
-          //     // if (mAsset->getSceneCount() > 1) {
-          //     //   ImGui::Separator();
-          //     //   sceneSelectionUI();
-          //     // }
-          //   }
-          //    g_renderer->SetClearOptions(clearOptions);
-          //    ImGui::Unindent();
-          // }
+           //if (ImGui::CollapsingHeader("Scene")) {
+           //   ImGui::Indent();
+           //   vzm::VzRenderer::ClearOptions clearOptions;
+           //   g_renderer->GetClearOptions(clearOptions);
+           //   //g_renderer->SetClearOptions(clearOptions);
+
+           //   if (ImGui::Checkbox("Scale to unit cube", &bAny)) {
+           //   }
+           //   ImGui::Checkbox("Automatic instancing", &bAny);
+           //   ImGui::Checkbox("Show skybox", &bAny);
+           //   ImGui::ColorEdit3("Background color", anyVec);
+           //  }
+           //   ImGui::Unindent();
+           //}
 
           if (ImGui::CollapsingHeader("Camera")) {
             ImGui::Indent();

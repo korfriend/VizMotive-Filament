@@ -241,32 +241,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     return 0;
 }
-vzm::VzSpriteActor* makeSprite(
-    const vzm::VzBaseComp* parent, std::string texturePath, std::string name,
-                               float width, float height, float uv[2],
-                               float localPosition[3]) {
-  vzm::VzTexture* texture = (vzm::VzTexture*)vzm::NewResComponent(
-      vzm::RES_COMPONENT_TYPE::TEXTURE, "texture");
-  texture->ReadImage(texturePath);
 
-  vzm::VzSpriteActor* sprite = (vzm::VzSpriteActor*)vzm::NewSceneComponent(
-      vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR, name);
-
-  sprite->SetSpriteWidth(width)
-      .SetSpriteHeight(height)
-      .SetAnchorU(uv[0])
-      .SetAnchorV(uv[1])
-      .Build();
-
-  sprite->SetTexture(texture->GetVID());
-  sprite->SetPosition(localPosition);
-  sprite->EnableBillboard(true);
-
-  vzm::AppendSceneCompTo(sprite, parent);
-
-  return sprite;
-}
-    // Main code
+// Main code
 int main(int, char**)
 {
     return wWinMain(GetModuleHandle(NULL), NULL, GetCommandLine(), SW_SHOWNORMAL);\
