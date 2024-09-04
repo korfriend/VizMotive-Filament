@@ -13,6 +13,10 @@ namespace vzm
         std::string GetVariantName(int variantIndex);
         void ApplyMaterialvariant(int variantIndex);
 
+        size_t GetComponents(std::vector<VID>& components);
+        bool IsAssetOwned(const VID vid, std::string* VZ_NULLABLE typeName = nullptr);
+        bool IsAssetOwnedComp(const VzBaseComp* comp, std::string* VZ_NULLABLE typeName = nullptr) { return IsAssetOwned(comp->GetVID(), typeName); }
+
         // Animator //
         struct API_EXPORT Animator{
         public:

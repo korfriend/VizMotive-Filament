@@ -50,6 +50,56 @@ namespace vzm
         return &asset_res->animator;
     }
 
+    size_t VzAsset::GetComponents(std::vector<VID>& components)
+    {
+        COMP_ASSET(asset_res, nullptr);
+
+        components.clear();
+
+        components.reserve(asset_res->fromAssetLights.size() +
+            asset_res->fromAssetCameras.size() +
+            asset_res->fromAssetRenderableActors.size() +
+            asset_res->fromAssetNodes.size() +
+            asset_res->fromAssetSketetons.size() +
+            asset_res->fromAssetGeometries.size() +
+            asset_res->fromAssetMaterials.size() +
+            asset_res->fromAssetMIs.size() +
+            asset_res->fromAssetTextures.size());
+
+#define ADDCOMP(A) for (auto& it : A) { components.push_back(it); }
+
+        ADDCOMP(asset_res->fromAssetLights);
+        ADDCOMP(asset_res->fromAssetCameras);
+        ADDCOMP(asset_res->fromAssetRenderableActors);
+        ADDCOMP(asset_res->fromAssetNodes);
+        ADDCOMP(asset_res->fromAssetSketetons);
+        ADDCOMP(asset_res->fromAssetGeometries);
+        ADDCOMP(asset_res->fromAssetMaterials);
+        ADDCOMP(asset_res->fromAssetMIs);
+        ADDCOMP(asset_res->fromAssetTextures);
+
+        return components.size();
+    }
+
+    bool VzAsset::IsAssetOwned(const VID vid, std::string* VZ_NULLABLE typeName)
+    {
+        COMP_ASSET(asset_res, nullptr);
+        
+#define FINDCOMP(A) if (A.find(vid) != A.end()) { if (typeName) { *typeName = gEngineApp->GetVzComponent<VzBaseComp>(vid)->GetType(); }; return true; };
+
+        FINDCOMP(asset_res->fromAssetLights);
+        FINDCOMP(asset_res->fromAssetCameras);
+        FINDCOMP(asset_res->fromAssetRenderableActors);
+        FINDCOMP(asset_res->fromAssetNodes);
+        FINDCOMP(asset_res->fromAssetSketetons);
+        FINDCOMP(asset_res->fromAssetGeometries);
+        FINDCOMP(asset_res->fromAssetMaterials);
+        FINDCOMP(asset_res->fromAssetMIs);
+        FINDCOMP(asset_res->fromAssetTextures);
+
+        return false;
+    }
+
     size_t VzAsset::Animator::GetAnimationCount()
     {
         COMP_ASSET_ANI_INST_FANI(asset_res, finst, fani, 0);
