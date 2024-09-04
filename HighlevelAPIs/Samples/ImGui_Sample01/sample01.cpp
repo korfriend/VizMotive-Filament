@@ -680,7 +680,7 @@ std::unordered_map<VID, bool> screenSpaceContactShadows;
 
 // generator
 std::map<VID, int> sequenceIndexBySprite;
-char g_texturePath[300] = "testimage.png";
+char g_texturePath[300] = "../assets/testimage1.png";
 char g_sprite_name[300] = "sprite";
 char g_text_name[300] = "text";
 bool g_billboard = true;
@@ -2020,10 +2020,12 @@ int main(int, char**) {
             }
             ImGui::Unindent();
           }
-
-          if (ImGui::Button("Remove")) {
-            vzm::RemoveComponent(component->GetVID());
-            currentVID = -1;
+          if (type == vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR ||
+              type == vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR) {
+            if (ImGui::Button("Remove")) {
+              vzm::RemoveComponent(component->GetVID());
+              currentVID = -1;
+            }
           }
 
           ImGui::PopID();
@@ -2911,10 +2913,10 @@ int main(int, char**) {
             if (ImGui::CollapsingHeader(
                     "Sprite Generator",
                     ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+              ImGui::InputText("name##spritegenerator", g_sprite_name, 100);
               ImGui::InputText("texture path", g_texturePath, 300);
               ImGui::Checkbox("Is Billboard", &g_billboard);
 
-              ImGui::InputText("name##spritegenerator", g_sprite_name, 100);
               if (ImGui::Button("generate sprite")) {
                 vzm::VzTexture* spritetexture =
                     (vzm::VzTexture*)vzm::NewResComponent(
