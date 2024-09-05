@@ -22,6 +22,9 @@
 #include "imgui_impl_vulkan.h"
 #include "savefileio.h"
 
+// 배포시 DEPLOY_VERSION 활성화
+//#define DEPLOY_VERSION
+
 // #define APP_USE_UNLIMITED_FRAME_RATE
 #ifdef _DEBUG
 #define APP_USE_VULKAN_DEBUG_REPORT
@@ -679,8 +682,11 @@ std::unordered_map<VID, bool> screenSpaceContactShadows;
 
 // generator
 std::map<VID, int> sequenceIndexBySprite;
-//char g_texturePath[300] = "testimage.png";
+#ifdef DEPLOY_VERSION
+char g_texturePath[300] = "testimage.png";
+#else
 char g_texturePath[300] = "../assets/testimage1.png";
+#endif
 char g_sprite_name[300] = "sprite";
 char g_text_name[300] = "text";
 bool g_billboard = true;
@@ -891,8 +897,11 @@ void initViewer() {
   screenSpaceContactShadows.clear();
 
   g_scene = vzm::NewScene("my scene");
+#ifdef DEPLOY_VERSION
+  g_scene->LoadIBL("lightroom_14b");
+#else
   g_scene->LoadIBL("../../../VisualStudio/samples/assets/ibl/lightroom_14b");
-  //g_scene->LoadIBL("lightroom_14b");
+#endif
   g_cam = (vzm::VzCamera*)vzm::NewSceneComponent(
       vzm::SCENE_COMPONENT_TYPE::CAMERA, "UserCamera");
   glm::fvec3 p(0, 0, 10);
@@ -986,7 +995,8 @@ int main(int, char**) {
       ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
   io.ConfigFlags |=
       ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
-
+  //TODO: 한글 지원
+  //io.Fonts->AddFontFromFileTTF("../assets/NanumBarunGothic.ttf", 17.0f, NULL, io.Fonts->GetGlyphRangesKorean());
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
 
@@ -1472,10 +1482,17 @@ int main(int, char**) {
           vzm::SCENE_COMPONENT_TYPE type = component->GetSceneCompType();
           ImGui::Text(component->GetName().c_str());
           ImGui::PushID(component->GetName().c_str());
-          
+
           if (type == vzm::SCENE_COMPONENT_TYPE::ACTOR ||
               type == vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR ||
               type == vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR) {
+            vzm::VzBaseActor* baseActor = (vzm::VzBaseActor*)component;
+
+            bool bVisible = (bool)baseActor->GetVisibleLayerMask();
+            if (ImGui::Checkbox("Visible", &bVisible)) {
+              baseActor->SetVisibleLayerMask(0x1, (uint8_t)bVisible);
+            }
+
             int actor_priority = (int)((vzm::VzBaseActor*)component)->GetPriority();
             if (ImGui::SliderInt("priority", &actor_priority, 0, 7)) {
               ((vzm::VzBaseActor*)component)->SetPriority(actor_priority);
@@ -2932,11 +2949,12 @@ int main(int, char**) {
               if (ImGui::Button("generate text")) {
                 vzm::VzFont* font = (vzm::VzFont*)vzm::NewResComponent(
                     vzm::RES_COMPONENT_TYPE::FONT, "font");
-                font->ReadFont("../assets/NanumBarunGothic.ttf",
+#ifdef DEPLOY_VERSION
+                font->ReadFont("font/HyundaiSansUI_JP_KR_Latin-Regular.ttf",
                                30);
-                /*font->ReadFont("font/HyundaiSansUI_JP_KR_Latin-Regular.ttf",
-                               30);*/
-
+#else
+                font->ReadFont("../assets/NanumBarunGothic.ttf", 30);
+#endif
                 vzm::VzTextSpriteActor* text_actor_ =
                     (vzm::VzTextSpriteActor*)vzm::NewSceneComponent(
                         vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR,
