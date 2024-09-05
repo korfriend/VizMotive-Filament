@@ -15,6 +15,9 @@ namespace vzm
 
         void SetVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits);
 
+        using PickCallback = void(*)(VID);
+        void Pick(const uint32_t x, const uint32_t y, PickCallback callback);
+
         // setters and getters of rendering options
         void SetPostProcessingEnabled(bool enabled);
         bool IsPostProcessingEnabled();

@@ -53,6 +53,14 @@ namespace vzm
         UpdateTimeStamp();
     }
 
+    void VzRenderer::Pick(const uint32_t x, const uint32_t y, PickCallback callback) {
+        COMP_RENDERPATH(render_path, );
+        View* view = render_path->GetView();
+        view->pick(x, y, [callback](View::PickingQueryResult const& result) {
+            callback(result.renderable.getId());
+        });
+    }
+
 #pragma region View
     void VzRenderer::SetPostProcessingEnabled(bool enabled)
     {

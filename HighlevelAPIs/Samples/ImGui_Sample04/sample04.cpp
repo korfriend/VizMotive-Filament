@@ -248,6 +248,16 @@ int main(int, char**)
     return wWinMain(GetModuleHandle(NULL), NULL, GetCommandLine(), SW_SHOWNORMAL);\
 }
 
+void pickCallback(VID vid) {
+    if (vid != INVALID_VID) {
+        vzm::VzBaseComp* pickedComp = vzm::GetVzComponent(vid);
+        if (pickedComp) {
+            std::string name = pickedComp->GetName();
+            std::cout << "Picked: " << name << std::endl;
+        }
+    }
+}
+
 // Win32 message handler
 // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
 // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
@@ -379,6 +389,9 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             //*(glm::fvec3*)cc->orbitHomePosition = p;
             //cc->UpdateControllerSettings();
             cc->GrabBegin(x, y, msg == WM_RBUTTONDOWN);
+            if (msg == WM_LBUTTONDOWN) {
+                renderer->Pick(x, y, pickCallback);
+            }
         }
         break;
     }
