@@ -511,7 +511,7 @@ namespace vzm
         MaterialInstance* mi = gEngineApp->GetMIRes(actor_res->GetMIVids()[0])->mi;
         TextureSampler sampler;
         sampler.setMagFilter(TextureSampler::MagFilter::LINEAR);
-        sampler.setMinFilter(TextureSampler::MinFilter::LINEAR);
+        sampler.setMinFilter(TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR);
         sampler.setWrapModeS(TextureSampler::WrapMode::REPEAT);
         sampler.setWrapModeT(TextureSampler::WrapMode::REPEAT); 
         mi->setParameter("baseColorFactor", (filament::RgbaType) RgbaType::LINEAR, *(float4*) actor_res->textField.textColor);

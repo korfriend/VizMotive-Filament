@@ -119,7 +119,7 @@ namespace vzm
         if (isNew)
         {
             tex_res->sampler.setMagFilter(TextureSampler::MagFilter::LINEAR);
-            tex_res->sampler.setMinFilter(TextureSampler::MinFilter::LINEAR);
+            tex_res->sampler.setMinFilter(TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR);
             tex_res->sampler.setWrapModeS(TextureSampler::WrapMode::REPEAT);
             tex_res->sampler.setWrapModeT(TextureSampler::WrapMode::REPEAT);
         }

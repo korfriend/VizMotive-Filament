@@ -1571,7 +1571,10 @@ namespace vzm
         tex_res.texture = (Texture*)texture;
         tex_res.assetOwner = (filament::gltfio::FilamentAsset*)assetOwner;
         tex_res.isSystem = isSystem;
-
+        tex_res.sampler.setMagFilter(TextureSampler::MagFilter::LINEAR);
+        tex_res.sampler.setMinFilter(TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR);
+        tex_res.sampler.setWrapModeS(TextureSampler::WrapMode::REPEAT);
+        tex_res.sampler.setWrapModeT(TextureSampler::WrapMode::REPEAT);
         auto it = vzCompMap_.emplace(vid, std::make_unique<VzTexture>(vid, "CreateTexture"));
         return (VzTexture*)it.first->second.get();
     }
