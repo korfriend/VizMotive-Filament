@@ -677,6 +677,14 @@ std::unordered_map<VID, bool> castShadows;
 std::unordered_map<VID, bool> receiveShadows;
 std::unordered_map<VID, bool> screenSpaceContactShadows;
 
+// generator
+std::map<VID, int> sequenceIndexBySprite;
+//char g_texturePath[300] = "testimage.png";
+char g_texturePath[300] = "../assets/testimage1.png";
+char g_sprite_name[300] = "sprite";
+char g_text_name[300] = "text";
+bool g_billboard = true;
+
 void resize(int width, int height) {
   if (current_cam == g_cam) {
     g_cam->GetController()->SetViewport(width, height);
@@ -709,9 +717,9 @@ void setKeyboardButton(GLFWwindow* window, int key, int scancode, int action,
       } else if (key == GLFW_KEY_D) {
         g_cam->GetController()->KeyDown(vzm::VzCamera::Controller::Key::RIGHT);
       } else if (key == GLFW_KEY_Q) {
-        g_cam->GetController()->KeyDown(vzm::VzCamera::Controller::Key::UP);
-      } else if (key == GLFW_KEY_E) {
         g_cam->GetController()->KeyDown(vzm::VzCamera::Controller::Key::DOWN);
+      } else if (key == GLFW_KEY_E) {
+        g_cam->GetController()->KeyDown(vzm::VzCamera::Controller::Key::UP);
       } else if (key == GLFW_KEY_F) {
         g_cam->GetController()->mode =
             vzm::VzCamera::Controller::Mode::FREE_FLIGHT;
@@ -720,7 +728,7 @@ void setKeyboardButton(GLFWwindow* window, int key, int scancode, int action,
         g_cam->GetController()->mode = vzm::VzCamera::Controller::Mode::ORBIT;
         g_cam->GetController()->UpdateControllerSettings();
       }
-      g_cam->GetController()->UpdateCamera(0.3);
+      g_cam->GetController()->UpdateCamera(0.1);
       break;
     case GLFW_RELEASE:
       if (key == GLFW_KEY_W) {
@@ -732,9 +740,9 @@ void setKeyboardButton(GLFWwindow* window, int key, int scancode, int action,
       } else if (key == GLFW_KEY_D) {
         g_cam->GetController()->KeyUp(vzm::VzCamera::Controller::Key::RIGHT);
       } else if (key == GLFW_KEY_Q) {
-        g_cam->GetController()->KeyUp(vzm::VzCamera::Controller::Key::UP);
-      } else if (key == GLFW_KEY_E) {
         g_cam->GetController()->KeyUp(vzm::VzCamera::Controller::Key::DOWN);
+      } else if (key == GLFW_KEY_E) {
+        g_cam->GetController()->KeyUp(vzm::VzCamera::Controller::Key::UP);
       }
       break;
     default:
@@ -1039,7 +1047,6 @@ int main(int, char**) {
   clock_t currentTime = clock();
 
   int seqIndex = 0;
-
 
   // Main loop
   while (!glfwWindowShouldClose(window)) {
@@ -1448,6 +1455,10 @@ int main(int, char**) {
           tabIdx = 1;
           ImGui::EndTabItem();
         }
+        if (ImGui::BeginTabItem("Generator")) {
+          tabIdx = 2;
+          ImGui::EndTabItem();
+        }
 
         ImGui::EndTabBar();
       }
@@ -1461,21 +1472,139 @@ int main(int, char**) {
           vzm::SCENE_COMPONENT_TYPE type = component->GetSceneCompType();
           ImGui::Text(component->GetName().c_str());
           ImGui::PushID(component->GetName().c_str());
+          
+          if (type == vzm::SCENE_COMPONENT_TYPE::ACTOR ||
+              type == vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR ||
+              type == vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR) {
+            int actor_priority = (int)((vzm::VzBaseActor*)component)->GetPriority();
+            if (ImGui::SliderInt("priority", &actor_priority, 0, 7)) {
+              ((vzm::VzBaseActor*)component)->SetPriority(actor_priority);
+            }
+          }
+          if (type == vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR) {
+            if (ImGui::CollapsingHeader(
+                    "Sprite",
+                    ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+              vzm::VzSpriteActor* spriteComponent =
+                  (vzm::VzSpriteActor*)component;
+              float sprite_width = spriteComponent->GetSpriteWidth();
+              float sprite_height = spriteComponent->GetSpriteHeight();
+              float sprite_anchor[2] = {spriteComponent->GetAnchorU(),
+                                        spriteComponent->GetAnchorV()};
+              if (ImGui::InputFloat("width", &sprite_width)) {
+                spriteComponent->SetSpriteWidth(sprite_width).Build();
+              }
+              if (ImGui::InputFloat("height", &sprite_height)) {
+                spriteComponent->SetSpriteHeight(sprite_height).Build();
+              }
+              if (ImGui::InputFloat2("anchor uv", sprite_anchor)) {
+                spriteComponent->SetAnchorU(sprite_anchor[0])
+                    .SetAnchorV(sprite_anchor[1])
+                    .Build();
+              }
+              //TODO: texture 변경
+              std::string label = "Upload Texture##Sprite";
+              label += spriteComponent->GetVID();
+              if (ImGui::Button(label.c_str())) {
+                vzm::VzTexture* texture = (vzm::VzTexture*)vzm::NewResComponent(
+                    vzm::RES_COMPONENT_TYPE::TEXTURE, "my image");
+                std::wstring filePath = OpenFileDialog(L"Image\0*.png;*.jpg\0");
+
+                if (filePath.size() > 0) {
+                  std::string str_path;
+                  str_path.assign(filePath.begin(), filePath.end());
+                  texture->ReadImage(str_path);
+                  spriteComponent->SetTexture(texture->GetVID());
+                  //Build?
+                }
+              }
+              ImGui::SameLine();
+              std::string seqLabel = "sequanceImages##Sprite";
+              seqLabel += spriteComponent->GetVID();
+
+              int sequenceIndex = -1 + 1;
+              VID key = spriteComponent->GetVID();
+              if (sequenceIndexBySprite.contains(key)) {
+                sequenceIndex = sequenceIndexBySprite[key] + 1;
+              }
+              if (ImGui::Combo(seqLabel.c_str(), &sequenceIndex,
+                               "SELECT SEQUENCE IMAGE "
+                               "INDEX\0Index00\0Index01\0Index02\0I"
+                               "ndex03\0Index04\0Index05\0\0")) {
+                sequenceIndex -= 1;
+                if (sequenceIndex == -1) {
+                  sequenceIndexBySprite.erase(key);
+                } else {
+                  // 관리되는 자료구조에 연결
+                  sequenceIndexBySprite[key] = sequenceIndex;
+                }
+              }
+            }
+          } 
+          else if (type == vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR) {
+            if (ImGui::CollapsingHeader(
+                    "Text",
+                    ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+              vzm::VzTextSpriteActor* textComponent =
+                  (vzm::VzTextSpriteActor*)component;
+              float max_width = textComponent->GetMaxWidth();
+              float font_height = textComponent->GetFontHeight();
+              float text_anchor_uv[2] = {textComponent->GetAnchorU(),
+                                         textComponent->GetAnchorV()};
+
+              std::string actor_text = textComponent->GetText();
+              char c_actor_text[300];
+              strcpy_s(c_actor_text, 300, actor_text.c_str());
+
+              float text_color[4];
+              textComponent->GetColor(text_color);
+              int text_align = (int)textComponent->GetTextAlign() - 1;
+
+              if (ImGui::InputFloat("max width", &max_width)) {
+                textComponent->SetMaxWidth(max_width).Build();
+              }
+              if (ImGui::InputFloat("font height", &font_height)) {
+                textComponent->SetFontHeight(font_height).Build();
+              }
+              if (ImGui::InputFloat2("anchor uv", text_anchor_uv)) {
+                textComponent->SetAnchorU(text_anchor_uv[0])
+                    .SetAnchorV(text_anchor_uv[1])
+                    .Build();
+              }
+
+              if (ImGui::Combo("text align", &text_align,
+                               "LEFT\0CENTER\0RIGHT\0TOP_LEFT\0TOP_CENTER\0TOP_RIGHT\0MIDDLE_LEFT\0MIDDLE_CENTER\0MIDDLE_RIGHT\0BOTTOM_LEFT\0BOTTOM_CENTER\0BOTTOM_RIGHT\0\0")) {
+                textComponent->SetTextAlign((vzm::TEXT_ALIGN)(text_align + 1))
+                    .Build();
+              }
+              if (ImGui::InputText("text", c_actor_text, 300)) {
+                textComponent->SetText(c_actor_text).Build();
+              }
+              if (ImGui::ColorEdit4("color", text_color)) {
+                textComponent->SetColor(text_color).Build();
+              }
+            }
+          }
           if (ImGui::CollapsingHeader(
                   "Transform",
                   ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent();
             float position[3];
+            float rotation[3];
             float quaternion[4];
             float scale[3];
             component->GetPosition(position);
+            component->GetRotation(rotation);
             component->GetQuaternion(quaternion);
             component->GetScale(scale);
 
             if (ImGui::InputFloat3("Position", position)) {
               component->SetPosition(position);
             }
-            if (ImGui::InputFloat4("Rotation (Quat)", quaternion)) {
+            if (ImGui::InputFloat3("Rotation", rotation)) {
+              component->SetRotation(rotation);
+            }
+            if (ImGui::InputFloat4("Quaternion", quaternion)) {
               component->SetQuaternion(quaternion);
             }
             if (ImGui::InputFloat3("Scale", scale)) {
@@ -1514,7 +1643,7 @@ int main(int, char**) {
                   if (ImGui::Checkbox(ulLabelName.c_str(), &bUnlit)) {
                     matkey.unlit = bUnlit;
                     ma->SetStandardMaterialByKey(matkey);
-                    
+
                     mi->SetMaterial(ma->GetVID());
                     actor->SetMI(mi->GetVID(), prim);
                   }*/
@@ -1642,8 +1771,14 @@ int main(int, char**) {
                             ImGuiColorEditFlags_DefaultOptions_) {
                           mi->SetParameter(paramInfo.name, paramInfo.type,
                                            (void*)v.data());
-                          break;
                         }
+                        break;
+                      default:
+                        std::cout
+                            << "처리되지 않은 UniformType" << paramInfo.name
+                            << ", TYPE: " << std::to_string((int)paramInfo.type)
+                            << std::endl;
+                        break;
                     }
                     ImGui::PopItemWidth();
                     ImGui::EndGroup();
@@ -1848,7 +1983,8 @@ int main(int, char**) {
 
               bool bCastShadow = castShadows[actorVID];
               bool bReceiveShadow = receiveShadows[actorVID];
-              bool bScreenSpaceContactShadows = screenSpaceContactShadows[actorVID];
+              bool bScreenSpaceContactShadows =
+                  screenSpaceContactShadows[actorVID];
 
               if (ImGui::Checkbox("CastShadows", &bCastShadow)) {
                 actor->SetCastShadows(bCastShadow);
@@ -1883,6 +2019,14 @@ int main(int, char**) {
             }
             ImGui::Unindent();
           }
+          if (type == vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR ||
+              type == vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR) {
+            if (ImGui::Button("Remove")) {
+              vzm::RemoveComponent(component->GetVID());
+              currentVID = -1;
+            }
+          }
+
           ImGui::PopID();
           break;
         }
@@ -2603,31 +2747,20 @@ int main(int, char**) {
             ImGui::Unindent();
           }
 
-          // if (ImGui::CollapsingHeader("Scene")) {
-          //    ImGui::Indent();
-          //    vzm::VzRenderer::ClearOptions clearOptions;
-          //    g_renderer->GetClearOptions(clearOptions);
-          //    if (ImGui::Checkbox("Scale to unit cube", &bAny)) {
-          //    }
-          //    ImGui::Checkbox("Automatic instancing", &bAny);
-          //    ImGui::Checkbox("Show skybox", &bAny);
-          //    ImGui::ColorEdit3("Background color", anyVec);
-          //   // We do not yet support ground shadow or scene selection in
-          //   remote mode.
-          //    if (true) {
-          //      ImGui::Checkbox("Ground shadow", &bAny);
-          //      ImGui::Indent();
-          //      ImGui::SliderFloat("Strength", &any, 0.0f, 1.0f);
-          //      ImGui::Unindent();
-          //
-          //     // if (mAsset->getSceneCount() > 1) {
-          //     //   ImGui::Separator();
-          //     //   sceneSelectionUI();
-          //     // }
-          //   }
-          //    g_renderer->SetClearOptions(clearOptions);
-          //    ImGui::Unindent();
-          // }
+           //if (ImGui::CollapsingHeader("Scene")) {
+           //   ImGui::Indent();
+           //   vzm::VzRenderer::ClearOptions clearOptions;
+           //   g_renderer->GetClearOptions(clearOptions);
+           //   //g_renderer->SetClearOptions(clearOptions);
+
+           //   if (ImGui::Checkbox("Scale to unit cube", &bAny)) {
+           //   }
+           //   ImGui::Checkbox("Automatic instancing", &bAny);
+           //   ImGui::Checkbox("Show skybox", &bAny);
+           //   ImGui::ColorEdit3("Background color", anyVec);
+           //  }
+           //   ImGui::Unindent();
+           //}
 
           if (ImGui::CollapsingHeader("Camera")) {
             ImGui::Indent();
@@ -2761,6 +2894,65 @@ int main(int, char**) {
             ImGui::Unindent();
           }
           break;
+        case 2: {
+          if (currentVID != -1) {
+            vzm::VzSceneComp* component =
+                (vzm::VzSceneComp*)vzm::GetVzComponent(currentVID);
+            if (ImGui::CollapsingHeader(
+                    "Sprite Generator",
+                    ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+              ImGui::InputText("name##spritegenerator", g_sprite_name, 100);
+              ImGui::InputText("texture path", g_texturePath, 300);
+              ImGui::Checkbox("Is Billboard", &g_billboard);
+
+              if (ImGui::Button("generate sprite")) {
+                vzm::VzTexture* spritetexture =
+                    (vzm::VzTexture*)vzm::NewResComponent(
+                        vzm::RES_COMPONENT_TYPE::TEXTURE, "texture");
+                spritetexture->ReadImage(g_texturePath);
+
+                vzm::VzSpriteActor* sprite =
+                    (vzm::VzSpriteActor*)vzm::NewSceneComponent(
+                        vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR,
+                        std::string(g_sprite_name));
+                
+                sprite->Build();
+
+                sprite->SetTexture(spritetexture->GetVID());
+                sprite->EnableBillboard(g_billboard);
+
+                vzm::AppendSceneCompTo(sprite, component);
+              }
+            }
+            if (ImGui::CollapsingHeader(
+                    "Text Generator",
+                    ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
+
+              ImGui::InputText("name##textgenerator", g_text_name, 100);
+              if (ImGui::Button("generate text")) {
+                vzm::VzFont* font = (vzm::VzFont*)vzm::NewResComponent(
+                    vzm::RES_COMPONENT_TYPE::FONT, "font");
+                font->ReadFont("../assets/NanumBarunGothic.ttf",
+                               30);
+                /*font->ReadFont("font/HyundaiSansUI_JP_KR_Latin-Regular.ttf",
+                               30);*/
+
+                vzm::VzTextSpriteActor* text_actor_ =
+                    (vzm::VzTextSpriteActor*)vzm::NewSceneComponent(
+                        vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR,
+                        std::string(g_text_name));
+
+                text_actor_->SetFont(font->GetVID());
+
+                text_actor_->SetText("").Build();
+                vzm::AppendSceneCompTo(text_actor_, component);
+              }
+            }
+          } else {
+            ImGui::Text("Choose Parent Node");
+          }
+          break;
+        }
       }
 
       // right_editUIWidth = ImGui::GetWindowWidth();
@@ -2786,6 +2978,21 @@ int main(int, char**) {
         mi->SetTexture(pname, texture->GetVID());
       }
     }
+    // sprite
+    for (auto iter = sequenceIndexBySprite.begin();
+        iter != sequenceIndexBySprite.end(); iter++) {
+      vzm::VzSpriteActor* spriteActor =
+          (vzm::VzSpriteActor*)vzm::GetVzComponent(iter->first);
+      int seqIdx = iter->second;
+
+      if (sequenceTextures[seqIdx].size() > 0) {
+        int currentTextureIdx = seqIndex % (sequenceTextures[seqIdx].size());
+        vzm::VzTexture* texture = sequenceTextures[seqIdx][currentTextureIdx];
+
+        spriteActor->SetTexture(texture->GetVID());
+      }
+    }
+
     seqIndex++;
 
     // render
