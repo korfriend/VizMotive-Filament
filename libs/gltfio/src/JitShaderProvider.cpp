@@ -359,6 +359,9 @@ Material* createMaterial(Engine* engine, const MaterialKey& config, const UvMap&
            MaterialBuilder::TransparencyMode::TWO_PASSES_TWO_SIDES :
            MaterialBuilder::TransparencyMode::DEFAULT)
            .reflectionMode(MaterialBuilder::ReflectionMode::SCREEN_SPACE)
+#ifdef __ANDROID__
+           .platform(MaterialBuilder::Platform::MOBILE)
+#endif
            .targetApi(filamat::targetApiFromBackend(engine->getBackend()))
            .stereoscopicType(engine->getConfig().stereoscopicType)
            .stereoscopicEyeCount(engine->getConfig().stereoscopicEyeCount)

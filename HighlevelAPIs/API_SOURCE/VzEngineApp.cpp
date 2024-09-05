@@ -1274,6 +1274,9 @@ namespace vzm
                         .doubleSided(true)
                         .flipUV(false)
                         .optimization(MaterialBuilder::Optimization::NONE);
+#ifdef __ANDROID__
+                        .platform(MaterialBuilder::Platform::MOBILE)
+#endif
 
                     if (gEngine->getBackend() == filament::backend::Backend::VULKAN)
                     {
