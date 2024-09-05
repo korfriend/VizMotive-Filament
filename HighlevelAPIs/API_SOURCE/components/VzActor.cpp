@@ -7,13 +7,18 @@ extern vzm::VzEngineApp* gEngineApp;
 
 namespace vzm
 {
-    void VzBaseActor::SetVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits)
+    uint8_t VzBaseActor::GetVisibleLayerMask() const
+    {
+        COMP_ACTOR(rcm, ett, ins, 0);
+        return rcm.getLayerMask(ins);
+    }
+void VzBaseActor::SetVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits)
     {
         COMP_ACTOR(rcm, ett, ins, );
         rcm.setLayerMask(ins, layerBits, maskBits);
         UpdateTimeStamp();
     }
-    uint8_t VzBaseActor::GetPriority()
+    uint8_t VzBaseActor::GetPriority() const
     {
         VzActorRes* actor_res = gEngineApp->GetActorRes(GetVID());
         return actor_res->priority;
