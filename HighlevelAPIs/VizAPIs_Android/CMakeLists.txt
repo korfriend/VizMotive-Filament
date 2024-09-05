@@ -140,7 +140,7 @@ set(ROOT_HDRS
         ../API_SOURCE/VzComponents.h
         ../API_SOURCE/VzJniOnload.h
 )
-
+ 
 set(PUBLIC_HDRS
         ${COMPONENT_HDRS}
         ${ROOT_HDRS}
@@ -289,6 +289,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/samples/libsuzanne-resources.a
     ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/samples/libsample-resources.a
     ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/samples/libgltf-demo-resources.a
+    GLESv3
+    EGL
 )
 
 # ==============================================================================================

@@ -1,0 +1,61 @@
+# 최소 CMake 버전 설정
+cmake_minimum_required(VERSION 3.19)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_COMPILER clang)
+set(CMAKE_CXX_COMPILER clang++)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${GC_SECTIONS} ${B_SYMBOLIC_FUNCTIONS} ${BINARY_ALIGNMENT}")
+
+# 프로젝트 이름 설정
+project(MyContent)
+
+# find_package(OpenGL REQUIRED)
+
+# 소스 파일 지정
+set(SOURCES
+   main_content.cpp 
+)
+
+set(HEADERS 
+    main_content.h
+)
+
+
+# 실행 파일 생성
+add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
+
+set(VIZAPI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../VizAPIs_Android/dist)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX d)
+
+target_include_directories(${PROJECT_NAME}  PRIVATE
+    ../libs
+    ${VIZAPI_DIR}/arm7/include
+)
+
+if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+target_link_libraries(${PROJECT_NAME}
+${VIZAPI_DIR}/arm7/lib/libVizAPIs_Androidd.so
+z
+log
+android
+GLESv3
+EGL
+)
+else()
+target_link_libraries(${PROJECT_NAME}
+${VIZAPI_DIR}/arm7/lib/libVizAPIs_Androidd.so
+z
+log
+android
+GLESv3
+EGL
+)
+
+endif()
+
+
+install(FILES ${HEADERS} DESTINATION include)
+install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
