@@ -36,10 +36,7 @@ std::string getRelativePath(std::string absolute_path) {
   }
 }
 
-void setResPath(std::string assetPath) {
-  size_t offset = assetPath.find_last_of('\\');
-  res_path = assetPath.substr(0, offset + 1);
-}
+void setResPath(std::string assetPath) { res_path = assetPath; }
 
 void setIBLPath(std::string absIBLPath) {
   ibl_path = getRelativePath(absIBLPath);

@@ -23,7 +23,7 @@
 #include "savefileio.h"
 
 // 배포시 DEPLOY_VERSION 활성화
-//#define DEPLOY_VERSION
+// #define DEPLOY_VERSION
 
 // #define APP_USE_UNLIMITED_FRAME_RATE
 #ifdef _DEBUG
@@ -670,9 +670,12 @@ const int right_editUIWidth = 400;
 // workspace 공간의 크기
 int workspace_width = 0;
 int workspace_height = 0;
+const int toolbar_height = 20;
 // 스왑버퍼(렌더타겟) 크기
 int render_width = 1920;
 int render_height = 1080;
+
+bool g_bPickMode = true;
 
 VID currentVID = -1;
 
@@ -701,6 +704,21 @@ void resize(int width, int height) {
   current_cam->GetPerspectiveProjection(&zNearP, &zFarP, &fovInDegree, nullptr);
   current_cam->SetPerspectiveProjection(zNearP, zFarP, fovInDegree,
                                         (float)width / (float)height);
+}
+
+std::set<VID> pickedParents;
+void pickCallback(VID vid) {
+  vzm::VzBaseComp* pickedComponent = vzm::GetVzComponent(vid);
+  if (!pickedComponent) {
+    return;
+  }
+  currentVID = vid;
+  vzm::VzSceneComp* currentComp = (vzm::VzSceneComp*)pickedComponent;
+  while (currentComp) {
+    pickedParents.insert(currentComp->GetVID());
+    currentComp =
+        (vzm::VzSceneComp*)vzm::GetVzComponent(currentComp->GetParent());
+  }
 }
 
 void setKeyboardButton(GLFWwindow* window, int key, int scancode, int action,
@@ -756,6 +774,8 @@ void setKeyboardButton(GLFWwindow* window, int key, int scancode, int action,
   }
 }
 
+int g_pressedX;
+int g_pressedY;
 void setMouseButton(GLFWwindow* window, int button, int state,
                     int modifier_key) {
   if (!g_cam || g_cam != current_cam) {
@@ -770,20 +790,30 @@ void setMouseButton(GLFWwindow* window, int button, int state,
   glfwGetWindowSize(window, &width, &height);
   glfwGetCursorPos(window, &x, &y);
 
-  int xPos = static_cast<int>(x - left_editUIWidth);
-  int yPos = height - static_cast<int>(y);
+  float xRatio = (float)render_width / workspace_width;
+  float yRatio = (float)render_height / workspace_height;
+  int xPos = static_cast<int>((x - left_editUIWidth) * xRatio);
+  int yPos = static_cast<int>(
+      (height - static_cast<int>(y) - (height - workspace_height - toolbar_height)) * yRatio);
   switch (state) {
     case GLFW_PRESS:
       if (x > left_editUIWidth && x < left_editUIWidth + workspace_width &&
-          y < workspace_height) {
+          y > toolbar_height && y < workspace_height + toolbar_height) {
         if (button == 0) {
           g_cam->GetController()->GrabBegin(xPos, yPos, false);
+          g_pressedX = xPos;
+          g_pressedY = yPos;
         } else if (button == 1) {
           g_cam->GetController()->GrabBegin(xPos, yPos, true);
         }
       }
       break;
     case GLFW_RELEASE:
+      if (abs(g_pressedX - xPos) < 10 && abs(g_pressedY - yPos) < 10) {
+        if (g_bPickMode) {
+          g_renderer->Pick(xPos, yPos, pickCallback);
+        }
+      }
       g_cam->GetController()->GrabEnd();
       break;
     default:
@@ -799,8 +829,12 @@ void setCursorPos(GLFWwindow* window, double x, double y) {
   }
   glfwGetWindowSize(window, &width, &height);
 
-  int xPos = static_cast<int>(x - left_editUIWidth);
-  int yPos = height - static_cast<int>(y);
+  float xRatio = (float)render_width / workspace_width;
+  float yRatio = (float)render_height / workspace_height;
+  int xPos = static_cast<int>((x - left_editUIWidth) * xRatio);
+  int yPos = static_cast<int>((height - static_cast<int>(y) -
+                               (height - workspace_height - toolbar_height)) *
+                              yRatio);
 
   if (glfwGetMouseButton(window, 0) == GLFW_PRESS ||
       glfwGetMouseButton(window, 1) == GLFW_PRESS) {
@@ -819,17 +853,22 @@ void setMouseScroll(GLFWwindow* window, double xOffset, double yOffset) {
   glfwGetWindowSize(window, &width, &height);
   glfwGetCursorPos(window, &x, &y);
 
+  float xRatio = (float)render_width / workspace_width;
+  float yRatio = (float)render_height / workspace_height;
+  int xPos = static_cast<int>((x - left_editUIWidth) * xRatio);
+  int yPos = static_cast<int>((height - static_cast<int>(y) -
+                               (height - workspace_height - toolbar_height)) *
+                              yRatio);
   if (x > left_editUIWidth && x < left_editUIWidth + workspace_width &&
-      y < workspace_height) {
-    g_cam->GetController()->Scroll(static_cast<int>(x - left_editUIWidth),
-                                   height - static_cast<int>(y),
-                                   -5.0f * (float)yOffset);
+      y > toolbar_height && y < workspace_height + toolbar_height) {
+    g_cam->GetController()->Scroll(xPos, yPos, -5.0f * (float)yOffset);
   }
 }
 void onFrameBufferResize(GLFWwindow* window, int width, int height) {
   if (g_renderer && current_cam) {
     workspace_width = width - left_editUIWidth - right_editUIWidth;
-    workspace_height = height;
+    float ratio = (float)workspace_width / render_width;
+    workspace_height = ratio * render_height;
 
     resize(render_width, render_height);
   }
@@ -847,6 +886,10 @@ void treeNode(VID id) {
     flags |= ImGuiTreeNodeFlags_Leaf;
   }
   const char* name = sName.length() > 0 ? sName.c_str() : "Node";
+  if (pickedParents.find(id) != pickedParents.end()) {
+    ImGui::SetNextItemOpen(true);
+  }
+
   if (ImGui::TreeNodeEx((const void*)id, flags, "%s", name)) {
     if (ImGui::IsItemClicked()) {
       currentVID = id;
@@ -978,7 +1021,8 @@ int main(int, char**) {
   }
 
   workspace_width = w - left_editUIWidth - right_editUIWidth;
-  workspace_height = h;
+  float ratio = (float)workspace_width / render_width;
+  workspace_height = ratio * render_height;
 
   //
   g_renderer = vzm::NewRenderer("my renderer");
@@ -995,9 +1039,10 @@ int main(int, char**) {
       ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
   io.ConfigFlags |=
       ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
-  //TODO: 한글 지원
-  //io.Fonts->AddFontFromFileTTF("../assets/NanumBarunGothic.ttf", 17.0f, NULL, io.Fonts->GetGlyphRangesKorean());
-  // Setup Dear ImGui style
+  // TODO: 한글 지원
+  // io.Fonts->AddFontFromFileTTF("../assets/NanumBarunGothic.ttf", 17.0f, NULL,
+  // io.Fonts->GetGlyphRangesKorean());
+  //  Setup Dear ImGui style
   ImGui::StyleColorsDark();
 
   // Setup Platform/Renderer backends
@@ -1098,7 +1143,9 @@ int main(int, char**) {
       ImGui::SetNextWindowSizeConstraints(ImVec2(left_editUIWidth, height),
                                           ImVec2(left_editUIWidth, height));
 
-      ImGui::Begin("left-ui", nullptr, ImGuiWindowFlags_NoTitleBar);
+      ImGui::Begin(
+          "left-ui", nullptr,
+          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus);
 
       if (ImGui::CollapsingHeader(
               "Resolution",
@@ -1247,6 +1294,7 @@ int main(int, char**) {
           for (int i = 0; i < root_vids.size(); i++) {
             treeNode(root_vids[i]);
           }
+          pickedParents.clear();
         }
         ImGui::Unindent();
       }
@@ -1403,15 +1451,16 @@ int main(int, char**) {
         const int window_width = (int)ImGui::GetIO().DisplaySize.x;
         const int window_height = (int)ImGui::GetIO().DisplaySize.y;
         workspace_width = window_width - left_editUIWidth - right_editUIWidth;
-        workspace_height = window_height;
+        float ratio = (float)workspace_width / render_width;
+        workspace_height = ratio * render_height;
 
-        ImGui::SetNextWindowSize(ImVec2(workspace_width, workspace_height),
+        ImGui::SetNextWindowSize(ImVec2(workspace_width, height),
                                  ImGuiCond_Once);
         ImGui::SetNextWindowSizeConstraints(
-            ImVec2(workspace_width, workspace_height),
-            ImVec2(workspace_width, workspace_height));
+            ImVec2(workspace_width, height), ImVec2(workspace_width, height));
         ImGui::Begin("swapchain", nullptr,
-                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove |
+                         ImGuiWindowFlags_NoBringToFrontOnFocus);
 
         float image_width = 0.0f;
         float image_height = 0.0f;
@@ -1423,6 +1472,16 @@ int main(int, char**) {
           image_height = (float)workspace_height;
           image_width = (float)image_height * render_width / render_height;
         }
+        ImGui::BeginChild("ToolBar", ImVec2(workspace_width, toolbar_height));
+        if (ImGui::RadioButton("view", !g_bPickMode)) {
+          g_bPickMode = !g_bPickMode;
+        }
+        ImGui::SameLine(100);
+        if (ImGui::RadioButton("pick", g_bPickMode)) {
+          g_bPickMode = !g_bPickMode;
+        }
+        ImGui::EndChild();
+
         ImGui::Image((ImTextureID)swapTextures[index],
                      ImVec2(image_width, image_height));
         ImGui::End();
@@ -1451,7 +1510,9 @@ int main(int, char**) {
       ImGui::SetNextWindowSizeConstraints(ImVec2(right_editUIWidth, height),
                                           ImVec2(right_editUIWidth, height));
 
-      ImGui::Begin("right-ui", nullptr, ImGuiWindowFlags_NoTitleBar);
+      ImGui::Begin(
+          "right-ui", nullptr,
+          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus);
 
       const ImVec4 yellow(1.0f, 1.0f, 0.0f, 1.0f);
       {
@@ -1493,7 +1554,8 @@ int main(int, char**) {
               baseActor->SetVisibleLayerMask(0x1, (uint8_t)bVisible);
             }
 
-            int actor_priority = (int)((vzm::VzBaseActor*)component)->GetPriority();
+            int actor_priority =
+                (int)((vzm::VzBaseActor*)component)->GetPriority();
             if (ImGui::SliderInt("priority", &actor_priority, 0, 7)) {
               ((vzm::VzBaseActor*)component)->SetPriority(actor_priority);
             }
@@ -1519,7 +1581,7 @@ int main(int, char**) {
                     .SetAnchorV(sprite_anchor[1])
                     .Build();
               }
-              //TODO: texture 변경
+              // TODO: texture 변경
               std::string label = "Upload Texture##Sprite";
               label += spriteComponent->GetVID();
               if (ImGui::Button(label.c_str())) {
@@ -1532,7 +1594,7 @@ int main(int, char**) {
                   str_path.assign(filePath.begin(), filePath.end());
                   texture->ReadImage(str_path);
                   spriteComponent->SetTexture(texture->GetVID());
-                  //Build?
+                  // Build?
                 }
               }
               ImGui::SameLine();
@@ -1557,8 +1619,7 @@ int main(int, char**) {
                 }
               }
             }
-          } 
-          else if (type == vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR) {
+          } else if (type == vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR) {
             if (ImGui::CollapsingHeader(
                     "Text",
                     ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -1589,8 +1650,11 @@ int main(int, char**) {
                     .Build();
               }
 
-              if (ImGui::Combo("text align", &text_align,
-                               "LEFT\0CENTER\0RIGHT\0TOP_LEFT\0TOP_CENTER\0TOP_RIGHT\0MIDDLE_LEFT\0MIDDLE_CENTER\0MIDDLE_RIGHT\0BOTTOM_LEFT\0BOTTOM_CENTER\0BOTTOM_RIGHT\0\0")) {
+              if (ImGui::Combo(
+                      "text align", &text_align,
+                      "LEFT\0CENTER\0RIGHT\0TOP_LEFT\0TOP_CENTER\0TOP_"
+                      "RIGHT\0MIDDLE_LEFT\0MIDDLE_CENTER\0MIDDLE_RIGHT\0BOTTOM_"
+                      "LEFT\0BOTTOM_CENTER\0BOTTOM_RIGHT\0\0")) {
                 textComponent->SetTextAlign((vzm::TEXT_ALIGN)(text_align + 1))
                     .Build();
               }
@@ -2060,7 +2124,8 @@ int main(int, char**) {
               }
               g_asset = vzm::LoadFileIntoAsset(str_path, "my gltf asset");
 
-              savefileIO::setResPath(str_path);
+              size_t offset = str_path.find_last_of('\\');
+              savefileIO::setResPath(str_path.substr(0, offset + 1));
 
               // animation
               g_asset->GetAnimator()->AddPlayScene(g_scene->GetVID());
@@ -2764,20 +2829,20 @@ int main(int, char**) {
             ImGui::Unindent();
           }
 
-           //if (ImGui::CollapsingHeader("Scene")) {
-           //   ImGui::Indent();
-           //   vzm::VzRenderer::ClearOptions clearOptions;
-           //   g_renderer->GetClearOptions(clearOptions);
-           //   //g_renderer->SetClearOptions(clearOptions);
+          // if (ImGui::CollapsingHeader("Scene")) {
+          //    ImGui::Indent();
+          //    vzm::VzRenderer::ClearOptions clearOptions;
+          //    g_renderer->GetClearOptions(clearOptions);
+          //    //g_renderer->SetClearOptions(clearOptions);
 
-           //   if (ImGui::Checkbox("Scale to unit cube", &bAny)) {
-           //   }
-           //   ImGui::Checkbox("Automatic instancing", &bAny);
-           //   ImGui::Checkbox("Show skybox", &bAny);
-           //   ImGui::ColorEdit3("Background color", anyVec);
-           //  }
-           //   ImGui::Unindent();
-           //}
+          //   if (ImGui::Checkbox("Scale to unit cube", &bAny)) {
+          //   }
+          //   ImGui::Checkbox("Automatic instancing", &bAny);
+          //   ImGui::Checkbox("Show skybox", &bAny);
+          //   ImGui::ColorEdit3("Background color", anyVec);
+          //  }
+          //   ImGui::Unindent();
+          //}
 
           if (ImGui::CollapsingHeader("Camera")) {
             ImGui::Indent();
@@ -2932,7 +2997,7 @@ int main(int, char**) {
                     (vzm::VzSpriteActor*)vzm::NewSceneComponent(
                         vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR,
                         std::string(g_sprite_name));
-                
+
                 sprite->Build();
 
                 sprite->SetTexture(spritetexture->GetVID());
@@ -2944,7 +3009,6 @@ int main(int, char**) {
             if (ImGui::CollapsingHeader(
                     "Text Generator",
                     ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
-
               ImGui::InputText("name##textgenerator", g_text_name, 100);
               if (ImGui::Button("generate text")) {
                 vzm::VzFont* font = (vzm::VzFont*)vzm::NewResComponent(
@@ -2998,7 +3062,7 @@ int main(int, char**) {
     }
     // sprite
     for (auto iter = sequenceIndexBySprite.begin();
-        iter != sequenceIndexBySprite.end(); iter++) {
+         iter != sequenceIndexBySprite.end(); iter++) {
       vzm::VzSpriteActor* spriteActor =
           (vzm::VzSpriteActor*)vzm::GetVzComponent(iter->first);
       int seqIdx = iter->second;
