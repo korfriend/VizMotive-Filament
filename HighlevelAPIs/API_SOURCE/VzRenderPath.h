@@ -147,6 +147,7 @@ namespace vzm
         // 1. camera
         // 2. scene
         filament::View* view_ = nullptr;
+        filament::View* viewWithoutPostProcessing_ = nullptr;
         filament::SwapChain* swapChain_ = nullptr;
         filament::Renderer* renderer_ = nullptr;
 
@@ -196,6 +197,7 @@ namespace vzm
         } dirtyFlags = DirtyFlags::ALL;
 
         filament::View* GetView();
+        filament::View* GetViewWithoutPostProcessing();
         filament::Renderer* GetRenderer();
 
         void ApplySettings();

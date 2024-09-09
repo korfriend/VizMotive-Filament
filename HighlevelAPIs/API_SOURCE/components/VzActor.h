@@ -10,6 +10,10 @@ namespace vzm
 
         uint8_t GetVisibleLayerMask() const;
         void SetVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits);
+        bool IsVisible() const;
+        void SetVisible(const bool visible);
+        bool IsPostProcessingEnabled() const;
+        void SetPostProcessingEnabled(const bool enabled);
         uint8_t GetPriority() const;
         void SetPriority(const uint8_t priority);
         void GetAxisAlignedBoundingBox(float min[3], float max[3]);

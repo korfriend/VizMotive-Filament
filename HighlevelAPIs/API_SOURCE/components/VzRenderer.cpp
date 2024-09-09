@@ -1170,6 +1170,7 @@ namespace vzm
         }
 
         View* view = render_path->GetView();
+        View* viewWithoutPostProcessing = render_path->GetViewWithoutPostProcessing();
         Scene* scene = gEngineApp->GetScene(vidScene);
         Camera * camera = gEngine->getCameraComponent(utils::Entity::import(vidCam));
         if (view == nullptr || scene == nullptr || camera == nullptr)
@@ -1182,6 +1183,8 @@ namespace vzm
         render_path->TryResizeRenderTargets();
         view->setScene(scene);
         view->setCamera(camera);
+        viewWithoutPostProcessing->setScene(scene);
+        viewWithoutPostProcessing->setCamera(camera);
         //view->setVisibleLayers(0x4, 0x4);
         //SceneVID vid_scene = gEngineApp->GetSceneVidBelongTo(vidCam);
         //assert(vid_scene != INVALID_VID);
@@ -1320,8 +1323,9 @@ namespace vzm
 
         filament::SwapChain* sc = render_path->GetSwapChain();
         if (renderer->beginFrame(sc)) {
+            renderer->render(viewWithoutPostProcessing);
             renderer->render(view);
-            renderer->endFrame();
+            renderer->endFrame(); 
         }
 
         for (auto& it : restore_billboard_tr)
@@ -1334,7 +1338,7 @@ namespace vzm
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-
+         
         TimeStamp timer2 = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(timer2 - cam_res->timer);
         cam_res->timer = timer2;
