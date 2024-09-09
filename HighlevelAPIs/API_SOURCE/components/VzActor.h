@@ -12,6 +12,7 @@ namespace vzm
         void SetVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits);
         uint8_t GetPriority() const;
         void SetPriority(const uint8_t priority);
+        void GetAxisAlignedBoundingBox(float min[3], float max[3]);
     };
 
     struct API_EXPORT VzActor : VzBaseActor

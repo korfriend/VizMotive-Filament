@@ -31,6 +31,19 @@ void VzBaseActor::SetVisibleLayerMask(const uint8_t layerBits, const uint8_t mas
         actor_res->priority = priority;
         UpdateTimeStamp();
     }
+    void VzBaseActor::GetAxisAlignedBoundingBox(float min[3], float max[3])
+    {
+        COMP_ACTOR(rcm, ett, ins, );
+        auto& aabb = rcm.getAxisAlignedBoundingBox(ins);
+        auto _min = aabb.getMin();
+        auto _max = aabb.getMax();
+        min[0] = _min[0];
+        min[1] = _min[1];
+        min[2] = _min[2];
+        max[0] = _max[0];
+        max[1] = _max[1];
+        max[2] = _max[2];
+    }
 }
 
 namespace vzm
