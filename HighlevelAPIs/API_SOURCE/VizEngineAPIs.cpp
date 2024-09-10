@@ -244,7 +244,7 @@ namespace vzm
         // default resources
         {
             Material* material = Material::Builder()
-                .package(INTERNAL_DEPTHVISUALIZER_DATA, FILAMENTAPP_DEPTHVISUALIZER_SIZE)
+                .package(FILAMENTAPP_DEPTHVISUALIZER_DATA, FILAMENTAPP_DEPTHVISUALIZER_SIZE)
                 .build(*gEngine);
             vzmMaterials.push_back(gEngineApp->CreateMaterial("_DEFAULT_DEPTH_MATERIAL", material, nullptr, true)->GetVID());
 
@@ -260,7 +260,7 @@ namespace vzm
             vzmMaterials.push_back(gEngineApp->CreateMaterial("_DEFAULT_UNLIT_MATERIAL", material, nullptr, true)->GetVID());
 
             material = Material::Builder()
-                .package(INTERNAL_TRANSPARENTCOLOR_DATA, FILAMENTAPP_TRANSPARENTCOLOR_SIZE)
+                .package(FILAMENTAPP_TRANSPARENTCOLOR_DATA, FILAMENTAPP_TRANSPARENTCOLOR_SIZE)
                 .build(*gEngine);
             vzmMaterials.push_back(gEngineApp->CreateMaterial("_DEFAULT_TRANSPARENT_MATERIAL", material, nullptr, true)->GetVID());
 
