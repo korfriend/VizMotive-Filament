@@ -23,7 +23,7 @@
 #include "savefileio.h"
 
 // 배포시 DEPLOY_VERSION 활성화
-//#define DEPLOY_VERSION
+#define DEPLOY_VERSION
 
 // #define APP_USE_UNLIMITED_FRAME_RATE
 #ifdef _DEBUG
@@ -687,11 +687,16 @@ std::unordered_map<VID, bool> screenSpaceContactShadows;
 std::map<VID, int> sequenceIndexBySprite;
 #ifdef DEPLOY_VERSION
 char g_texturePath[300] = "testimage.png";
+char g_font_path[300] = "font/HyundaiSansUI_JP_KR_Latin-Regular.ttf";
 #else
 char g_texturePath[300] = "../assets/testimage1.png";
+char g_font_path[300] = "../assets/NanumBarunGothic.ttf";
 #endif
 char g_sprite_name[300] = "sprite";
 char g_text_name[300] = "text";
+
+int g_font_size = 30;
+
 bool g_billboard = true;
 
 void resize(int width, int height) {
@@ -3022,22 +3027,19 @@ int main(int, char**) {
                     "Text Generator",
                     ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
               ImGui::InputText("name##textgenerator", g_text_name, 100);
+              ImGui::InputText("font path", g_font_path, 300);
+              ImGui::InputInt("font size", &g_font_size);
+
               if (ImGui::Button("generate text")) {
                 vzm::VzFont* font = (vzm::VzFont*)vzm::NewResComponent(
                     vzm::RES_COMPONENT_TYPE::FONT, "font");
-#ifdef DEPLOY_VERSION
-                font->ReadFont("font/HyundaiSansUI_JP_KR_Latin-Regular.ttf",
-                               30);
-#else
-                font->ReadFont("../assets/NanumBarunGothic.ttf", 30);
-#endif
+                font->ReadFont(g_font_path, g_font_size);
                 vzm::VzTextSpriteActor* text_actor_ =
                     (vzm::VzTextSpriteActor*)vzm::NewSceneComponent(
                         vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR,
                         std::string(g_text_name));
 
                 text_actor_->SetFont(font->GetVID());
-
                 text_actor_->SetText("").Build();
                 vzm::AppendSceneCompTo(text_actor_, component);
               }
