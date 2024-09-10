@@ -23,7 +23,7 @@
 #include "savefileio.h"
 
 // 배포시 DEPLOY_VERSION 활성화
-// #define DEPLOY_VERSION
+//#define DEPLOY_VERSION
 
 // #define APP_USE_UNLIMITED_FRAME_RATE
 #ifdef _DEBUG
@@ -744,13 +744,6 @@ void setKeyboardButton(GLFWwindow* window, int key, int scancode, int action,
         g_cam->GetController()->KeyDown(vzm::VzCamera::Controller::Key::DOWN);
       } else if (key == GLFW_KEY_E) {
         g_cam->GetController()->KeyDown(vzm::VzCamera::Controller::Key::UP);
-      } else if (key == GLFW_KEY_F) {
-        g_cam->GetController()->mode =
-            vzm::VzCamera::Controller::Mode::FREE_FLIGHT;
-        g_cam->GetController()->UpdateControllerSettings();
-      } else if (key == GLFW_KEY_R) {
-        g_cam->GetController()->mode = vzm::VzCamera::Controller::Mode::ORBIT;
-        g_cam->GetController()->UpdateControllerSettings();
       }
       g_cam->GetController()->UpdateCamera(0.1);
       break;
@@ -1106,15 +1099,6 @@ int main(int, char**) {
   // Main loop
   while (!glfwWindowShouldClose(window)) {
     g_renderer->Render(g_scene, current_cam);
-    // Poll and handle events (inputs, window resize, etc.)
-    // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to
-    // tell if dear imgui wants to use your inputs.
-    // - When io.WantCaptureMouse is true, do not dispatch mouse input data to
-    // your main application, or clear/overwrite your copy of the mouse data.
-    // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input
-    // data to your main application, or clear/overwrite your copy of the
-    // keyboard data. Generally you may always pass all inputs to dear imgui,
-    // and hide them from your application based on those two flags.
     glfwPollEvents();
 
     int width, height;
@@ -1151,25 +1135,25 @@ int main(int, char**) {
               "Resolution",
               ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Indent();
-        int width = render_width;
-        int height = render_height;
+        int i_res_width = render_width;
+        int i_res_height = render_height;
         ImGui::Text("Type number and press Enter key.");
-        if (ImGui::InputInt("width", &width, 1, 100,
+        if (ImGui::InputInt("width", &i_res_width, 1, 100,
                             ImGuiInputTextFlags_EnterReturnsTrue)) {
-          if (width > 0 && width < 10000) {
-            render_width = width;
+          if (i_res_width > 0 && i_res_width < 10000) {
+            render_width = i_res_width;
             resize(render_width, render_height);
           } else {
-            width = render_width;
+            i_res_width = render_width;
           }
         }
-        if (ImGui::InputInt("height", &height, 1, 100,
+        if (ImGui::InputInt("height", &i_res_height, 1, 100,
                             ImGuiInputTextFlags_EnterReturnsTrue)) {
-          if (height > 0 && height < 10000) {
-            render_height = height;
+          if (i_res_height > 0 && i_res_height < 10000) {
+            render_height = i_res_height;
             resize(render_width, render_height);
           } else {
-            height = render_height;
+            i_res_height = render_height;
           }
         }
         ImGui::Unindent();
@@ -1195,7 +1179,29 @@ int main(int, char**) {
             }
             ImGui::EndCombo();
           }
-
+          if (current_cam == g_cam) {
+            if (ImGui::RadioButton(
+                    "ORBIT", g_cam->GetController()->mode ==
+                                 vzm::VzCamera::Controller::Mode::ORBIT)) {
+              if (g_cam->GetController()->mode !=
+                  vzm::VzCamera::Controller::Mode::ORBIT) {
+                g_cam->GetController()->mode =
+                    vzm::VzCamera::Controller::Mode::ORBIT;
+                g_cam->GetController()->UpdateControllerSettings();
+              }
+            }
+            ImGui::SameLine(100);
+            if (ImGui::RadioButton(
+                    "Free Flight", g_cam->GetController()->mode ==
+                        vzm::VzCamera::Controller::Mode::FREE_FLIGHT)) {
+              if (g_cam->GetController()->mode !=
+                  vzm::VzCamera::Controller::Mode::FREE_FLIGHT) {
+                g_cam->GetController()->mode =
+                    vzm::VzCamera::Controller::Mode::FREE_FLIGHT;
+                g_cam->GetController()->UpdateControllerSettings();
+              }
+            }
+          }
           ImGui::Text("set projection from");
           {
             ImGui::BeginTabBar("camTab");
@@ -3006,6 +3012,7 @@ int main(int, char**) {
                 vzm::AppendSceneCompTo(sprite, component);
               }
             }
+            ImGui::NewLine();
             if (ImGui::CollapsingHeader(
                     "Text Generator",
                     ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
