@@ -1319,6 +1319,15 @@ namespace vzm
         render_path->ApplySettings();
 
         filament::SwapChain* sc = render_path->GetSwapChain();
+        view->setVisibleLayers(0x3, 0x1);
+        view->setPostProcessingEnabled(true);
+        if (renderer->beginFrame(sc)) {
+            renderer->render(view);
+            renderer->endFrame();
+        }
+
+        view->setVisibleLayers(0x3, 0x2);
+        view->setPostProcessingEnabled(false);
         if (renderer->beginFrame(sc)) {
             renderer->render(view);
             renderer->endFrame();
