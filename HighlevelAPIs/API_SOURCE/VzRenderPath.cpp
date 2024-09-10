@@ -11,10 +11,6 @@ namespace vzm
     {
         assert(gEngine && "native engine is not initialized!");
         view_ = gEngine->createView();
-        viewWithoutPostProcessing_ = gEngine->createView();
-        viewWithoutPostProcessing_->setVisibleLayers(0x3, 0x2);
-        viewWithoutPostProcessing_->setPostProcessingEnabled(false);
-        viewWithoutPostProcessing_->setBlendMode(BlendMode::TRANSLUCENT);
         renderer_ = gEngine->createRenderer();
         swapChain_ = gEngine->createSwapChain(width_, height_);
 
@@ -30,8 +26,6 @@ namespace vzm
                 gEngine->destroy(renderer_);
             if (view_)
                 gEngine->destroy(view_);
-            if (viewWithoutPostProcessing_)
-                gEngine->destroy(viewWithoutPostProcessing_);
             if (swapChain_)
                 gEngine->destroy(swapChain_);
         }
@@ -113,7 +107,6 @@ namespace vzm
         nativeWindow_ = window;
 
         view_->setViewport(filament::Viewport(0, 0, w, h));
-        viewWithoutPostProcessing_->setViewport(filament::Viewport(0, 0, w, h));
         timeStamp_ = std::chrono::high_resolution_clock::now();
     }
     filament::SwapChain* VzRenderPath::GetSwapChain()
@@ -122,8 +115,6 @@ namespace vzm
     }
 
     filament::View* VzRenderPath::GetView() { return view_; }
-
-    filament::View* VzRenderPath::GetViewWithoutPostProcessing() { return viewWithoutPostProcessing_; }
 
     filament::Renderer* VzRenderPath::GetRenderer() { return renderer_; }
 
