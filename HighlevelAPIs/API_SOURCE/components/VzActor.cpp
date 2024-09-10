@@ -34,7 +34,7 @@ namespace vzm
     }
     void VzBaseActor::SetPostProcessingEnabled(const bool enabled) {
         COMP_ACTOR(rcm, ett, ins, );
-        UINT8 values = enabled ? 0x1 : 0x2;
+        uint8_t values = enabled ? 0x1 : 0x2;
         rcm.setLayerMask(ins, 0x3, values);
         UpdateTimeStamp();
     }
