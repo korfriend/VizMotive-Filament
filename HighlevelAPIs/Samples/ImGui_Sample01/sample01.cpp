@@ -23,7 +23,7 @@
 #include "savefileio.h"
 
 // 배포시 DEPLOY_VERSION 활성화
-#define DEPLOY_VERSION
+//#define DEPLOY_VERSION
 
 // #define APP_USE_UNLIMITED_FRAME_RATE
 #ifdef _DEBUG

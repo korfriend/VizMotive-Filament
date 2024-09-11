@@ -214,6 +214,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ../../libs/filamentapp/include
     ../../third_party/stb
     ../../third_party/libassimp/include
+    ../../out/cmake-${CMAKE_BUILD_TYPE}/samples
+    ../../out/cmake-${CMAKE_BUILD_TYPE}/libs/gltfio
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX d)
