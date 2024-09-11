@@ -196,7 +196,7 @@ set(PRIVATE_HDRS
 include_directories(../API_SOURCE)
 
 
-set(FILAMENT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../out/${CMAKE_BUILD_TYPE}/filament)
+set(FILAMENT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../out/${CMAKE_BUILD_TYPE_LOWER}/filament)
 
 # we're building a library
 add_library(${PROJECT_NAME} SHARED ${PRIVATE_HDRS} ${PUBLIC_HDRS} ${SRCS})
@@ -208,14 +208,14 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ../../filament/backend/include
     ../../filament/src
     ../../third_party/cgltf
-    ../../out/${CMAKE_BUILD_TYPE}/filament/include
+    ../../out/${CMAKE_BUILD_TYPE_LOWER}/filament/include
     ../../libs/bluevk/include
     ../../libs/utils/include
     ../../libs/filamentapp/include
     ../../third_party/stb
     ../../third_party/libassimp/include
-    ../../out/cmake-${CMAKE_BUILD_TYPE}/samples
-    ../../out/cmake-${CMAKE_BUILD_TYPE}/libs/gltfio
+    ../../out/cmake-${CMAKE_BUILD_TYPE_LOWER}/samples
+    ../../out/cmake-${CMAKE_BUILD_TYPE_LOWER}/libs/gltfio
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX d)
@@ -236,9 +236,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${FILAMENT_DIR}/lib/x86_64/libcamutils.a
     ${FILAMENT_DIR}/lib/x86_64/libcivetweb.a
 
-    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/samples/libgltf-demo-resources.a
-    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/samples/libsample-resources.a
-    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/samples/libsuzanne-resources.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE_LOWER}/samples/libgltf-demo-resources.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE_LOWER}/samples/libsample-resources.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE_LOWER}/samples/libsuzanne-resources.a
 
     ${FILAMENT_DIR}/lib/x86_64/libfilameshio.a
     ${FILAMENT_DIR}/lib/x86_64/libgltfio.a
@@ -259,7 +259,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
     ${FILAMENT_DIR}/lib/x86_64/libktxreader.a
     ${FILAMENT_DIR}/lib/x86_64/libmeshoptimizer.a
-    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/libs/imageio/libimageio.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE_LOWER}/libs/imageio/libimageio.a
     ${FILAMENT_DIR}/lib/x86_64/libimage.a
     ${FILAMENT_DIR}/lib/x86_64/libmikktspace.a
     ${FILAMENT_DIR}/lib/x86_64/libshaders.a
@@ -267,12 +267,12 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${FILAMENT_DIR}/lib/x86_64/libvkshaders.a
 
     ${FILAMENT_DIR}/lib/x86_64/libutils.a
-    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/third_party/libpng/tnt/libpng.a
-    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/third_party/tinyexr/tnt/libtinyexr.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE_LOWER}/third_party/libpng/tnt/libpng.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE_LOWER}/third_party/tinyexr/tnt/libtinyexr.a
     ${FILAMENT_DIR}/lib/x86_64/libbasis_transcoder.a
     ${FILAMENT_DIR}/lib/x86_64/libzstd.a
-    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/third_party/libz/tnt/libz.a
-    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE}/third_party/libassimp/tnt/libassimp.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE_LOWER}/third_party/libz/tnt/libz.a
+    ${FILAMENT_DIR}/../../cmake-${CMAKE_BUILD_TYPE_LOWER}/third_party/libassimp/tnt/libassimp.a
 )
 
 # ==============================================================================================

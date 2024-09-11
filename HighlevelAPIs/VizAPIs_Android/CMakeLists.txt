@@ -299,6 +299,8 @@ set(PRIVATE_HDRS
 # specify where our headers are
 include_directories(../API_SOURCE)
 
+string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_LOWER)
+
 if(DIST_ARCH STREQUAL "arm64-v8a")
     set(ABI "aarch64")
 elseif(DIST_ARCH STREQUAL "armeabi-v7a")
@@ -309,7 +311,7 @@ elseif(DIST_ARCH STREQUAL "x86")
     set(ABI "x86")
 endif()
 
-set(FILAMENT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../out/android-${CMAKE_BUILD_TYPE}/filament)
+set(FILAMENT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../out/android-${CMAKE_BUILD_TYPE_LOWER}/filament)
 
 # we're building a library
 add_library(${PROJECT_NAME} SHARED ${PRIVATE_HDRS} ${PUBLIC_HDRS} ${SRCS})
@@ -322,14 +324,14 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ../../filament/backend/include
     ../../filament/src
     ../../third_party/cgltf
-    ../../out/android-${CMAKE_BUILD_TYPE}/filament/include
+    ../../out/android-${CMAKE_BUILD_TYPE_LOWER}/filament/include
     ../../libs/bluevk/include
     ../../libs/utils/include
     ../../libs/filamentapp/include
     ../../third_party/stb
     ../../third_party/libassimp/include
-    ../../out/cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/samples
-    ../../out/cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/libs/gltfio
+    ../../out/cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/samples
+    ../../out/cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/libs/gltfio
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX d)
@@ -366,7 +368,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libktxreader.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libmeshoptimizer.a
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/libs/imageio/libimageio.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/libs/imageio/libimageio.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libimage.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libmikktspace.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libshaders.a
@@ -377,13 +379,13 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libbasis_transcoder.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libzstd.a
 
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/libassimp/tnt/libassimp.a
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/libpng/tnt/libpng.a
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/libz/tnt/libz.a
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/tinyexr/tnt/libtinyexr.a
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/samples/libsuzanne-resources.a
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/samples/libsample-resources.a
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/samples/libgltf-demo-resources.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/third_party/libassimp/tnt/libassimp.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/third_party/libpng/tnt/libpng.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/third_party/libz/tnt/libz.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/third_party/tinyexr/tnt/libtinyexr.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/samples/libsuzanne-resources.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/samples/libsample-resources.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/samples/libgltf-demo-resources.a
     GLESv3
     EGL
 )
