@@ -12,30 +12,10 @@ namespace vzm
         COMP_ACTOR(rcm, ett, ins, 0);
         return rcm.getLayerMask(ins);
     }
-    void VzBaseActor::SetVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits)
+void VzBaseActor::SetVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits)
     {
         COMP_ACTOR(rcm, ett, ins, );
         rcm.setLayerMask(ins, layerBits, maskBits);
-        UpdateTimeStamp();
-    }
-    bool VzBaseActor::IsVisible() const {
-        COMP_ACTOR(rcm, ett, ins, 0);
-        return rcm.getLayerMask(ins) & 0x3;
-    }
-    void VzBaseActor::SetVisible(const bool visible) {
-        COMP_ACTOR(rcm, ett, ins, );
-        uint8_t values = visible ? 0x1 : 0x0;
-        rcm.setLayerMask(ins, 0x3, values);
-        UpdateTimeStamp();
-    }
-    bool VzBaseActor::IsPostProcessingEnabled() const {
-        COMP_ACTOR(rcm, ett, ins, 0);
-        return rcm.getLayerMask(ins) & 0x1;
-    }
-    void VzBaseActor::SetPostProcessingEnabled(const bool enabled) {
-        COMP_ACTOR(rcm, ett, ins, );
-        uint8_t values = enabled ? 0x1 : 0x2;
-        rcm.setLayerMask(ins, 0x3, values);
         UpdateTimeStamp();
     }
     uint8_t VzBaseActor::GetPriority() const
