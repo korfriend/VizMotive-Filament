@@ -2,7 +2,7 @@
 set -e
 
 # Host tools required by Android, WebGL, and iOS builds
-MOBILE_HOST_TOOLS="matc resgen cmgen filamesh uberz"
+MOBILE_HOST_TOOLS="matc resgen cmgen filamesh uberz mipgen"
 WEB_HOST_TOOLS="${MOBILE_HOST_TOOLS} mipgen filamesh"
 
 function print_help {

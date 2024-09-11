@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-MOBILE_HOST_TOOLS="matc resgen cmgen filamesh uberz"
-
 function print_help {
     local self_name=$(basename "$0")
     echo "Usage:"
@@ -190,6 +188,43 @@ while getopts ":hcf" opt; do
             ;;
         f)
             ISSUE_CMAKE_ALWAYS=true
+            ;;
+        q)
+            ABI_ARMEABI_V7A=false
+            ABI_ARM64_V8A=false
+            ABI_X86=false
+            ABI_X86_64=false
+            ABI_GRADLE_OPTION="${OPTARG}"
+            abis=$(echo "${OPTARG}" | tr ',' '\n')
+            for abi in ${abis}
+            do
+                case $(echo "${abi}" | tr '[:upper:]' '[:lower:]') in
+                    armeabi-v7a)
+                        ABI_ARMEABI_V7A=true
+                    ;;
+                    arm64-v8a)
+                        ABI_ARM64_V8A=true
+                    ;;
+                    x86)
+                        ABI_X86=true
+                    ;;
+                    x86_64)
+                        ABI_X86_64=true
+                    ;;
+                    all)
+                        ABI_ARMEABI_V7A=true
+                        ABI_ARM64_V8A=true
+                        ABI_X86=true
+                        ABI_X86_64=true
+                    ;;
+                    *)
+                        echo "Unknown abi ${abi}"
+                        echo "ABI must be one of [armeabi-v7a|arm64-v8a|x86|x86_64|all]"
+                        echo ""
+                        exit 1
+                    ;;
+                esac
+            done
             ;;
         \?)
             echo "Invalid option: -${OPTARG}" >&2

@@ -53,6 +53,12 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ==================================================================================================
+# Configuration for CMAKE_CROSSCOMPILING.
+# ==================================================================================================
+
+set(IMPORT_EXECUTABLES ${CMAKE_CURRENT_SOURCE_DIR}/../../out/ImportExecutables-${CMAKE_BUILD_TYPE}.cmake)
+
+# ==================================================================================================
 # Common Functions
 # ==================================================================================================
 
@@ -77,17 +83,6 @@ endfunction()
 # Compile resources
 # ==================================================================================================
 
-add_executable(matc IMPORTED)
-add_executable(resgen IMPORTED)
-
-set_target_properties(matc PROPERTIES
-        IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../../out/cmake-${CMAKE_BUILD_TYPE}/tools/matc/matc"
-)
-set_target_properties(resgen PROPERTIES
-        IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../../out/cmake-${CMAKE_BUILD_TYPE}/tools/resgen/resgen"
-)
-
-set(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..)
 set(GENERATION_ROOT ${CMAKE_CURRENT_BINARY_DIR})
 set(RESOURCE_DIR  "${GENERATION_ROOT}/generated/resources")
 set(MATERIAL_DIR  "${GENERATION_ROOT}/generated/material")
@@ -98,6 +93,8 @@ set(MATERIAL_SRCS
         ../../libs/filamentapp/materials/depthVisualizer.mat
         ../../libs/filamentapp/materials/transparentColor.mat
 )
+
+include(${IMPORT_EXECUTABLES})
 
 file(MAKE_DIRECTORY ${MATERIAL_DIR})
 file(MAKE_DIRECTORY ${RESOURCE_DIR})
