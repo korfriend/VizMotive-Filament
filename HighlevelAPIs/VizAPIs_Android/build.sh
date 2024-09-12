@@ -177,7 +177,7 @@ function check_debug_release_build {
 
 pushd "$(dirname "$0")" > /dev/null
 
-while getopts ":hcf" opt; do
+while getopts ":hcfq:" opt; do
     case ${opt} in
         h)
             print_help
