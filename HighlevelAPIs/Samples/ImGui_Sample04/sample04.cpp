@@ -155,21 +155,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     std::uniform_real_distribution<> dis(0.0, 1.0);
     for (size_t i = 0; i < 10; ++i)
     {
-        float randomValue1 = (float)dis(gen);
-        float randomValue2 = (float)dis(gen);
-        float randomValue3 = (float)dis(gen);
+        float random_value1 = (float)dis(gen);
+        float random_value2 = (float)dis(gen);
+        float random_value3 = (float)dis(gen);
 
         vzm::VzSpriteActor* sprite = 
             (vzm::VzSpriteActor*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR, "my sprite " + std::to_string(i));
 
-        sprite->SetSpriteWidth((randomValue1 + 0.5) * 3.f)
-            .SetSpriteHeight((randomValue2 + 0.5) * 3.f)
+        sprite->SetSpriteWidth((random_value1 + 0.5) * 3.f)
+            .SetSpriteHeight((random_value2 + 0.5) * 3.f)
             .SetAnchorU(0.5)
             .SetAnchorV(0.5)
             .Build();
 
         sprite->SetTexture(texture2->GetVID());
-        glm::fvec3 sprite_p = glm::fvec3(randomValue1 - 0.5f, randomValue2 - 0.5f, randomValue3 - 0.5f) * 7.f;
+        glm::fvec3 sprite_p = glm::fvec3(random_value1 - 0.5f, random_value2 - 0.5f, random_value3 - 0.5f) * 7.f;
         sprite->SetPosition(__FP sprite_p);
         sprite->EnableBillboard(true);
 
@@ -187,6 +187,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     sprite_on_cam->SetTexture(texture1->GetVID());
     glm::fvec3 sprite_p2 = glm::fvec3(2.f, 1.f, -7.f);
     sprite_on_cam->SetPosition(__FP sprite_p2);
+    sprite_on_cam->SetVisibleLayerMask(0x3, 0x1);
     //sprite->EnableBillboard(true);
     vzm::AppendSceneCompTo(sprite_on_cam, cam); // parent is cam
 
@@ -206,6 +207,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         .Build();
     sprite_p2.x = -2.f;
     textsprite_on_cam->SetPosition(__FP sprite_p2);
+    textsprite_on_cam->SetVisibleLayerMask(0x3, 0x2);
     //sprite->EnableBillboard(true);
     vzm::AppendSceneCompTo(textsprite_on_cam, cam); // parent is cam
 
@@ -265,6 +267,8 @@ void pickCallback(VID vid) {
 // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+    if (!vzm::IsEngineAvailable())
+        return ::DefWindowProcW(hWnd, msg, wParam, lParam);
     //VID vid_scene = vzm::GetFirstVidByName("my scene");
     VID vid_renderer = vzm::GetFirstVidByName("my renderer");
     VID vid_camera = vzm::GetFirstVidByName("my camera");

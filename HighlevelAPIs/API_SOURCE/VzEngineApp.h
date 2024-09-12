@@ -317,11 +317,34 @@ namespace vzm
     {
         std::unordered_map<BoneVID, std::string> bones;
     };
+
 }
 
 namespace vzm
 {
     using namespace filament;
+
+    // matc.exe -o compositor.filamat compositor.mat
+    struct CompositorQuad
+    {
+    private:
+        VertexBuffer* quadVb_ = nullptr;
+        IndexBuffer* quadIb_ = nullptr;
+        Material* compositorMaterial_ = nullptr;
+        MaterialInstance* compositorMI_ = nullptr;
+        Camera* cameraQuad_ = nullptr;
+        Scene* sceneQuad_ = nullptr;
+    public:
+        CompositorQuad();
+        ~CompositorQuad();
+
+        TextureSampler sampler;
+
+        Camera* GetQaudCamera() { return cameraQuad_; }
+        Scene* GetQuadScene() { return sceneQuad_; }
+        MaterialInstance* GetMaterial() { return compositorMI_; }
+    };
+
 
     class VzRenderPath;
 
@@ -355,6 +378,8 @@ namespace vzm
         std::unordered_map<VID, std::unique_ptr<VzBaseComp>> vzCompMap_;
 
         bool removeScene(SceneVID vidScene);
+
+        CompositorQuad* compositor_ = nullptr;
 
     public:
         // Runtime can create a new entity with this
@@ -392,6 +417,11 @@ namespace vzm
         VzRenderPath* GetFirstRenderPathByName(const std::string& name);
         SceneVID GetSceneVidBelongTo(const VID vid);
         size_t GetSceneCompChildren(const SceneVID vidScene, std::vector<VID>& vidChildren);
+
+        CompositorQuad* GetCompositorQuad()
+        {
+            return compositor_;
+        }
 
         bool AppendSceneEntityToParent(const VID vidSrc, const VID vidDst);
 

@@ -4,6 +4,8 @@
 #include "VzAsset.h"
 #include "../FIncludes.h"
 
+#include "../../filament/src/PostProcessManager.h"
+
 extern Engine* gEngine;
 extern vzm::VzEngineApp* gEngineApp;
 
@@ -1154,6 +1156,7 @@ namespace vzm
         render_path->GetRenderer()->setClearOptions((Renderer::ClearOptions&) clearOptions);
         UpdateTimeStamp();
     }
+
     void VzRenderer::GetClearOptions(ClearOptions& clearOptions)
     {
         COMP_RENDERPATH(render_path, );
@@ -1319,17 +1322,77 @@ namespace vzm
         render_path->ApplySettings();
 
         filament::SwapChain* sc = render_path->GetSwapChain();
-        view->setVisibleLayers(0x3, 0x1);
-        view->setPostProcessingEnabled(true);
+
+        /*
+        // 1. gui rendering layer (with depth)
+        view->setVisibleLayers(0x3, 0x2);
+        view->setPostProcessingEnabled(false);
+        
+        view->setRenderTarget(render_path->GetOffscreenRT());
+        renderer->renderStandaloneView(view);
+        //Renderer::ClearOptions options;
+        //options.clear = false;
+        //renderer->setClearOptions(options);
+        //renderer->render
+        //view->set >setClearTargets(false, false, false); // 클리어하지 않음
         if (renderer->beginFrame(sc)) {
             renderer->render(view);
             renderer->endFrame();
         }
+        /**/
 
-        view->setVisibleLayers(0x3, 0x2);
-        view->setPostProcessingEnabled(false);
+
+        //viewQuad_ = gEngine->createView();
+        //viewQuad_->setCamera(cameraQuad_);
+        //viewQuad_->setScene(sceneQuad_);
+
+        // 1. main rendering 
+        view->setVisibleLayers(0x3, 0x1);
+        view->setPostProcessingEnabled(true);
+        view->setRenderTarget(render_path->GetOffscreenRT());
+
+        //if (renderer->beginFrame(sc)) {
+        //    renderer->render(view);
+        //    renderer->endFrame();
+        //}
+        renderer->renderStandaloneView(view);
+
+
+        // 2. gui rendering wo/ postprocessing
+        View* view_gui = render_path->GetGuiView();
+        view_gui->setScene(scene);
+        view_gui->setCamera(camera);
+        view_gui->setVisibleLayers(0x3, 0x2);
+        view_gui->setPostProcessingEnabled(false);
+        view_gui->setRenderTarget(render_path->GetOffscreenGuiRT());
+
+        Renderer::ClearOptions restore_clear_options = renderer->getClearOptions();
+        Renderer::ClearOptions clear_options;
+        clear_options.clearColor = float4{ 0, 0, 0, 0 }; 
+        clear_options.clear = true; 
+        clear_options.discard = false;
+        renderer->setClearOptions(clear_options);
+        
+        renderer->renderStandaloneView(view_gui);
+
+        renderer->setClearOptions(restore_clear_options);
+
+        // 3. compositor
+        CompositorQuad* compositor = gEngineApp->GetCompositorQuad();
+        View* view_compositor = render_path->GetCompositorView();
+        view_compositor->setCamera(compositor->GetQaudCamera());
+        view_compositor->setScene(compositor->GetQuadScene());
+        view_compositor->setPostProcessingEnabled(false);
+        view_compositor->setRenderTarget(nullptr);
+
+        MaterialInstance* quad_mi = compositor->GetMaterial();
+
+        quad_mi->setParameter("mainTexture", render_path->GetOffscreenRT()->getTexture(RenderTarget::AttachmentPoint::COLOR), compositor->sampler);
+        quad_mi->setParameter("guiTexture", render_path->GetOffscreenGuiRT()->getTexture(RenderTarget::AttachmentPoint::COLOR), compositor->sampler);
+        //quad_mi->setParameter("baseColorMap", render_path->GetOffscreenRT()->getTexture(RenderTarget::AttachmentPoint::COLOR), sampler);
+        
         if (renderer->beginFrame(sc)) {
-            renderer->render(view);
+            renderer->render(view_compositor);
             renderer->endFrame();
         }
 

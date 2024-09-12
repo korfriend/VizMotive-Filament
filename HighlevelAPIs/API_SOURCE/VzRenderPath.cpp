@@ -11,6 +11,8 @@ namespace vzm
     {
         assert(gEngine && "native engine is not initialized!");
         view_ = gEngine->createView();
+        viewCompositor_ = gEngine->createView();
+        viewGui_ = gEngine->createView();
         renderer_ = gEngine->createRenderer();
         swapChain_ = gEngine->createSwapChain(width_, height_);
 
@@ -28,6 +30,22 @@ namespace vzm
                 gEngine->destroy(view_);
             if (swapChain_)
                 gEngine->destroy(swapChain_);
+
+            // offscreen components
+            if (viewGui_)
+                gEngine->destroy(viewGui_);
+            if (viewCompositor_)
+                gEngine->destroy(viewCompositor_);
+            if (rtTexture_)
+                gEngine->destroy(rtTexture_);
+            if (rtGuiTexture_)
+                gEngine->destroy(rtGuiTexture_);
+            if (rtDepthTexture_)
+                gEngine->destroy(rtDepthTexture_);
+            if (offscreenRT_)
+                gEngine->destroy(offscreenRT_);
+            if (offscreenRT_)
+                gEngine->destroy(offscreenGuiRT_);
         }
     }
 
@@ -51,6 +69,37 @@ namespace vzm
                     //renderer_->beginFrame(swapChain_);
                     //renderer_->endFrame();
                 }
+
+                gEngine->destroy(offscreenRT_);
+                gEngine->destroy(offscreenGuiRT_);
+                gEngine->destroy(rtTexture_);
+                gEngine->destroy(rtGuiTexture_);
+                gEngine->destroy(rtDepthTexture_);
+
+                rtTexture_ = Texture::Builder()
+                    .width(width_).height(height_).levels(1)
+                    .usage(TextureUsage::COLOR_ATTACHMENT | TextureUsage::SAMPLEABLE)
+                    .format(TextureFormat::RGBA8).build(*gEngine);
+
+                rtGuiTexture_ = Texture::Builder()
+                    .width(width_).height(height_).levels(1)
+                    .usage(TextureUsage::COLOR_ATTACHMENT | TextureUsage::SAMPLEABLE)
+                    .format(TextureFormat::RGBA8).build(*gEngine);
+
+                rtDepthTexture_ = Texture::Builder()
+                    .width(width_).height(height_).levels(1)
+                    .usage(Texture::Usage::DEPTH_ATTACHMENT)
+                    .format(Texture::InternalFormat::DEPTH24).build(*gEngine);
+
+                offscreenRT_ = RenderTarget::Builder()
+                    .texture(RenderTarget::AttachmentPoint::COLOR, rtTexture_)
+                    .texture(RenderTarget::AttachmentPoint::DEPTH, rtDepthTexture_)
+                    .build(*gEngine);
+
+                offscreenGuiRT_ = RenderTarget::Builder()
+                    .texture(RenderTarget::AttachmentPoint::COLOR, rtGuiTexture_)
+                    .texture(RenderTarget::AttachmentPoint::DEPTH, rtDepthTexture_)
+                    .build(*gEngine);
             };
 
         //utils::JobSystem::Job* parent = js.createJob();
@@ -91,7 +140,7 @@ namespace vzm
         return targetFrameRate_;
     }
 
-    void VzRenderPath::GetCanvas(uint32_t* w, uint32_t* h, float* dpi, void** window)
+    void VzRenderPath::GetCanvas(uint32_t* VZ_NULLABLE w, uint32_t* VZ_NULLABLE h, float* VZ_NULLABLE dpi, void** VZ_NULLABLE window)
     {
         if (w) *w = width_;
         if (h) *h = height_;
@@ -107,16 +156,10 @@ namespace vzm
         nativeWindow_ = window;
 
         view_->setViewport(filament::Viewport(0, 0, w, h));
+        viewCompositor_->setViewport(filament::Viewport(0, 0, w, h));
+        viewGui_->setViewport(filament::Viewport(0, 0, w, h));
         timeStamp_ = std::chrono::high_resolution_clock::now();
     }
-    filament::SwapChain* VzRenderPath::GetSwapChain()
-    {
-        return swapChain_;
-    }
-
-    filament::View* VzRenderPath::GetView() { return view_; }
-
-    filament::Renderer* VzRenderPath::GetRenderer() { return renderer_; }
 
     void VzRenderPath::ApplySettings() {
         if (any(dirtyFlags & DirtyFlags::ANTI_ALIASING))

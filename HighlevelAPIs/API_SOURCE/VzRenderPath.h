@@ -135,7 +135,6 @@ namespace vzm
         void* prevNativeWindow_ = nullptr;
         bool prevColorspaceConversionRequired_ = false;
 
-        VzCamera* vzCam_ = nullptr;
         TimeStamp timeStamp_ = {};
 
         float targetFrameRate_ = 60.f;
@@ -150,6 +149,20 @@ namespace vzm
         filament::SwapChain* swapChain_ = nullptr;
         filament::Renderer* renderer_ = nullptr;
 
+        filament::View* viewCompositor_ = nullptr;
+        filament::View* viewGui_ = nullptr;
+        
+        // default offscreen rendering?! (later discuss!)
+        // potentially possible to replace current headless texture-sharing mechanism
+        // wo/ modifying filament core backend
+        Texture* rtTexture_ = nullptr;
+        Texture* rtDepthTexture_ = nullptr;
+
+        Texture* rtGuiTexture_ = nullptr;
+
+        RenderTarget* offscreenRT_ = nullptr;
+        RenderTarget* offscreenGuiRT_ = nullptr;
+
         void resize();
 
     public:
@@ -159,12 +172,18 @@ namespace vzm
 
         bool TryResizeRenderTargets();
 
+        Texture* GetTextureRT() { return  rtTexture_; }
+        RenderTarget* GetOffscreenRT() { return  offscreenRT_; }
+
+        Texture* GetGuiTextureRT() { return  rtGuiTexture_; }
+        RenderTarget* GetOffscreenGuiRT() { return  offscreenGuiRT_; }
+
         void SetFixedTimeUpdate(const float targetFPS);
         float GetFixedTimeUpdate() const;
 
-        void GetCanvas(uint32_t* w, uint32_t* h, float* dpi, void** window);
+        void GetCanvas(uint32_t* VZ_NULLABLE w, uint32_t* VZ_NULLABLE h, float* VZ_NULLABLE dpi, void** VZ_NULLABLE window);
         void SetCanvas(const uint32_t w, const uint32_t h, const float dpi, void* window = nullptr);
-        filament::SwapChain* GetSwapChain();
+        filament::SwapChain* GetSwapChain() { return swapChain_; }
 
         uint64_t FRAMECOUNT = 0;
         float deltaTime = 0;
@@ -195,8 +214,10 @@ namespace vzm
             ALL                         = 0xFFFFFFFF
         } dirtyFlags = DirtyFlags::ALL;
 
-        filament::View* GetView();
-        filament::Renderer* GetRenderer();
+        filament::View* GetView() { return view_; }
+        filament::View* GetGuiView() { return viewGui_; }
+        filament::View* GetCompositorView() { return viewCompositor_; }
+        filament::Renderer* GetRenderer() { return renderer_; }
 
         void ApplySettings();
     };
