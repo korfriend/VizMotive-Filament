@@ -195,6 +195,7 @@ set(PRIVATE_HDRS
 # specify where our headers are
 include_directories(../API_SOURCE)
 
+string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_LOWER)
 
 set(FILAMENT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../out/${CMAKE_BUILD_TYPE_LOWER}/filament)
 
