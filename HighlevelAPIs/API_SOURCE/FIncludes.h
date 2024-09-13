@@ -45,11 +45,11 @@
 
 
 #include "backend/resource_internal.h"
-#include "../../VisualStudio/samples/generated/resources/resources.h"
-#include "../../VisualStudio/samples/generated/resources/monkey.h"
-#include "../../VisualStudio/samples/generated/resources/gltf_demo.h"
+#include "generated/resources/resources.h"
+#include "generated/resources/monkey.h"
+#include "generated/resources/gltf_demo.h"
 //#include "../../VisualStudio/libs/filamentapp/generated/resources/filamentapp.h"
-#include "../../VisualStudio/libs/gltfio/materials/uberarchive.h"
+#include "materials/uberarchive.h"
 
 // FEngine
 #include "../../libs/gltfio/src/FFilamentAsset.h"

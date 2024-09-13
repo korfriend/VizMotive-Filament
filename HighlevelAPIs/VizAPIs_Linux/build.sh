@@ -65,7 +65,7 @@ function build_desktop_target {
     if [[ ! -d "CMakeFiles" ]] || [[ "${ISSUE_CMAKE_ALWAYS}" == "true" ]]; then
         CC=/usr/bin/clang CXX=/usr/bin/clang++ CXXFLAGS=-stdlib=libc++ cmake \
             -G "${BUILD_GENERATOR}" \
-            -DCMAKE_BUILD_TYPE="${lc_target}" \
+            -DCMAKE_BUILD_TYPE="$1" \
             -DCMAKE_INSTALL_PREFIX="../dist" \
             ..
     fi

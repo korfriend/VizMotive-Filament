@@ -273,7 +273,7 @@ namespace filament::assimp {
         if (mat_res == nullptr)
         {
             mDefaultColorMaterial = Material::Builder()
-                .package(INTERNAL_AIDEFAULTMAT_DATA, FILAMENTAPP_AIDEFAULTMAT_SIZE)
+                .package(FILAMENTAPP_AIDEFAULTMAT_DATA, FILAMENTAPP_AIDEFAULTMAT_SIZE)
                 .build(mEngine);
 
             mDefaultColorMaterial->setDefaultParameter("baseColor", RgbType::LINEAR, float3{ 0.8 });
@@ -292,7 +292,7 @@ namespace filament::assimp {
         if (mat_res == nullptr)
         {
             mDefaultTransparentColorMaterial = Material::Builder()
-                .package(INTERNAL_AIDEFAULTTRANS_DATA, FILAMENTAPP_AIDEFAULTTRANS_SIZE)
+                .package(FILAMENTAPP_AIDEFAULTTRANS_DATA, FILAMENTAPP_AIDEFAULTTRANS_SIZE)
                 .build(mEngine);
 
             mDefaultTransparentColorMaterial->setDefaultParameter("baseColor", RgbType::LINEAR, float3{ 0.8 });

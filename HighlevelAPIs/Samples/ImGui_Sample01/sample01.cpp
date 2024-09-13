@@ -1560,14 +1560,9 @@ int main(int, char**) {
               type == vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR) {
             vzm::VzBaseActor* baseActor = (vzm::VzBaseActor*)component;
 
-            bool bVisible = baseActor->IsVisible();
+            bool bVisible = (bool)baseActor->GetVisibleLayerMask();
             if (ImGui::Checkbox("Visible", &bVisible)) {
-              baseActor->SetVisible(bVisible);
-            }
-
-            bool bPostProcessingEnabled = baseActor->IsPostProcessingEnabled();
-            if (ImGui::Checkbox("Post Processing", &bPostProcessingEnabled)) {
-              baseActor->SetPostProcessingEnabled(bPostProcessingEnabled);
+              baseActor->SetVisibleLayerMask(0x1, (uint8_t)bVisible);
             }
 
             int actor_priority =

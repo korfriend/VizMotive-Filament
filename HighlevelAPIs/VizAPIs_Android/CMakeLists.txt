@@ -53,6 +53,100 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ==================================================================================================
+# Configuration for CMAKE_CROSSCOMPILING.
+# ==================================================================================================
+
+set(IMPORT_EXECUTABLES ${CMAKE_CURRENT_SOURCE_DIR}/../../out/ImportExecutables-${CMAKE_BUILD_TYPE}.cmake)
+
+# ==================================================================================================
+# Common Functions
+# ==================================================================================================
+
+# Sets the following variables: RESGEN_HEADER, RESGEN_SOURCE, RESGEN_FLAGS, RESGEN_SOURCE_FLAGS,
+# and RESGEN_OUTPUTS. Please pass in an ARCHIVE_NAME that is unique to your project, otherwise the
+# incbin directive will happily consume a blob from the wrong project without warnings or errors.
+# Also be sure to include the ASM language in the CMake "project" directive for your project.
+function(get_resgen_vars ARCHIVE_DIR ARCHIVE_NAME)
+    set(OUTPUTS
+        ${ARCHIVE_DIR}/${ARCHIVE_NAME}.bin
+        ${ARCHIVE_DIR}/${ARCHIVE_NAME}.S
+        ${ARCHIVE_DIR}/${ARCHIVE_NAME}.apple.S
+        ${ARCHIVE_DIR}/${ARCHIVE_NAME}.h
+    )
+    set(RESGEN_HEADER "${ARCHIVE_DIR}/${ARCHIVE_NAME}.h" PARENT_SCOPE)
+    set(RESGEN_OUTPUTS "${OUTPUTS};${ARCHIVE_DIR}/${ARCHIVE_NAME}.c" PARENT_SCOPE)
+    set(RESGEN_FLAGS -qcx ${ARCHIVE_DIR} -p ${ARCHIVE_NAME} PARENT_SCOPE)
+    set(RESGEN_SOURCE "${ARCHIVE_DIR}/${ARCHIVE_NAME}.c" PARENT_SCOPE)
+endfunction()
+
+# ==================================================================================================
+# Compile resources
+# ==================================================================================================
+
+set(GENERATION_ROOT ${CMAKE_CURRENT_BINARY_DIR})
+set(RESOURCE_DIR  "${GENERATION_ROOT}/generated/resources")
+set(MATERIAL_DIR  "${GENERATION_ROOT}/generated/material")
+
+set(MATERIAL_SRCS
+        ../../libs/filamentapp/materials/aiDefaultMat.mat
+        ../../libs/filamentapp/materials/aiDefaultTrans.mat
+        ../../libs/filamentapp/materials/depthVisualizer.mat
+        ../../libs/filamentapp/materials/transparentColor.mat
+)
+
+include(${IMPORT_EXECUTABLES})
+
+file(MAKE_DIRECTORY ${MATERIAL_DIR})
+file(MAKE_DIRECTORY ${RESOURCE_DIR})
+
+set(RESOURCE_BINS)
+
+set(MATC_BASE_FLAGS -a opengl -1 -p mobile)
+
+set (MATC_FLAGS ${MATC_BASE_FLAGS})
+if (FILAMENT_SAMPLES_STEREO_TYPE STREQUAL "instanced")
+    set (MATC_FLAGS ${MATC_FLAGS} -PstereoscopicType=instanced)
+    add_definitions(-DFILAMENT_SAMPLES_STEREO_TYPE_INSTANCED)
+elseif (FILAMENT_SAMPLES_STEREO_TYPE STREQUAL "multiview")
+    set (MATC_FLAGS ${MATC_FLAGS} -PstereoscopicType=multiview)
+    add_definitions(-DFILAMENT_SAMPLES_STEREO_TYPE_MULTIVIEW)
+endif ()
+
+foreach (mat_src ${MATERIAL_SRCS})
+    get_filename_component(localname "${mat_src}" NAME_WE)
+    get_filename_component(fullname "${mat_src}" ABSOLUTE)
+    set(output_path "${MATERIAL_DIR}/${localname}.filamat")
+    add_custom_command(
+            OUTPUT ${output_path}
+            COMMAND matc ${MATC_FLAGS} -o ${output_path} ${fullname}
+            MAIN_DEPENDENCY ${mat_src}
+            DEPENDS matc
+            COMMENT "Compiling material ${mat_src} to ${output_path}"
+    )
+    list(APPEND RESOURCE_BINS ${output_path})
+endforeach()
+
+get_resgen_vars(${RESOURCE_DIR} filamentapp)
+
+add_custom_command(
+        OUTPUT ${RESGEN_OUTPUTS}
+        COMMAND resgen ${RESGEN_FLAGS} ${RESOURCE_BINS}
+        DEPENDS resgen ${RESOURCE_BINS}
+        COMMENT "Aggregating resources"
+)
+
+if (DEFINED RESGEN_SOURCE_FLAGS)
+    set_source_files_properties(${RESGEN_SOURCE} PROPERTIES COMPILE_FLAGS ${RESGEN_SOURCE_FLAGS})
+endif()
+
+# CMake fails to invoke ar on Windows unless there is at least one C/C++ file in the library.
+set(DUMMY_SRC "${RESOURCE_DIR}/dummy.c")
+add_custom_command(OUTPUT ${DUMMY_SRC} COMMAND echo "//" > ${DUMMY_SRC})
+
+add_library(filamentapp-resources ${DUMMY_SRC} ${RESGEN_SOURCE})
+set_target_properties(filamentapp-resources PROPERTIES FOLDER Samples/Resources)
+
+# ==================================================================================================
 # General compiler flags
 # ==================================================================================================
 set(CXX_STANDARD "-std=c++20")
@@ -147,7 +241,6 @@ set(PUBLIC_HDRS
 )
 
 set(SRCS
-        ../API_SOURCE/backend/resource_internal.c
         ../API_SOURCE/backend/VzAssetExporter.cpp
         ../API_SOURCE/backend/VzAssetLoader.cpp
         ../API_SOURCE/backend/VzCube.cpp
@@ -206,32 +299,7 @@ set(PRIVATE_HDRS
 # specify where our headers are
 include_directories(../API_SOURCE)
 
-
-set(FILAMENT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../out/android-${CMAKE_BUILD_TYPE}/filament)
-
-# we're building a library
-add_library(${PROJECT_NAME} SHARED ${PRIVATE_HDRS} ${PUBLIC_HDRS} ${SRCS})
-
-
-target_include_directories(${PROJECT_NAME} PUBLIC
-    ../includes
-    ../../libs/filabridge/include
-    ../../filament/backend/include
-    ../../filament/src
-    ../../third_party/cgltf
-    ../../out/android-${CMAKE_BUILD_TYPE}/filament/include
-    ../../libs/bluevk/include
-    ../../libs/utils/include
-    ../../libs/filamentapp/include
-    ../../third_party/stb
-    ../../third_party/libassimp/include
-)
-
-set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX d)
-
-# ==================================================================================================
-# Dependencies
-# ==================================================================================================
+string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_LOWER)
 
 if(DIST_ARCH STREQUAL "arm64-v8a")
     set(ABI "aarch64")
@@ -242,6 +310,35 @@ elseif(DIST_ARCH STREQUAL "x86_64")
 elseif(DIST_ARCH STREQUAL "x86")
     set(ABI "x86")
 endif()
+
+set(FILAMENT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../out/android-${CMAKE_BUILD_TYPE_LOWER}/filament)
+
+# we're building a library
+add_library(${PROJECT_NAME} SHARED ${PRIVATE_HDRS} ${PUBLIC_HDRS} ${SRCS})
+
+target_link_libraries(${PROJECT_NAME} PUBLIC filamentapp-resources)
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+    ../includes
+    ../../libs/filabridge/include
+    ../../filament/backend/include
+    ../../filament/src
+    ../../third_party/cgltf
+    ../../out/android-${CMAKE_BUILD_TYPE_LOWER}/filament/include
+    ../../libs/bluevk/include
+    ../../libs/utils/include
+    ../../libs/filamentapp/include
+    ../../third_party/stb
+    ../../third_party/libassimp/include
+    ../../out/cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/samples
+    ../../out/cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/libs/gltfio
+)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX d)
+
+# ==================================================================================================
+# Dependencies
+# ==================================================================================================
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../libs/${DIST_ARCH}/libfreetype.a
@@ -271,7 +368,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libktxreader.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libmeshoptimizer.a
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/libs/imageio/libimageio.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/libs/imageio/libimageio.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libimage.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libmikktspace.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libshaders.a
@@ -282,13 +379,13 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libbasis_transcoder.a
     ${FILAMENT_DIR}/lib/${DIST_ARCH}/libzstd.a
 
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/libassimp/tnt/libassimp.a
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/libpng/tnt/libpng.a
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/libz/tnt/libz.a
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/third_party/tinyexr/tnt/libtinyexr.a
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/samples/libsuzanne-resources.a
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/samples/libsample-resources.a
-    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE}-${ABI}/samples/libgltf-demo-resources.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/third_party/libassimp/tnt/libassimp.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/third_party/libpng/tnt/libpng.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/third_party/libz/tnt/libz.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/third_party/tinyexr/tnt/libtinyexr.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/samples/libsuzanne-resources.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/samples/libsample-resources.a
+    ${FILAMENT_DIR}/../../cmake-android-${CMAKE_BUILD_TYPE_LOWER}-${ABI}/samples/libgltf-demo-resources.a
     GLESv3
     EGL
 )
