@@ -23,7 +23,7 @@
 #include "savefileio.h"
 
 // 배포시 DEPLOY_VERSION 활성화
-#define DEPLOY_VERSION
+//#define DEPLOY_VERSION
 
 // #define APP_USE_UNLIMITED_FRAME_RATE
 #ifdef _DEBUG
@@ -1870,9 +1870,11 @@ int main(int, char**) {
                                            (void*)v.data());
                         }
                         break;
+                      case vzm::UniformType::MAT3:
+                        break;
                       default:
                         std::cout
-                            << "처리되지 않은 UniformType" << paramInfo.name
+                            << "warning from sample1: UniformType" << paramInfo.name
                             << ", TYPE: " << std::to_string((int)paramInfo.type)
                             << std::endl;
                         break;
