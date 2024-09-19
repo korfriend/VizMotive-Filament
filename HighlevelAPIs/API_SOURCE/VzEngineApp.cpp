@@ -2189,6 +2189,7 @@ namespace vzm::backlog
 
     void post(const std::string& input, LogLevel level)
     {
+#ifdef _DEBUG
         switch (level)
         {
         case LogLevel::Default:
@@ -2212,5 +2213,6 @@ namespace vzm::backlog
         default: return;
         }
         std::cout << input << std::endl;
+#endif
     }
 }
