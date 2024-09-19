@@ -48,6 +48,8 @@ namespace vzm
 
         // The rotation of the sprite in degrees. Default is 0.
         void SetRotation(const float rotDeg);
+
+        bool Raycast(const float origin[3], const float direction[3], std::vector<HitResult>& intersects);
     };
 
     struct API_EXPORT VzSpriteActor : VzBaseActor, VzBaseSprite

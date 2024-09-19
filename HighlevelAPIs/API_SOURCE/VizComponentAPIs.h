@@ -352,5 +352,11 @@ namespace vzm
         NEAREST = 0,                //!< No filtering. Nearest neighbor is used.
         LINEAR = 1,                 //!< Box filtering. Weighted average of 4 neighbors is used.
     };
+
+    struct HitResult {
+        float distance = FLT_MAX;
+        float point[3] = {};
+        VID actor = INVALID_VID;
+    };
 }
 #endif

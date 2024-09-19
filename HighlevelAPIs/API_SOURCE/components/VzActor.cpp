@@ -164,6 +164,84 @@ namespace vzm
         // TO DO
         baseActor_->UpdateTimeStamp();
     }
+    bool VzBaseSprite::Raycast(const float origin[3], const float direction[3], std::vector<HitResult>& intersects) {
+        VzActorRes* actor_res = gEngineApp->GetActorRes(baseActor_->GetVID());
+        assert(actor_res->isSprite);
+
+        struct SpriteVertex {
+            float3 position;
+            float2 uv;
+        };
+        SpriteVertex kQuadVertices[4];
+        uint16_t kQuadIndices[6];
+        memcpy(kQuadVertices, &actor_res->intrinsicCache[0], 80);
+        memcpy(kQuadIndices, &actor_res->intrinsicCache[80], 12);
+
+        mat4f world;
+        baseActor_->GetWorldTransform(__FP world);
+
+        float3 p0 = kQuadVertices[kQuadIndices[0]].position;
+        float3 p1 = kQuadVertices[kQuadIndices[3]].position;
+        float3 p2 = kQuadVertices[kQuadIndices[4]].position;
+        float3 p3 = kQuadVertices[kQuadIndices[5]].position;
+
+        float3 p0_world = (world * p0).xyz;
+        float3 p1_world = (world * p1).xyz;
+        float3 p2_world = (world * p2).xyz;
+        float3 p3_world = (world * p3).xyz;
+
+        auto intersectTriangle = [&](const float3& a, const float3& b, const float3& c, float3& intersectPoint) {
+            float3 edge1 = b - a;
+            float3 edge2 = c - a;
+            float3 normal = cross(edge1, edge2);
+            int sign;
+            float DdN = dot(*(float3*) direction, normal);
+            if (DdN > 0) {
+                sign = 1;
+            } else if (DdN < 0) {
+                sign = -1;
+                DdN = -DdN;
+            } else {
+                return false;
+            }
+            float3 diff = *(float3*) origin - a;
+            float DdQxE2 = sign * dot(*(float3*) direction, cross(diff, edge2));
+            if (DdQxE2 < 0) {
+                return false;
+            }
+            float DdE1xQ = sign * dot(*(float3*) direction, cross(edge1, diff));
+            if (DdE1xQ < 0) {
+                return false;
+            }
+            if (DdQxE2 + DdE1xQ > DdN) {
+                return false;
+            }
+            float QdN = -sign * dot(diff, normal);
+            if (QdN < 0) {
+                return false;
+            }
+            float t = QdN / DdN;
+            intersectPoint = *(float3*) origin + t * (*(float3*) direction);
+            return true;
+            };
+
+        float3 intersectPoint;
+        bool intersect = intersectTriangle(p0_world, p2_world, p1_world, intersectPoint);
+        if (!intersect) {
+            intersect = intersectTriangle(p1_world, p2_world, p3_world, intersectPoint);
+            if (!intersect) {
+                return false;
+            }
+        }
+        HitResult hit;
+        hit.distance = length(intersectPoint - *(float3*) origin);
+        hit.point[0] = intersectPoint.x;
+        hit.point[1] = intersectPoint.y;
+        hit.point[2] = intersectPoint.z;
+        hit.actor = baseActor_->GetVID();
+        intersects.push_back(hit);
+        return true;
+    }
 }
 
 namespace vzm
@@ -510,7 +588,6 @@ namespace vzm
         //      * image width and height in pixels : text_image_w, text_image_h
         //      * unsigned char* as image (rgba) buffer pointer (the allocation will be owned by VzTextSpriteActor)
         VzTypesetter& typesetter = actor_res->textField.typesetter;
-        if (typesetter.text.empty()) typesetter.text = L" ";
         if (actor_res->spriteWidth > 1.f)
         {
             typesetter.fixedWidth = (int32_t) (actor_res->spriteWidth / actor_res->fontHeight * (float) font_res->GetLineHeight());

@@ -61,6 +61,59 @@ namespace vzm
         });
     }
 
+    size_t VzRenderer::IntersectActors(const uint32_t x, const uint32_t y, const VID vidCam, const std::vector<VID>& vidActors, std::vector<HitResult>& results, const bool recursive) {
+        COMP_RENDERPATH(render_path, 0);
+        results.clear();
+        const View* view = render_path->GetView();
+        const Camera* camera = gEngine->getCameraComponent(utils::Entity::import(vidCam));
+        if (view == nullptr || camera == nullptr) {
+            backlog::post("renderer has nullptr : " + std::string(view == nullptr ? "view " : "")
+                          + std::string(camera == nullptr ? "camera" : "")
+                          , backlog::LogLevel::Error);
+            return 0;
+        }
+        filament::Viewport vp = view->getViewport();
+        auto invProj = mat4f(inverse(camera->getProjectionMatrix()));
+        auto invView = mat4f(camera->getModelMatrix());
+        float x_ndc = 2.0f * (float) (x - vp.left) / (float) vp.width - 1.0f;
+        float y_ndc = 2.0f * (float) (y - vp.bottom) / (float) vp.height - 1.0f;
+        float4 p_ws_h = invView * invProj * float4(x_ndc, y_ndc, -1.0f, 1.0f);
+        float3 p_ws = p_ws_h.xyz / p_ws_h.w;
+        float3 rayOrigin = camera->getPosition();
+        float3 rayDirection = normalize(p_ws - rayOrigin);
+        std::function<void(VID)> intersect = [&](const VID vidActor) {
+            VzSceneComp* actor = gEngineApp->GetVzComponent<VzSceneComp>(vidActor);
+            if (actor == nullptr) {
+                backlog::post("actor is nullptr", backlog::LogLevel::Error);
+                return;
+            }
+            bool result = false;
+            switch (actor->GetSceneCompType()) {
+                case SCENE_COMPONENT_TYPE::SPRITE_ACTOR:
+                    result = ((VzSpriteActor*) actor)->Raycast(__FP rayOrigin, __FP rayDirection, results);
+                    break;
+                case SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR:
+                    result = ((VzTextSpriteActor*) actor)->Raycast(__FP rayOrigin, __FP rayDirection, results);
+                    break;
+                default:
+                    backlog::post("scene component type is not supported : " + std::to_string((int) actor->GetSceneCompType()), backlog::LogLevel::Error);
+                    break;
+            }
+            if (result && recursive) {
+                std::vector<VID> vidChildren = actor->GetChildren();
+                for (auto vidChild : vidChildren) {
+                    intersect(vidChild);
+                }
+            }
+            };
+        for (auto vidActor : vidActors) {
+            intersect(vidActor);
+        }
+        std::ranges::sort(results, {}, &HitResult::distance);
+        UpdateTimeStamp();
+        return results.size();
+    }
+
 #pragma region View
     void VzRenderer::SetPostProcessingEnabled(bool enabled)
     {

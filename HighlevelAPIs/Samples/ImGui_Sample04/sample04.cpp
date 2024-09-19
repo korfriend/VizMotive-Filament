@@ -248,6 +248,9 @@ int main(int, char**)
     return wWinMain(GetModuleHandle(NULL), NULL, GetCommandLine(), SW_SHOWNORMAL);\
 }
 
+#define USE_PICK 0
+
+#if USE_PICK
 void pickCallback(VID vid) {
     if (vid != INVALID_VID) {
         vzm::VzBaseComp* pickedComp = vzm::GetVzComponent(vid);
@@ -257,6 +260,7 @@ void pickCallback(VID vid) {
         }
     }
 }
+#endif // USE_PICK
 
 // Win32 message handler
 // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -265,10 +269,10 @@ void pickCallback(VID vid) {
 // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    //VID vid_scene = vzm::GetFirstVidByName("my scene");
+    VID vid_scene = vzm::GetFirstVidByName("my scene");
     VID vid_renderer = vzm::GetFirstVidByName("my renderer");
     VID vid_camera = vzm::GetFirstVidByName("my camera");
-    //vzm::VzScene* scene = (vzm::VzScene*)vzm::GetVzComponent(vid_scene);
+    vzm::VzScene* scene = (vzm::VzScene*)vzm::GetVzComponent(vid_scene);
     vzm::VzRenderer* renderer = (vzm::VzRenderer*)vzm::GetVzComponent(vid_renderer);
     vzm::VzCamera* camera = (vzm::VzCamera*)vzm::GetVzComponent(vid_camera);
     vzm::VzCamera::Controller* cc = nullptr;
@@ -390,7 +394,19 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             //cc->UpdateControllerSettings();
             cc->GrabBegin(x, y, msg == WM_RBUTTONDOWN);
             if (msg == WM_LBUTTONDOWN) {
+#if USE_PICK
                 renderer->Pick(x, y, pickCallback);
+#else
+                std::vector<vzm::HitResult> results;
+                std::vector<VID> vidActors;
+                vzm::GetVidsByName("my text-sprite in front of cam", vidActors);
+                renderer->IntersectActors(x, y, vid_camera, vidActors, results);
+                if (!results.empty()) {
+                    auto comp = (vzm::VzSceneComp*) vzm::GetVzComponent(results[0].actor);
+                    std::string name = comp->GetName();
+                    std::cout << "Picked: " << name << std::endl;
+                }
+#endif // USE_PICK
             }
         }
         break;

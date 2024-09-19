@@ -5,6 +5,8 @@ namespace vzm
 {
     struct API_EXPORT VzRenderer : VzBaseComp
     {
+        using PickCallback = void(*)(VID);
+
         VzRenderer(const VID vid, const std::string& originFrom)
             : VzBaseComp(vid, originFrom, "VzRenderer") {}
         void SetCanvas(const uint32_t w, const uint32_t h, const float dpi, void* window = nullptr);
@@ -15,8 +17,9 @@ namespace vzm
 
         void SetVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits);
 
-        using PickCallback = void(*)(VID);
         void Pick(const uint32_t x, const uint32_t y, PickCallback callback);
+
+        size_t IntersectActors(const uint32_t x, const uint32_t y, const VID vidCam, const std::vector<VID>& vidActors, std::vector<HitResult>& hitResults, const bool recursive = true);
 
         // setters and getters of rendering options
         void SetPostProcessingEnabled(bool enabled);

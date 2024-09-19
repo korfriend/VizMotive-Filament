@@ -147,65 +147,60 @@ namespace vzm
         textHeight = 0;
         Measure();
         FontVID font = textFormat.font;
-        VzFontRes* font_res = gEngineApp->GetFontRes(font);
-        int32_t width = (fixedWidth > 0) ? fixedWidth : textWidth;
-        int32_t height = (fixedHeight > 0) ? fixedHeight : textHeight;
-        if ((font == INVALID_VID) || (width <= 0) || (height <= 0))
+        if (font == INVALID_VID)
         {
             return;
         }
+        VzFontRes* font_res = gEngineApp->GetFontRes(font);
+        int32_t width = (fixedWidth > 0) ? fixedWidth : textWidth;
+        int32_t height = (fixedHeight > 0) ? fixedHeight : textHeight;
+        width = max(width, 1);
+        height = max(height, 1);
         uint8_t* pixels = new uint8_t[width * height];
         memset(pixels, 0, width * height);
-        TEXT_ALIGN textAlign = textFormat.textAlign;
-        int32_t numberOfLines = linesWidth.size();
-        int32_t lineX = GetLeftBlankWidth(textAlign, linesWidth[0], width);
-        int32_t lineY = GetTopBlankHeight(textAlign, textHeight, height);
-        int32_t lineWidthStack = 0;
-        int32_t lineHeight = font_res->GetLineHeight();
-        int32_t lineIndex = 0;
-        int32_t baselineY = lineHeight * 3 / 4;
-        for (uint32_t glyphCode : glyphCodes)
-        {
-            if (font_res->IsNewLine(glyphCode))
-            {
-                continue;
-            }
-            int32_t bearingX = font_res->GetBearingX(glyphCode);
-            int32_t bearingY = baselineY - font_res->GetBearingY(glyphCode);
-            int32_t glyphWidth = font_res->GetGlyphWidth(glyphCode);
-            int32_t glyphHeight = font_res->GetGlyphHeight(glyphCode);
-            const uint8_t* glyphPixels = font_res->GetGlyphPixels(glyphCode);
-            for (int32_t glyphY = 0; glyphY < glyphHeight; glyphY++)
-            {
-                for (int32_t glyphX = 0; glyphX < glyphWidth; glyphX++)
-                {
-                    int32_t x = lineX + glyphX + bearingX;
-                    int32_t y = lineY + glyphY + bearingY;
-                    if ((x < 0) || (x >= width) || (y < 0) || (y >= height))
-                    {
-                        continue;
-                    }
-                    int32_t index = (y * width) + x;
-                    uint16_t pixel = pixels[index];
-                    pixel += glyphPixels[(glyphWidth * glyphY) + glyphX];
-                    pixel = (pixel < 0xff) ? pixel : 0xff;
-                    pixels[index] = (uint8_t) pixel;
+        if (!linesWidth.empty()) {
+            TEXT_ALIGN textAlign = textFormat.textAlign;
+            int32_t numberOfLines = linesWidth.size();
+            int32_t lineX = GetLeftBlankWidth(textAlign, linesWidth[0], width);
+            int32_t lineY = GetTopBlankHeight(textAlign, textHeight, height);
+            int32_t lineWidthStack = 0;
+            int32_t lineHeight = font_res->GetLineHeight();
+            int32_t lineIndex = 0;
+            int32_t baselineY = lineHeight * 3 / 4;
+            for (uint32_t glyphCode : glyphCodes) {
+                if (font_res->IsNewLine(glyphCode)) {
+                    continue;
                 }
-            }
-            int32_t advanceX = font_res->GetAdvanceX(glyphCode) + textFormat.kerning;
-            lineWidthStack += advanceX;
-            if (lineWidthStack < linesWidth[lineIndex])
-            {
-                lineX += advanceX;
-            }
-            else
-            {
-                lineWidthStack = 0;
-                lineIndex++;
-                if (lineIndex < numberOfLines)
-                {
-                    lineX = GetLeftBlankWidth(textAlign, linesWidth[lineIndex], width);
-                    lineY += lineHeight;
+                int32_t bearingX = font_res->GetBearingX(glyphCode);
+                int32_t bearingY = baselineY - font_res->GetBearingY(glyphCode);
+                int32_t glyphWidth = font_res->GetGlyphWidth(glyphCode);
+                int32_t glyphHeight = font_res->GetGlyphHeight(glyphCode);
+                const uint8_t* glyphPixels = font_res->GetGlyphPixels(glyphCode);
+                for (int32_t glyphY = 0; glyphY < glyphHeight; glyphY++) {
+                    for (int32_t glyphX = 0; glyphX < glyphWidth; glyphX++) {
+                        int32_t x = lineX + glyphX + bearingX;
+                        int32_t y = lineY + glyphY + bearingY;
+                        if ((x < 0) || (x >= width) || (y < 0) || (y >= height)) {
+                            continue;
+                        }
+                        int32_t index = (y * width) + x;
+                        uint16_t pixel = pixels[index];
+                        pixel += glyphPixels[(glyphWidth * glyphY) + glyphX];
+                        pixel = (pixel < 0xff) ? pixel : 0xff;
+                        pixels[index] = (uint8_t) pixel;
+                    }
+                }
+                int32_t advanceX = font_res->GetAdvanceX(glyphCode) + textFormat.kerning;
+                lineWidthStack += advanceX;
+                if (lineWidthStack < linesWidth[lineIndex]) {
+                    lineX += advanceX;
+                } else {
+                    lineWidthStack = 0;
+                    lineIndex++;
+                    if (lineIndex < numberOfLines) {
+                        lineX = GetLeftBlankWidth(textAlign, linesWidth[lineIndex], width);
+                        lineY += lineHeight;
+                    }
                 }
             }
         }
@@ -2189,6 +2184,7 @@ namespace vzm::backlog
 
     void post(const std::string& input, LogLevel level)
     {
+#ifdef _DEBUG
         switch (level)
         {
         case LogLevel::Default:
@@ -2212,5 +2208,6 @@ namespace vzm::backlog
         default: return;
         }
         std::cout << input << std::endl;
+#endif
     }
 }
