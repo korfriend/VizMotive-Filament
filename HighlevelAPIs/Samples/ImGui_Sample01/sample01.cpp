@@ -1865,9 +1865,11 @@ int main(int, char**) {
                                            (void*)v.data());
                         }
                         break;
+                      case vzm::UniformType::MAT3:
+                        break;
                       default:
                         std::cout
-                            << "처리되지 않은 UniformType" << paramInfo.name
+                            << "warning from sample1: UniformType" << paramInfo.name
                             << ", TYPE: " << std::to_string((int)paramInfo.type)
                             << std::endl;
                         break;
@@ -2995,7 +2997,19 @@ int main(int, char**) {
                     "Sprite Generator",
                     ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
               ImGui::InputText("name##spritegenerator", g_sprite_name, 100);
-              ImGui::InputText("texture path", g_texturePath, 300);
+
+              if (ImGui::Button("Select##SpriteTexture")) {
+                std::wstring filePath = OpenFileDialog(L"Image\0*.png;*.jpg\0");
+
+                if (filePath.size() > 0) {
+                  std::string str_path;
+                  str_path.assign(filePath.begin(), filePath.end());
+                  strcpy_s(g_texturePath, str_path.c_str());
+                }
+              }
+              ImGui::SameLine(55);
+              ImGui::InputText("image path##spritetexture", g_texturePath, 300);
+
               ImGui::Checkbox("Is Billboard", &g_billboard);
 
               if (ImGui::Button("generate sprite")) {
@@ -3022,7 +3036,19 @@ int main(int, char**) {
                     "Text Generator",
                     ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
               ImGui::InputText("name##textgenerator", g_text_name, 100);
+
+              if (ImGui::Button("Select##FontPath")) {
+                std::wstring filePath = OpenFileDialog(L"Font\0*.ttf\0");
+
+                if (filePath.size() > 0) {
+                  std::string str_path;
+                  str_path.assign(filePath.begin(), filePath.end());
+                  strcpy_s(g_font_path, str_path.c_str());
+                }
+              }
+              ImGui::SameLine(55);
               ImGui::InputText("font path", g_font_path, 300);
+
               ImGui::InputInt("font size", &g_font_size);
 
               if (ImGui::Button("generate text")) {
