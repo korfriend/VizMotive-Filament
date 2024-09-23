@@ -34,6 +34,8 @@
 #define VZ_NULLABLE
 #endif
 
+#include <float.h>
+
 // std
 #include <string>
 #include <map>
