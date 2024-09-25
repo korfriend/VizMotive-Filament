@@ -155,18 +155,10 @@ namespace vzm
         this->dpi_ = dpi;
         nativeWindow_ = window;
 
-        // optional ... 
-        // 1. always...  SetViewport(0, 0, w, h);
-        // 2. preserving size ... (boundary) --> view port setting 안 하기
-        // 3. preserving ratio 
         SetViewport(0, 0, w, h);
-        //view_->setViewport(filament::Viewport(0, 0, w, h));
-        //viewCompositor_->setViewport(filament::Viewport(0, 0, w, h));
-        //viewGui_->setViewport(filament::Viewport(0, 0, w, h));
-        //timeStamp_ = std::chrono::high_resolution_clock::now();
     }
 
-    void VzRenderPath::SetViewport(const uint32_t x, const uint32_t y, const uint32_t w, const uint32_t h);
+    void VzRenderPath::SetViewport(const uint32_t x, const uint32_t y, const uint32_t w, const uint32_t h)
     {
         view_->setViewport(filament::Viewport(0, 0, w, h));
         viewCompositor_->setViewport(filament::Viewport(0, 0, w, h));

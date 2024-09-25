@@ -48,14 +48,20 @@ namespace vzm
         render_path->GetCanvas(w, h, dpi, window);
     }
 
-    void SetViewport(const uint32_t x, const uint32_t y, const uint32_t w, const uint32_t h)
+    void VzRenderer::SetViewport(const uint32_t x, const uint32_t y, const uint32_t w, const uint32_t h)
     {
-
+        COMP_RENDERPATH(render_path, );
+        render_path->SetViewport(x, y, w, h);
     }
 
-    void GetViewport(uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h)
+    void VzRenderer::GetViewport(uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h)
     {
-
+        COMP_RENDERPATH(render_path, );
+        const filament::Viewport& vp = render_path->GetView()->getViewport();
+        if (x) *x = vp.left;
+        if (y) *y = vp.bottom;
+        if (w) *w = vp.width;
+        if (h) *h = vp.height;
     }
 
     void VzRenderer::SetVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits)

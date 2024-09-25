@@ -159,11 +159,6 @@ namespace vzm
         baseActor_->UpdateTimeStamp();
     }
 
-    void VzBaseSprite::SetSizeOnScreen(const uint32_t w, const uint32_t h)
-    {
-        VzActorRes* actor_res = gEngineApp->GetActorRes(baseActor_->GetVID());
-    }
-
     void VzBaseSprite::SetRotation(const float rotDeg)
     {
         // TO DO
