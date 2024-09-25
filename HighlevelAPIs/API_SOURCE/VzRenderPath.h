@@ -155,10 +155,12 @@ namespace vzm
         // default offscreen rendering?! (later discuss!)
         // potentially possible to replace current headless texture-sharing mechanism
         // wo/ modifying filament core backend
+        // 240926. using view's default (internal) depth buffer for depth test
         Texture* rtTexture_ = nullptr;
-        Texture* rtDepthTexture_ = nullptr;
+        //Texture* rtDepthTexture_ = nullptr;
 
         Texture* rtGuiTexture_ = nullptr;
+        //Texture* rtGuiDepthTexture_ = nullptr;
 
         RenderTarget* offscreenRT_ = nullptr;
         RenderTarget* offscreenGuiRT_ = nullptr;

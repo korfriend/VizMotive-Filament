@@ -638,6 +638,12 @@ namespace vzm
         sampler.setWrapModeS(TextureSampler::WrapMode::REPEAT);
         sampler.setWrapModeT(TextureSampler::WrapMode::REPEAT);
 
+        samplerPoint.setMagFilter(TextureSampler::MagFilter::NEAREST);
+        samplerPoint.setMinFilter(TextureSampler::MinFilter::NEAREST);
+        samplerPoint.setWrapModeS(TextureSampler::WrapMode::CLAMP_TO_EDGE);
+        samplerPoint.setWrapModeT(TextureSampler::WrapMode::CLAMP_TO_EDGE);
+        samplerPoint.setCompareMode(SamplerCompareMode::NONE);
+
         // Create quad vertex buffer.
         quadVb_ = VertexBuffer::Builder()
             .vertexCount(4)
@@ -1459,6 +1465,7 @@ namespace vzm
             Material* m = materialResMap_[vid_m]->material;
             MaterialInstance* mi = m->createInstance();
 
+            //mi->setDepthWrite(true);
             mi->setParameter("baseColorFactor", filament::RgbaType::LINEAR, filament::math::float4{1.0, 1.0, 1.0, 1.0});
             mi->setDoubleSided(true);
             VzMI* v_mi = CreateMaterialInstance(name + "_mi", vid_m, mi);

@@ -339,6 +339,7 @@ namespace vzm
         ~CompositorQuad();
 
         TextureSampler sampler;
+        TextureSampler samplerPoint;
 
         Camera* GetQaudCamera() { return cameraQuad_; }
         Scene* GetQuadScene() { return sceneQuad_; }

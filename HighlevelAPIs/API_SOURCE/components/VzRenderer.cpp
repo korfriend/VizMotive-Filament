@@ -1391,36 +1391,10 @@ namespace vzm
         render_path->viewSettings.fog.skyColor = fogColorTexture;
         render_path->ApplySettings();
 
-        filament::SwapChain* sc = render_path->GetSwapChain();
-
-        /*
-        // 1. gui rendering layer (with depth)
-        view->setVisibleLayers(0x3, 0x2);
-        view->setPostProcessingEnabled(false);
-        view->setRenderTarget(render_path->GetOffscreenRT());
-        renderer->renderStandaloneView(view);
-        //Renderer::ClearOptions options;
-        //options.clear = false;
-        //renderer->setClearOptions(options);
-        //renderer->render
-        //view->set >setClearTargets(false, false, false); // 클리어하지 않음
-        if (renderer->beginFrame(sc)) {
-            renderer->render(view);
-            renderer->endFrame();
-        }
-        /**/
-        //viewQuad_ = gEngine->createView();
-        //viewQuad_->setCamera(cameraQuad_);
-        //viewQuad_->setScene(sceneQuad_);
-
         // 1. main rendering 
         view->setVisibleLayers(0x3, 0x1);
         view->setPostProcessingEnabled(true);
         view->setRenderTarget(render_path->GetOffscreenRT());
-        //if (renderer->beginFrame(sc)) {
-        //    renderer->render(view);
-        //    renderer->endFrame();
-        //}
         renderer->renderStandaloneView(view);
 
         // 2. gui rendering wo/ postprocessing
@@ -1428,8 +1402,8 @@ namespace vzm
         //scene->setSkybox(nullptr);
         view_gui->setScene(scene);
         view_gui->setCamera(camera);
-        view_gui->setVisibleLayers(0x3, 0x2);
         view_gui->setPostProcessingEnabled(false);
+        view_gui->setVisibleLayers(0x3, 0x2);
         view_gui->setRenderTarget(render_path->GetOffscreenGuiRT());
 
         Renderer::ClearOptions restore_clear_options = renderer->getClearOptions();
@@ -1453,8 +1427,18 @@ namespace vzm
 
         quad_mi->setParameter("mainTexture", render_path->GetOffscreenRT()->getTexture(RenderTarget::AttachmentPoint::COLOR), compositor->sampler);
         quad_mi->setParameter("guiTexture", render_path->GetOffscreenGuiRT()->getTexture(RenderTarget::AttachmentPoint::COLOR), compositor->sampler);
+
+        //Texture* mainDepth = render_path->GetOffscreenRT()->getTexture(RenderTarget::AttachmentPoint::DEPTH);
+        //Texture* guiDepth = render_path->GetOffscreenGuiRT()->getTexture(RenderTarget::AttachmentPoint::DEPTH);
+        //quad_mi->setParameter("mainDepth", render_path->GetOffscreenRT()->getTexture(RenderTarget::AttachmentPoint::DEPTH), compositor->samplerPoint);
+        //quad_mi->setParameter("guiDepth", render_path->GetOffscreenGuiRT()->getTexture(RenderTarget::AttachmentPoint::DEPTH), compositor->samplerPoint);
         //quad_mi->setParameter("baseColorMap", render_path->GetOffscreenRT()->getTexture(RenderTarget::AttachmentPoint::COLOR), sampler);
-        
+
+        clear_options.clear = false;
+        clear_options.discard = true;
+        renderer->setClearOptions(clear_options);
+
+        filament::SwapChain* sc = render_path->GetSwapChain();
         if (renderer->beginFrame(sc)) {
             renderer->render(view_compositor);
             renderer->endFrame();

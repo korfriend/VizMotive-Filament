@@ -40,8 +40,10 @@ namespace vzm
                 gEngine->destroy(rtTexture_);
             if (rtGuiTexture_)
                 gEngine->destroy(rtGuiTexture_);
-            if (rtDepthTexture_)
-                gEngine->destroy(rtDepthTexture_);
+            //if (rtDepthTexture_)
+            //    gEngine->destroy(rtDepthTexture_);
+            //if (rtGuiDepthTexture_)
+            //    gEngine->destroy(rtGuiDepthTexture_);
             if (offscreenRT_)
                 gEngine->destroy(offscreenRT_);
             if (offscreenRT_)
@@ -74,7 +76,8 @@ namespace vzm
                 gEngine->destroy(offscreenGuiRT_);
                 gEngine->destroy(rtTexture_);
                 gEngine->destroy(rtGuiTexture_);
-                gEngine->destroy(rtDepthTexture_);
+                //gEngine->destroy(rtDepthTexture_);
+                //gEngine->destroy(rtGuiDepthTexture_);
 
                 rtTexture_ = Texture::Builder()
                     .width(width_).height(height_).levels(1)
@@ -86,19 +89,24 @@ namespace vzm
                     .usage(TextureUsage::COLOR_ATTACHMENT | TextureUsage::SAMPLEABLE)
                     .format(TextureFormat::RGBA8).build(*gEngine);
 
-                rtDepthTexture_ = Texture::Builder()
-                    .width(width_).height(height_).levels(1)
-                    .usage(Texture::Usage::DEPTH_ATTACHMENT | TextureUsage::SAMPLEABLE)
-                    .format(Texture::InternalFormat::DEPTH24).build(*gEngine);
+                //rtDepthTexture_ = Texture::Builder()
+                //    .width(width_).height(height_).levels(1)
+                //    .usage(Texture::Usage::DEPTH_ATTACHMENT | TextureUsage::SAMPLEABLE)
+                //    .format(Texture::InternalFormat::DEPTH32F).build(*gEngine);
+
+                //rtGuiDepthTexture_ = Texture::Builder()
+                //    .width(width_).height(height_).levels(1)
+                //    .usage(Texture::Usage::DEPTH_ATTACHMENT | TextureUsage::SAMPLEABLE)
+                //    .format(Texture::InternalFormat::DEPTH32F).build(*gEngine);
 
                 offscreenRT_ = RenderTarget::Builder()
                     .texture(RenderTarget::AttachmentPoint::COLOR, rtTexture_)
-                    .texture(RenderTarget::AttachmentPoint::DEPTH, rtDepthTexture_)
+                    //.texture(RenderTarget::AttachmentPoint::DEPTH, rtDepthTexture_)
                     .build(*gEngine);
 
                 offscreenGuiRT_ = RenderTarget::Builder()
                     .texture(RenderTarget::AttachmentPoint::COLOR, rtGuiTexture_)
-                    .texture(RenderTarget::AttachmentPoint::DEPTH, rtDepthTexture_)
+                    //.texture(RenderTarget::AttachmentPoint::DEPTH, rtGuiDepthTexture_)
                     .build(*gEngine);
             };
 

@@ -9,6 +9,14 @@ material {
             type : sampler2d,
             name : guiTexture
         }
+        //{
+        //    type : sampler2d,
+        //    name : mainDepth
+        //},
+        //{
+        //    type : sampler2d,
+        //    name : guiDepth
+        //}
     ],
     requires : [ uv0 ],
     shadingModel : unlit,
@@ -26,9 +34,34 @@ fragment {
         
         color1.rgb *= color1.a;
         color2.rgb *= color2.a;
+                
+        //float depth1 = texture(materialParams_mainDepth, uv).a;
+
+        //ivec2 texelCoord = ivec2(gl_FragCoord.xy); //
+        //vec4 d1 = texelFetch(materialParams_mainDepth, texelCoord, 0);
+        //vec4 d2 = texelFetch(materialParams_guiDepth, texelCoord, 0);
+        //float depth1 = d1.r;
+        //float depth2 = d2.r;
+        //
+        //if (depth2 > depth1)
+        //{
+        //    vec4 color_tmp = color2;
+        //    color2 = color1;
+        //    color1 = color_tmp;
+        //}
         
-        //material.baseColor = vec4(color2.rgb * color2.a, color2.a);
         material.baseColor.rgb = color2.rgb + color1.rgb * (1.f - color2.a);
         material.baseColor.a = color2.a + color1.a * (1.f - color2.a);
+
+        //if (depth1 != 0.f)
+        //{
+        //    float ddd = (depth1 + 1.f)*0.5f;
+        //    material.baseColor.rgba = vec4(ddd, 0, 0, 1.f);
+        //}
+        //else if (depth2 != 0.f)
+        //{
+        //    float ddd = (depth2 + 1.f)*0.5f;
+        //    material.baseColor.rgba = vec4(0, ddd, 0, 1.f);
+        //}
     }
 }
