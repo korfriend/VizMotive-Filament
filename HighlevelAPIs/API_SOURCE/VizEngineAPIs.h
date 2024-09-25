@@ -3,6 +3,7 @@
 
 namespace vzm
 {
+    extern "C" API_EXPORT bool IsEngineAvailable();
     // This must be called before using engine APIs
     //  - paired with DeinitEngineLib()
     extern "C" API_EXPORT VZRESULT InitEngineLib(const vzm::ParamMap<std::string>& arguments = vzm::ParamMap<std::string>());

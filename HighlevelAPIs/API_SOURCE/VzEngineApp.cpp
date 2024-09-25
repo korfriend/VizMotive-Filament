@@ -9,6 +9,7 @@
 
 #include <filesystem>
 #include <iostream>
+#include <fstream>
 
 extern Engine* gEngine;
 extern Material* gMaterialTransparent; // do not release
@@ -595,6 +596,167 @@ namespace vzm
         }
     }
 #pragma endregion
+
+namespace vzm
+{
+    struct Vertex {
+        float3 position;
+        float2 uv;
+    };
+    constexpr float halfSize = 1.f;
+    constexpr Vertex kQuadVertices[4] = {
+            {{-halfSize,  halfSize, 0}, {0, 1}},
+            {{ halfSize,  halfSize, 0}, {1, 1}},
+            {{-halfSize, -halfSize, 0}, {0, 0}},
+            {{ halfSize, -halfSize, 0}, {1, 0}} };
+    static constexpr uint16_t kQuadIndices[6] = { 0, 2, 1, 1, 2, 3 };
+
+    CompositorQuad::~CompositorQuad()
+    {
+        gEngine->destroy(quadVb_);
+        gEngine->destroy(quadIb_);
+        gEngine->destroy(compositorMI_);
+        gEngine->destroy(compositorMaterial_);
+        gEngine->destroy(sceneQuad_);
+        gEngine->destroy(cameraQuad_->getEntity());
+
+        sceneQuad_->forEach([&](utils::Entity ett) {
+            gEngine->destroy(ett);
+            });
+
+        quadVb_ = nullptr;
+        quadIb_ = nullptr;
+        compositorMI_ = nullptr;
+        compositorMaterial_ = nullptr;
+        sceneQuad_ = nullptr;
+        cameraQuad_ = nullptr;
+    }
+    CompositorQuad::CompositorQuad()
+    {
+        sampler.setMagFilter(TextureSampler::MagFilter::LINEAR);
+        sampler.setMinFilter(TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR);
+        sampler.setWrapModeS(TextureSampler::WrapMode::REPEAT);
+        sampler.setWrapModeT(TextureSampler::WrapMode::REPEAT);
+
+        // Create quad vertex buffer.
+        quadVb_ = VertexBuffer::Builder()
+            .vertexCount(4)
+            .bufferCount(1)
+            .attribute(VertexAttribute::POSITION, 0, VertexBuffer::AttributeType::FLOAT3, 0, sizeof(Vertex))
+            .attribute(VertexAttribute::UV0, 0, VertexBuffer::AttributeType::FLOAT2, sizeof(float3), sizeof(Vertex))
+            .build(*gEngine);
+        quadVb_->setBufferAt(*gEngine, 0,
+            VertexBuffer::BufferDescriptor(kQuadVertices, sizeof(Vertex) * 4, nullptr));
+
+        // Create quad index buffer.
+        quadIb_ = IndexBuffer::Builder()
+            .indexCount(6)
+            .bufferType(IndexBuffer::IndexType::USHORT)
+            .build(*gEngine);
+        quadIb_->setBuffer(*gEngine, IndexBuffer::BufferDescriptor(kQuadIndices, 12, nullptr));
+        //Aabb aabb;
+        //aabb.min = { -0.5, -0.5, -0.5 };
+        //aabb.max = { 0.5, 0.5, 0.5 };
+
+        std::ifstream file("D:\\VizMotive_Filament\\HighlevelAPIs\\API_SOURCE\\mat\\compositor.filamat", std::ios::binary | std::ios::ate);
+        if (!file.is_open()) {
+            backlog::post("Essential resources loading failure!", backlog::LogLevel::Error);
+            return;
+        }
+        std::streamsize size = file.tellg();
+        file.seekg(0, std::ios::beg);
+        std::vector<uint8_t> buffer(size);
+        if (!file.read(reinterpret_cast<char*>(buffer.data()), size)) {
+            backlog::post("Essential resources loading failure!", backlog::LogLevel::Error);
+            return;
+        }
+
+        compositorMaterial_ = Material::Builder()
+            .package(buffer.data(), size)
+            .build(*gEngine);
+
+        /*
+        {
+            MaterialBuilder::init();
+            const char* code = R"(
+                        void material(inout MaterialInputs material) {
+                            prepareMaterial(material);
+                            material.baseColor = materialParams.baseColorFactor;
+                            material.baseColor *= texture(materialParams_textTexture, getUV0()).r;
+                        }
+                    )";
+            MaterialBuilder builder;
+            builder
+                .name("TextSpriteMaterial")
+                .shading(Shading::UNLIT)
+                .blending(BlendingMode::TRANSPARENT)
+                .parameter("textTexture",
+                    (MaterialBuilder::SamplerType)SamplerType::SAMPLER_2D,
+                    SamplerFormat::FLOAT,
+                    (MaterialBuilder::Precision)Precision::MEDIUM)
+                .parameter("baseColorFactor",
+                    (MaterialBuilder::UniformType)UniformType::FLOAT4,
+                    (MaterialBuilder::Precision)Precision::MEDIUM)
+                .require(MaterialBuilder::VertexAttribute::UV0)
+                .doubleSided(true)
+                .flipUV(false)
+#ifdef __ANDROID__
+                .platform(MaterialBuilder::Platform::MOBILE)
+#endif
+                .optimization(MaterialBuilder::Optimization::NONE);
+
+            if (gEngine->getBackend() == filament::backend::Backend::VULKAN)
+            {
+                builder.targetApi(MaterialBuilder::TargetApi::VULKAN);
+            }
+            builder.material(code);
+            Package result = builder.build(gEngine->getJobSystem());
+            assert(result.isValid());
+            Material* material = Material::Builder()
+                .package(result.getData(), result.getSize())
+                .build(*gEngine);
+        }
+        /**/
+
+
+        std::vector<Material::ParameterInfo> params(compositorMaterial_->getParameterCount());
+        compositorMaterial_->getParameters(&params[0], params.size());
+        std::cout << "Compositor ====> Parameters" << std::endl;
+        for (auto& it : params)
+        {
+            std::cout << it.name << ", " << (uint8_t)it.type << std::endl;
+        }
+        std::cout << "           <==== Compositor " << std::endl;
+
+        //MaterialKey m_key = {};
+        //m_key.alphaMode = AlphaMode::BLEND;
+        //m_key.doubleSided = true;
+        //m_key.hasBaseColorTexture = true;
+        //m_key.unlit = true;
+        //m_key.baseColorUV = 0;
+        //UvMap uvmap;
+        //compositorMaterial_ = gMaterialProvider->getMaterial((filament::gltfio::MaterialKey*)&m_key, &uvmap, "_PROVIDER_SPRITE_MATERIAL_TEST");
+
+        compositorMI_ = compositorMaterial_->createInstance();
+        compositorMI_->setDoubleSided(true);
+        //compositorMI_->setParameter("baseColorFactor", filament::RgbaType::LINEAR, filament::math::float4{ 1.0, 1.0, 1.0, 1.0 });
+
+        cameraQuad_ = gEngine->createCamera(EntityManager::get().create());
+        cameraQuad_->setProjection(Camera::Projection::ORTHO, -1, 1, -1, 1, -10, 10);
+        cameraQuad_->lookAt(double3(0, 0, 1), double3(0, 0, 0), double3(0, 1, 0));
+
+        Entity qaud_renderable_ett = EntityManager::get().create();
+        RenderableManager::Builder(1).culling(false)
+            .boundingBox({ {  -0.5, -0.5, -0.5 },
+                          { 0.5, 0.5, 0.5 } })
+            .geometry(0, RenderableManager::PrimitiveType::TRIANGLES, quadVb_, quadIb_)
+            .material(0, compositorMI_)
+            .build(*gEngine, qaud_renderable_ett);
+
+        sceneQuad_ = gEngine->createScene();
+        sceneQuad_->addEntity(qaud_renderable_ett);
+    }
+}
 
 namespace vzm
 {
@@ -1235,10 +1397,12 @@ namespace vzm
                     vid_m = gEngineApp->CreateMaterial("_PROVIDER_SPRITE_MATERIAL", material, nullptr, true)->GetVID();
                     std::vector<Material::ParameterInfo> params(material->getParameterCount());
                     material->getParameters(&params[0], params.size());
+                    std::cout << "_PROVIDER_SPRITE_MATERIAL ====> Parameters" << std::endl;
                     for (auto& it : params)
                     {
                         std::cout << it.name << ", " << (uint8_t)it.type << std::endl;
                     }
+                    std::cout << "           <==== _PROVIDER_SPRITE_MATERIAL " << std::endl;
                 }
             }
             else
@@ -2073,6 +2237,9 @@ namespace vzm
         vGltfIo.resourceLoader->addTextureProvider("image/jpeg", vGltfIo.stbDecoder);
         vGltfIo.resourceLoader->addTextureProvider("image/ktx2", vGltfIo.ktxDecoder);
 
+        compositor_ = new CompositorQuad();
+
+
         auto& ncm = VzNameCompManager::Get();
         vGltfIo.assetLoader = new gltfio::VzAssetLoader({ gEngine, gMaterialProvider, (NameComponentManager*)&ncm });
         vGltfIo.assetExpoter = new gltfio::VzAssetExpoter();
@@ -2098,6 +2265,8 @@ namespace vzm
             VzMaterialRes* m_res = GetMaterialRes(vid_system_m);
             m_res->isSystem = false;
         }
+
+        delete compositor_;
 
         //std::unordered_map<SceneVID, filament::Scene*> scenes_;
         //// note a VzRenderPath involves a view that includes

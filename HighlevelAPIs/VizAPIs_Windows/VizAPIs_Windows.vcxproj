@@ -119,6 +119,7 @@
       <AdditionalIncludeDirectories>../includes;../../third_party/libassimp/include;../../third_party/stb;../../libs/filabridge/include;../../filament/backend/include;../../filament/src;../../third_party/cgltf;../../VisualStudio/install/$(Configuration)/include/;../../libs/bluevk/include;../../libs/utils/include;../../libs/filamentapp/include;../../VisualStudio/samples;../../VisualStudio/libs/gltfio</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

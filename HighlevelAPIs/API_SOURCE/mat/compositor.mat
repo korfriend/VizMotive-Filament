@@ -1,0 +1,34 @@
+material {
+    name : customEffect,
+    parameters : [
+        {
+            type : sampler2d,
+            name : mainTexture
+        },
+        {
+            type : sampler2d,
+            name : guiTexture
+        }
+    ],
+    requires : [ uv0 ],
+    shadingModel : unlit,
+    flipUV : false,
+    blending : transparent
+}
+
+fragment {
+    void material(inout MaterialInputs material) {
+        // matc.exe -o compositor.filamat compositor.mat
+        prepareMaterial(material);
+        vec2 uv = getUV0();
+        vec4 color1 = texture(materialParams_mainTexture, uv);
+        vec4 color2 = texture(materialParams_guiTexture, uv);
+        
+        color1.rgb *= color1.a;
+        color2.rgb *= color2.a;
+        
+        //material.baseColor = vec4(color2.rgb * color2.a, color2.a);
+        material.baseColor.rgb = color2.rgb + color1.rgb * (1.f - color2.a);
+        material.baseColor.a = color2.a + color1.a * (1.f - color2.a);
+    }
+}

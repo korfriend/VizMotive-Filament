@@ -169,5 +169,13 @@
     <Filter Include="backend\FA_Helpers">
       <UniqueIdentifier>{0920c56b-8aef-479e-b6cf-75ab7bbadf27}</UniqueIdentifier>
     </Filter>
+    <Filter Include="mat">
+      <UniqueIdentifier>{10140173-0192-42eb-925d-5a15aa08f987}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)mat\compositor.mat">
+      <Filter>mat</Filter>
+    </None>
   </ItemGroup>
 </Project>

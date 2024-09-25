@@ -34,11 +34,13 @@ namespace vzm
                 return false;
             }
         }
-        ibl->getSkybox()->setLayerMask(0x7, 0x4);
+        ibl->getSkybox()->setLayerMask(0x3, 0x1);
         Scene* scene = gEngineApp->GetScene(GetVID());
         assert(scene);
+
         scene->setSkybox(ibl->getSkybox());
         scene->setIndirectLight(ibl->getIndirectLight());
+
         UpdateTimeStamp();
         return true;
     }
