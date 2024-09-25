@@ -1357,9 +1357,9 @@ namespace vzm
         //}
         renderer->renderStandaloneView(view);
 
-
         // 2. gui rendering wo/ postprocessing
         View* view_gui = render_path->GetGuiView();
+        //scene->setSkybox(nullptr);
         view_gui->setScene(scene);
         view_gui->setCamera(camera);
         view_gui->setVisibleLayers(0x3, 0x2);
@@ -1368,9 +1368,9 @@ namespace vzm
 
         Renderer::ClearOptions restore_clear_options = renderer->getClearOptions();
         Renderer::ClearOptions clear_options;
-        clear_options.clearColor = float4{ 0, 0, 0, 0 }; 
-        clear_options.clear = true; 
-        clear_options.discard = false;
+        clear_options.clearColor = float4{ 0, 0, 0, 0 };
+        clear_options.clear = true;
+        clear_options.discard = true;
         renderer->setClearOptions(clear_options);
         
         renderer->renderStandaloneView(view_gui);

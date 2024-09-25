@@ -18,12 +18,14 @@ material {
 
 fragment {
     void material(inout MaterialInputs material) {
+        // matc.exe -o compositor.filamat compositor.mat
         prepareMaterial(material);
         vec2 uv = getUV0();
         vec4 color1 = texture(materialParams_mainTexture, uv);
         vec4 color2 = texture(materialParams_guiTexture, uv);
 
-        material.baseColor = color1;
-        if (color2.a > 0.0f) material.baseColor = color2;
+        material.baseColor = vec4(color2.rgb * color2.a, color2.a);
+
+        //if (color2.a > 0.0f) material.baseColor = color2;
     }
 }

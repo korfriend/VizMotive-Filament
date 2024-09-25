@@ -126,6 +126,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     vzm::VzRenderer* renderer = vzm::NewRenderer("my renderer");
     renderer->SetCanvas(w, h, dpi, hwnd);
     renderer->SetVisibleLayerMask(0x4, 0x4);
+    renderer->SetTaaEnabled(false);
+    renderer->SetMsaaEnabled(false);
     
     vzm::VzCamera* cam = (vzm::VzCamera*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::CAMERA, "my camera", 0);
     glm::fvec3 p(0, 0, 10);
