@@ -160,9 +160,10 @@ namespace vzm
 
     void VzRenderPath::SetViewport(const uint32_t x, const uint32_t y, const uint32_t w, const uint32_t h)
     {
-        view_->setViewport(filament::Viewport(0, 0, w, h));
-        viewCompositor_->setViewport(filament::Viewport(0, 0, w, h));
-        viewGui_->setViewport(filament::Viewport(0, 0, w, h));
+        view_->setViewport(filament::Viewport(x, y, w, h));
+        viewGui_->setViewport(filament::Viewport(x, y, w, h));
+
+        viewCompositor_->setViewport(filament::Viewport(0, 0, width_, height_));
         timeStamp_ = std::chrono::high_resolution_clock::now();
     }
 

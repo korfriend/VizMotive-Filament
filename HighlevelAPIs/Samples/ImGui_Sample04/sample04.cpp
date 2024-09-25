@@ -125,6 +125,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     
     vzm::VzRenderer* renderer = vzm::NewRenderer("my renderer");
     renderer->SetCanvas(w, h, dpi, hwnd);
+    renderer->SetViewport(30, 10, w - 60, h - 20);
     renderer->SetVisibleLayerMask(0x4, 0x4);
     renderer->SetTaaEnabled(false);
     renderer->SetMsaaEnabled(false);
@@ -450,8 +451,9 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         UINT height = rc.bottom - rc.top;
         if (is_valid)
         {
-            cc->SetViewport(w, h);
+            cc->SetViewport(width, height);
             renderer->SetCanvas(width, height, 96.f, hWnd);
+            renderer->SetViewport(30, 10, width - 60, height - 20);
             float zNearP, zFarP, fovInDegree;
             camera->GetPerspectiveProjection(&zNearP, &zFarP, &fovInDegree, nullptr);
             camera->SetPerspectiveProjection(zNearP, zFarP, fovInDegree, (float)w / (float)h);
