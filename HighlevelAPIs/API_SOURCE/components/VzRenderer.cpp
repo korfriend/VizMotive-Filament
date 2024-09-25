@@ -47,6 +47,17 @@ namespace vzm
         COMP_RENDERPATH(render_path, );
         render_path->GetCanvas(w, h, dpi, window);
     }
+
+    void SetViewport(const uint32_t x, const uint32_t y, const uint32_t w, const uint32_t h)
+    {
+
+    }
+
+    void GetViewport(uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h)
+    {
+
+    }
+
     void VzRenderer::SetVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits)
     {
         COMP_RENDERPATH(render_path, );
@@ -1327,7 +1338,6 @@ namespace vzm
         // 1. gui rendering layer (with depth)
         view->setVisibleLayers(0x3, 0x2);
         view->setPostProcessingEnabled(false);
-        
         view->setRenderTarget(render_path->GetOffscreenRT());
         renderer->renderStandaloneView(view);
         //Renderer::ClearOptions options;
@@ -1340,8 +1350,6 @@ namespace vzm
             renderer->endFrame();
         }
         /**/
-
-
         //viewQuad_ = gEngine->createView();
         //viewQuad_->setCamera(cameraQuad_);
         //viewQuad_->setScene(sceneQuad_);
@@ -1350,7 +1358,6 @@ namespace vzm
         view->setVisibleLayers(0x3, 0x1);
         view->setPostProcessingEnabled(true);
         view->setRenderTarget(render_path->GetOffscreenRT());
-
         //if (renderer->beginFrame(sc)) {
         //    renderer->render(view);
         //    renderer->endFrame();
@@ -1375,8 +1382,6 @@ namespace vzm
         
         renderer->renderStandaloneView(view_gui);
 
-        renderer->setClearOptions(restore_clear_options);
-
         // 3. compositor
         CompositorQuad* compositor = gEngineApp->GetCompositorQuad();
         View* view_compositor = render_path->GetCompositorView();
@@ -1395,6 +1400,8 @@ namespace vzm
             renderer->render(view_compositor);
             renderer->endFrame();
         }
+
+        renderer->setClearOptions(restore_clear_options);
 
         for (auto& it : restore_billboard_tr)
         {

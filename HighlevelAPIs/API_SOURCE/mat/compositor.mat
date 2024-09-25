@@ -23,9 +23,12 @@ fragment {
         vec2 uv = getUV0();
         vec4 color1 = texture(materialParams_mainTexture, uv);
         vec4 color2 = texture(materialParams_guiTexture, uv);
-
-        material.baseColor = vec4(color2.rgb * color2.a, color2.a);
-
-        //if (color2.a > 0.0f) material.baseColor = color2;
+        
+        color1.rgb *= color1.a;
+        color2.rgb *= color2.a;
+        
+        //material.baseColor = vec4(color2.rgb * color2.a, color2.a);
+        material.baseColor.rgb = color2.rgb + color1.rgb * (1.f - color2.a);
+        material.baseColor.a = color2.a + color1.a * (1.f - color2.a);
     }
 }

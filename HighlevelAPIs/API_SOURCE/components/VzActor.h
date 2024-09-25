@@ -52,6 +52,14 @@ namespace vzm
 
         // The rotation of the sprite in degrees. Default is 0.
         void SetRotation(const float rotDeg);
+
+        // Sprite Helpers...
+        static void ComputeScreenSpriteParams(
+            const uint32_t x, const uint32_t y,
+            const uint32_t spriteW, const uint32_t spriteH,
+            const float u, const float v,
+            VID camera, VID renderer,
+            float& w, float& h, float p[3]);
     };
 
     struct API_EXPORT VzSpriteActor : VzBaseActor, VzBaseSprite

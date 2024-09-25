@@ -183,6 +183,7 @@ namespace vzm
 
         void GetCanvas(uint32_t* VZ_NULLABLE w, uint32_t* VZ_NULLABLE h, float* VZ_NULLABLE dpi, void** VZ_NULLABLE window);
         void SetCanvas(const uint32_t w, const uint32_t h, const float dpi, void* window = nullptr);
+        void SetViewport(const uint32_t x, const uint32_t y, const uint32_t w, const uint32_t h);
         filament::SwapChain* GetSwapChain() { return swapChain_; }
 
         uint64_t FRAMECOUNT = 0;
