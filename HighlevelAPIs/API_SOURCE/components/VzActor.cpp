@@ -1,6 +1,8 @@
 #include "VzActor.h"
+#include "../VzRenderPath.h"
 #include "../VzEngineApp.h"
 #include "../FIncludes.h"
+#include "../VizCoreUtils.h"
 
 extern Engine* gEngine;
 extern vzm::VzEngineApp* gEngineApp;
@@ -164,6 +166,31 @@ namespace vzm
         // TO DO
         baseActor_->UpdateTimeStamp();
     }
+    void VzBaseSprite::ComputeScreenSpriteParams(
+        const uint32_t x, const uint32_t y, const float d,
+        const uint32_t w, const uint32_t h,
+        const float u, const float v,
+        const VID camera, const VID renderer,
+        float& spriteW, float& spriteH, float p[3])
+    {
+        VzRenderPath* render_path = gEngineApp->GetRenderPath(renderer);
+        if (!render_path) return;
+        const auto& vp = render_path->GetView()->getViewport();
+        const auto * cam = gEngine->getCameraComponent(utils::Entity::import(camera));
+        if (!cam) return;
+        float near = cam->getNear();
+        float far = cam->getCullingFar();
+        float v_fov = cam->getFieldOfViewInDegrees(Camera::Fov::VERTICAL);
+        float h_fov = cam->getFieldOfViewInDegrees(Camera::Fov::HORIZONTAL);
+        float distance = d * (far - near) + near;
+        float half_v_fov = v_fov * 0.5f * (M_PI / 180.0f);
+        float half_h_fov = h_fov * 0.5f * (M_PI / 180.0f);
+        float near_height = 2.0f * distance * tan(half_v_fov);
+        float near_width = 2.0f * distance * tan(half_h_fov);
+        spriteH = ((float) h / vp.height) * near_height;
+        spriteW = ((float) w / vp.width) * near_width;
+        helpers::ComputePosSS2CS(x + u * w, y + v * h, d, camera, renderer, p);
+    }
     bool VzBaseSprite::Raycast(const float origin[3], const float direction[3], std::vector<HitResult>& intersects) {
         VzActorRes* actor_res = gEngineApp->GetActorRes(baseActor_->GetVID());
         assert(actor_res->isSprite);
@@ -259,8 +286,8 @@ namespace vzm
         };
         float half_width = w * 0.5f;
         float half_height = h * 0.5f;
-        float offset_x = (0.5f - anchorU) * half_width;
-        float offset_y = (0.5f - anchorV) * half_height;
+        float offset_x = (0.5f - anchorU) * w;
+        float offset_y = (anchorV - 0.5f) * h;
         SpriteVertex kQuadVertices[4] = {
             {{-half_width + offset_x,  half_height + offset_y, 0}, {0, 0}},
             {{ half_width + offset_x,  half_height + offset_y, 0}, {1, 0}},

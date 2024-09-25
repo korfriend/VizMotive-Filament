@@ -178,17 +178,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         vzm::AppendSceneCompTo(sprite, scene);
     }
 
+    float anchorU = 0.5f, anchorV = 0.5f;
+    float spriteW, spriteH, posCS[3];
+    vzm::VzBaseSprite::ComputeScreenSpriteParams(w / 2, 0, 0.0f, w / 2, h / 2, anchorU, anchorV, cam->GetVID(), renderer->GetVID(), spriteW, spriteH, posCS);
     vzm::VzSpriteActor* sprite_on_cam =
         (vzm::VzSpriteActor*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR, "my sprite in front of cam");
-    sprite_on_cam->SetSpriteWidth(2.f)
-        .SetSpriteHeight(2.f)
-        .SetAnchorU(0.5)
-        .SetAnchorV(0.5)
+    sprite_on_cam->SetSpriteWidth(spriteW)
+        .SetSpriteHeight(spriteH)
+        .SetAnchorU(anchorU)
+        .SetAnchorV(anchorV)
         .Build(); 
 
     sprite_on_cam->SetTexture(texture1->GetVID());
-    glm::fvec3 sprite_p2 = glm::fvec3(2.f, 1.f, -7.f);
-    sprite_on_cam->SetPosition(__FP sprite_p2);
+    sprite_on_cam->SetPosition(posCS);
     sprite_on_cam->SetVisibleLayerMask(0x3, 0x1);
     //sprite->EnableBillboard(true);
     vzm::AppendSceneCompTo(sprite_on_cam, cam); // parent is cam
@@ -207,7 +209,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         .SetFontHeight(1.0f)
         .SetMaxWidth(3.0f)
         .Build();
-    sprite_p2.x = -2.f;
+    glm::fvec3 sprite_p2 = glm::fvec3(-2.f, 1.f, -7.f);
     textsprite_on_cam->SetPosition(__FP sprite_p2);
     textsprite_on_cam->SetVisibleLayerMask(0x3, 0x2);
     //sprite->EnableBillboard(true);
@@ -252,7 +254,7 @@ int main(int, char**)
     return wWinMain(GetModuleHandle(NULL), NULL, GetCommandLine(), SW_SHOWNORMAL);\
 }
 
-#define USE_PICK 0
+#define USE_PICK 1
 
 #if USE_PICK
 void pickCallback(VID vid) {
@@ -391,12 +393,12 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         if (is_valid) {
             int x = GET_X_LPARAM(lParam);
-            int y = h - GET_Y_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
             //glm::fvec3 p, v, u;
             //camera->GetWorldPose((float*)&p, (float*)&v, (float*)&u);
             //*(glm::fvec3*)cc->orbitHomePosition = p;
             //cc->UpdateControllerSettings();
-            cc->GrabBegin(x, y, msg == WM_RBUTTONDOWN);
+            cc->GrabBegin(x, h - y, msg == WM_RBUTTONDOWN);
             if (msg == WM_LBUTTONDOWN) {
 #if USE_PICK
                 renderer->Pick(x, y, pickCallback);

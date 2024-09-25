@@ -51,11 +51,11 @@ namespace vzm
 
         // Sprite Helpers...
         static void ComputeScreenSpriteParams(
-            const uint32_t x, const uint32_t y,
-            const uint32_t spriteW, const uint32_t spriteH,
+            const uint32_t x, const uint32_t y, const float d,
+            const uint32_t w, const uint32_t h,
             const float u, const float v,
-            VID camera, VID renderer,
-            float& w, float& h, float p[3]);
+            const VID camera, const VID renderer,
+            float& spriteW, float& spriteH, float p[3]);
 
         bool Raycast(const float origin[3], const float direction[3], std::vector<HitResult>& intersects);
     };
