@@ -3,6 +3,7 @@
 #include "../VzEngineApp.h"
 #include "VzAsset.h"
 #include "../FIncludes.h"
+#include "../VizCoreUtils.h"
 
 #include "../../filament/src/PostProcessManager.h"
 
@@ -75,7 +76,8 @@ namespace vzm
     void VzRenderer::Pick(const uint32_t x, const uint32_t y, PickCallback callback) {
         COMP_RENDERPATH(render_path, );
         View* view = render_path->GetView();
-        view->pick(x, y, [callback](View::PickingQueryResult const& result) {
+        const filament::Viewport& vp = view->getViewport();
+        view->pick(x, vp.height - y, [callback](View::PickingQueryResult const& result) {
             callback(result.renderable.getId());
         });
     }
@@ -83,21 +85,10 @@ namespace vzm
     size_t VzRenderer::IntersectActors(const uint32_t x, const uint32_t y, const VID vidCam, const std::vector<VID>& vidActors, std::vector<HitResult>& results, const bool recursive) {
         COMP_RENDERPATH(render_path, 0);
         results.clear();
-        const View* view = render_path->GetView();
         const Camera* camera = gEngine->getCameraComponent(utils::Entity::import(vidCam));
-        if (view == nullptr || camera == nullptr) {
-            backlog::post("renderer has nullptr : " + std::string(view == nullptr ? "view " : "")
-                          + std::string(camera == nullptr ? "camera" : "")
-                          , backlog::LogLevel::Error);
-            return 0;
-        }
-        filament::Viewport vp = view->getViewport();
-        auto invProj = mat4f(inverse(camera->getProjectionMatrix()));
-        auto invView = mat4f(camera->getModelMatrix());
-        float x_ndc = 2.0f * (float) (x - vp.left) / (float) vp.width - 1.0f;
-        float y_ndc = 2.0f * (float) (y - vp.bottom) / (float) vp.height - 1.0f;
-        float4 p_ws_h = invView * invProj * float4(x_ndc, y_ndc, -1.0f, 1.0f);
-        float3 p_ws = p_ws_h.xyz / p_ws_h.w;
+        if (camera == nullptr) return 0;
+        float3 p_ws;
+        helpers::ComputePosSS2WS(x, y, 0.0f, vidCam, GetVID(), __FP p_ws);
         float3 rayOrigin = camera->getPosition();
         float3 rayDirection = normalize(p_ws - rayOrigin);
         std::function<void(VID)> intersect = [&](const VID vidActor) {
