@@ -1392,7 +1392,7 @@ namespace vzm
             });
 
         filament::Texture* fogColorTexture = gEngineApp->GetSceneRes(vidScene)->GetIBL()->getFogTexture();
-        render_path->viewSettings.fog.skyColor = fogColorTexture;
+        render_path->viewSettings.fogSettings.fogColorTexture = fogColorTexture;
         render_path->ApplySettings();
 
 #define SELECTIVE_POSTPROCESSING 0
