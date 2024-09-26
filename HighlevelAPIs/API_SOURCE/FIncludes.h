@@ -50,6 +50,7 @@
 #include "generated/resources/gltf_demo.h"
 //#include "../../VisualStudio/libs/filamentapp/generated/resources/filamentapp.h"
 #include "materials/uberarchive.h"
+#include "generated/res/mat_internal.h"
 
 // FEngine
 #include "../../libs/gltfio/src/FFilamentAsset.h"
