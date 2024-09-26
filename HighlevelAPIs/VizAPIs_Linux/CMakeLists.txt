@@ -53,6 +53,96 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ==================================================================================================
+# Configuration for CMAKE_CROSSCOMPILING.
+# ==================================================================================================
+
+set(IMPORT_EXECUTABLES ${CMAKE_CURRENT_SOURCE_DIR}/../../out/ImportExecutables-${CMAKE_BUILD_TYPE}.cmake)
+
+# ==================================================================================================
+# Common Functions
+# ==================================================================================================
+
+# Sets the following variables: RESGEN_HEADER, RESGEN_SOURCE, RESGEN_FLAGS, RESGEN_SOURCE_FLAGS,
+# and RESGEN_OUTPUTS. Please pass in an ARCHIVE_NAME that is unique to your project, otherwise the
+# incbin directive will happily consume a blob from the wrong project without warnings or errors.
+# Also be sure to include the ASM language in the CMake "project" directive for your project.
+function(get_resgen_vars ARCHIVE_DIR ARCHIVE_NAME)
+    set(OUTPUTS
+        ${ARCHIVE_DIR}/${ARCHIVE_NAME}.bin
+        ${ARCHIVE_DIR}/${ARCHIVE_NAME}.S
+        ${ARCHIVE_DIR}/${ARCHIVE_NAME}.apple.S
+        ${ARCHIVE_DIR}/${ARCHIVE_NAME}.h
+    )
+    set(RESGEN_HEADER "${ARCHIVE_DIR}/${ARCHIVE_NAME}.h" PARENT_SCOPE)
+    set(RESGEN_OUTPUTS "${OUTPUTS};${ARCHIVE_DIR}/${ARCHIVE_NAME}.c" PARENT_SCOPE)
+    set(RESGEN_FLAGS -qcx ${ARCHIVE_DIR} -p ${ARCHIVE_NAME} PARENT_SCOPE)
+    set(RESGEN_SOURCE "${ARCHIVE_DIR}/${ARCHIVE_NAME}.c" PARENT_SCOPE)
+endfunction()
+
+# ==================================================================================================
+# Compile resources
+# ==================================================================================================
+
+set(GENERATION_ROOT ${CMAKE_CURRENT_BINARY_DIR}/../../API_SOURCE)
+set(RESOURCE_DIR  "${GENERATION_ROOT}/generated/res")
+set(MATERIAL_DIR  "${GENERATION_ROOT}/generated/mat")
+
+set(MATERIAL_SRCS
+        ../API_SOURCE/mat/compositor.mat
+)
+
+include(${IMPORT_EXECUTABLES})
+
+file(MAKE_DIRECTORY ${MATERIAL_DIR})
+file(MAKE_DIRECTORY ${RESOURCE_DIR})
+
+set(RESOURCE_BINS)
+
+set(MATC_BASE_FLAGS -a opengl -a vulkan -p desktop -g)
+
+set (MATC_FLAGS ${MATC_BASE_FLAGS})
+if (FILAMENT_SAMPLES_STEREO_TYPE STREQUAL "instanced")
+    set (MATC_FLAGS ${MATC_FLAGS} -PstereoscopicType=instanced)
+    add_definitions(-DFILAMENT_SAMPLES_STEREO_TYPE_INSTANCED)
+elseif (FILAMENT_SAMPLES_STEREO_TYPE STREQUAL "multiview")
+    set (MATC_FLAGS ${MATC_FLAGS} -PstereoscopicType=multiview)
+    add_definitions(-DFILAMENT_SAMPLES_STEREO_TYPE_MULTIVIEW)
+endif ()
+
+foreach (mat_src ${MATERIAL_SRCS})
+    get_filename_component(localname "${mat_src}" NAME_WE)
+    get_filename_component(fullname "${mat_src}" ABSOLUTE)
+    set(output_path "${MATERIAL_DIR}/${localname}.filamat")
+    add_custom_command(
+            OUTPUT ${output_path}
+            COMMAND matc ${MATC_FLAGS} -o ${output_path} ${fullname}
+            MAIN_DEPENDENCY ${mat_src}
+            DEPENDS matc
+            COMMENT "Compiling material ${mat_src} to ${output_path}"
+    )
+    list(APPEND RESOURCE_BINS ${output_path})
+endforeach()
+
+get_resgen_vars(${RESOURCE_DIR} mat_internal)
+
+add_custom_command(
+        OUTPUT ${RESGEN_OUTPUTS}
+        COMMAND resgen ${RESGEN_FLAGS} ${RESOURCE_BINS}
+        DEPENDS resgen ${RESOURCE_BINS}
+        COMMENT "Aggregating resources"
+)
+
+if (DEFINED RESGEN_SOURCE_FLAGS)
+    set_source_files_properties(${RESGEN_SOURCE} PROPERTIES COMPILE_FLAGS ${RESGEN_SOURCE_FLAGS})
+endif()
+
+# CMake fails to invoke ar on Windows unless there is at least one C/C++ file in the library.
+set(DUMMY_SRC "${RESOURCE_DIR}/dummy.c")
+add_custom_command(OUTPUT ${DUMMY_SRC} COMMAND echo "//" > ${DUMMY_SRC})
+
+add_library(mat_internal ${DUMMY_SRC} ${RESGEN_SOURCE})
+
+# ==================================================================================================
 # General compiler flags
 # ==================================================================================================
 set(CXX_STANDARD "-std=c++20")
@@ -202,6 +292,7 @@ set(FILAMENT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../out/${CMAKE_BUILD_TYPE_LOWER}
 # we're building a library
 add_library(${PROJECT_NAME} SHARED ${PRIVATE_HDRS} ${PUBLIC_HDRS} ${SRCS})
 
+target_link_libraries(${PROJECT_NAME} PRIVATE mat_internal)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ../includes

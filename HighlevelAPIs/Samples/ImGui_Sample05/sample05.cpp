@@ -101,7 +101,11 @@ int main(int, char**) {
   vzm::VzAsset* asset = vzm::LoadFileIntoAsset("../assets/Soldier.glb", "my gltf asset");
 #elif __linux__
   renderer->SetCanvas(w, h, 96.f, (void*)(glfwGetX11Window(window)));
-  scene->LoadIBL("../../../../VisualStudio/samples/assets/ibl/lightroom_14b");
+#ifdef _DEBUG
+  scene->LoadIBL("../../../../out/debug/filament/bin/assets/ibl/lightroom_14b");
+#else
+  scene->LoadIBL("../../../../out/release/filament/bin/assets/ibl/lightroom_14b");
+#endif
   vzm::VzAsset* asset =
       vzm::LoadFileIntoAsset("../../assets/Soldier.glb", "my gltf asset");
 #endif

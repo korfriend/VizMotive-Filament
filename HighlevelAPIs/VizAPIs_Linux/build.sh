@@ -81,11 +81,11 @@ function build_desktop_target {
 
 function build_desktop {
     if [[ "${ISSUE_DEBUG_BUILD}" == "true" ]]; then
-        build_desktop_target "debug" "$1"
+        build_desktop_target "Debug" "$1"
     fi
 
     if [[ "${ISSUE_RELEASE_BUILD}" == "true" ]]; then
-        build_desktop_target "release" "$1"
+        build_desktop_target "Release" "$1"
     fi
 }
 
