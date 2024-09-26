@@ -791,8 +791,7 @@ void setMouseButton(GLFWwindow* window, int button, int state,
   float xRatio = (float)render_width / workspace_width;
   float yRatio = (float)render_height / workspace_height;
   int xPos = static_cast<int>((x - left_editUIWidth) * xRatio);
-  int yPos = static_cast<int>(
-      (height - static_cast<int>(y) - (height - workspace_height - toolbar_height)) * yRatio);
+  int yPos = static_cast<int>((y - (height - workspace_height - toolbar_height)) * yRatio);
   switch (state) {
     case GLFW_PRESS:
       if (x > left_editUIWidth && x < left_editUIWidth + workspace_width &&
@@ -830,9 +829,7 @@ void setCursorPos(GLFWwindow* window, double x, double y) {
   float xRatio = (float)render_width / workspace_width;
   float yRatio = (float)render_height / workspace_height;
   int xPos = static_cast<int>((x - left_editUIWidth) * xRatio);
-  int yPos = static_cast<int>((height - static_cast<int>(y) -
-                               (height - workspace_height - toolbar_height)) *
-                              yRatio);
+  int yPos = static_cast<int>((y - (height - workspace_height - toolbar_height)) * yRatio);
 
   if (glfwGetMouseButton(window, 0) == GLFW_PRESS ||
       glfwGetMouseButton(window, 1) == GLFW_PRESS) {
@@ -854,11 +851,9 @@ void setMouseScroll(GLFWwindow* window, double xOffset, double yOffset) {
   float xRatio = (float)render_width / workspace_width;
   float yRatio = (float)render_height / workspace_height;
   int xPos = static_cast<int>((x - left_editUIWidth) * xRatio);
-  int yPos = static_cast<int>((height - static_cast<int>(y) -
-                               (height - workspace_height - toolbar_height)) *
-                              yRatio);
+  int yPos = static_cast<int>((y - (height - workspace_height - toolbar_height)) * yRatio);
   if (x > left_editUIWidth && x < left_editUIWidth + workspace_width &&
-      y > toolbar_height && y < workspace_height + toolbar_height) {
+      y > toolbar_height && y < workspace_height + toolbar_height) { 
     g_cam->GetController()->Scroll(xPos, yPos, -5.0f * (float)yOffset);
   }
 }

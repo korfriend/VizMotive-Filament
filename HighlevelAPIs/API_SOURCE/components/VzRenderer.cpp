@@ -1382,6 +1382,8 @@ namespace vzm
         render_path->viewSettings.fog.skyColor = fogColorTexture;
         render_path->ApplySettings();
 
+#define SELECTIVE_POSTPROCESSING 0
+#if SELECTIVE_POSTPROCESSING
         // 1. main rendering 
         view->setVisibleLayers(0x3, 0x1);
         view->setPostProcessingEnabled(true);
@@ -1436,6 +1438,13 @@ namespace vzm
         }
 
         renderer->setClearOptions(restore_clear_options);
+#else
+        filament::SwapChain* sc = render_path->GetSwapChain();
+        if (renderer->beginFrame(sc)) {
+            renderer->render(view);
+            renderer->endFrame();
+        }
+#endif
 
         for (auto& it : restore_billboard_tr)
         {
