@@ -11,6 +11,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "generated/res/mat_internal.h"
+
 extern Engine* gEngine;
 extern Material* gMaterialTransparent; // do not release
 extern vzm::VzEngineApp* gEngineApp;

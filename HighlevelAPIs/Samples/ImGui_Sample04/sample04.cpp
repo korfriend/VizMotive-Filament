@@ -181,7 +181,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     float anchorU = 0.5f, anchorV = 0.5f;
     float spriteW, spriteH, posCS[3];
-    vzm::VzBaseSprite::ComputeScreenSpriteParams(w / 2, 0, 0.0f, w / 2, h / 2, anchorU, anchorV, cam->GetVID(), renderer->GetVID(), spriteW, spriteH, posCS);
+    vzm::VzBaseSprite::ComputeScreenSpriteParams(10, 10, 0.0f, 211, 126, anchorU, anchorV, cam->GetVID(), renderer->GetVID(), spriteW, spriteH, posCS);
     vzm::VzSpriteActor* sprite_on_cam =
         (vzm::VzSpriteActor*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR, "my sprite in front of cam");
     sprite_on_cam->SetSpriteWidth(spriteW)
@@ -406,7 +406,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 #else
                 std::vector<vzm::HitResult> results;
                 std::vector<VID> vidActors;
-                vzm::GetVidsByName("my text-sprite in front of cam", vidActors);
+                vzm::GetVidsByName("my sprite in front of cam", vidActors);
                 renderer->IntersectActors(x, y, vid_camera, vidActors, results);
                 if (!results.empty()) {
                     auto comp = (vzm::VzSceneComp*) vzm::GetVzComponent(results[0].actor);

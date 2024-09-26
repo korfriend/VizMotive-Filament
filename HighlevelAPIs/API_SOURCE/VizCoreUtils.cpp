@@ -15,8 +15,8 @@ void vzm::helpers::ComputePosSS2WS(const uint32_t x, const uint32_t y, const flo
     if (cam == nullptr) return;
     auto inv_proj = mat4f(inverse(cam->getCullingProjectionMatrix()));
     auto inv_view = mat4f(cam->getModelMatrix());
-    float x_ndc = 2.0f * (float) (x - vp.left) / (float) vp.width - 1.0f;
-    float y_ndc = 1.0f - 2.0f * (float) (y - vp.bottom) / (float) vp.height;
+    float x_ndc = 2.0f * (float) x / (float) vp.width - 1.0f;
+    float y_ndc = 1.0f - 2.0f * (float) y / (float) vp.height;
     float4 p_ws_near_h = inv_view * inv_proj * float4(x_ndc, y_ndc, -1.0f, 1.0f);
     float4 p_ws_far_h = inv_view * inv_proj * float4(x_ndc, y_ndc, 1.0f, 1.0f);
     float3 p_ws_near = p_ws_near_h.xyz / p_ws_near_h.w;
@@ -35,8 +35,8 @@ void vzm::helpers::ComputePosSS2CS(const uint32_t x, const uint32_t y, const flo
     const Camera * cam = gEngine->getCameraComponent(utils::Entity::import(camera));
     if (cam == nullptr) return;
     auto inv_proj = mat4f(inverse(cam->getCullingProjectionMatrix()));
-    float x_ndc = 2.0f * (float) (x - vp.left) / (float) vp.width - 1.0f;
-    float y_ndc = 1.0f - 2.0f * (float) (y - vp.bottom) / (float) vp.height;
+    float x_ndc = 2.0f * (float) x / (float) vp.width - 1.0f;
+    float y_ndc = 1.0f - 2.0f * (float) y / (float) vp.height;
     float4 p_cs_near_h = inv_proj * float4(x_ndc, y_ndc, -1.0f, 1.0f);
     float4 p_cs_far_h = inv_proj * float4(x_ndc, y_ndc, 1.0f, 1.0f);
     float3 p_cs_near = p_cs_near_h.xyz / p_cs_near_h.w;
