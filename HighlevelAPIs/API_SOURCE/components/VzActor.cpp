@@ -167,8 +167,8 @@ namespace vzm
         baseActor_->UpdateTimeStamp();
     }
     void VzBaseSprite::ComputeScreenSpriteParams(
-        const uint32_t x, const uint32_t y, const float d,
-        const uint32_t w, const uint32_t h,
+        const float x, const float y, const float d,
+        const float w, const float h,
         const float u, const float v,
         const VID camera, const VID renderer,
         float& spriteW, float& spriteH, float p[3])
@@ -187,8 +187,8 @@ namespace vzm
         float half_h_fov = h_fov * 0.5f * (M_PI / 180.0f);
         float near_height = 2.0f * distance * tan(half_v_fov);
         float near_width = 2.0f * distance * tan(half_h_fov);
-        spriteH = ((float) h / vp.height) * near_height;
-        spriteW = ((float) w / vp.width) * near_width;
+        spriteH = (h / (float) vp.height) * near_height;
+        spriteW = (w / (float) vp.width) * near_width;
         helpers::ComputePosSS2CS(x + u * w, y + v * h, d, camera, renderer, p);
     }
     bool VzBaseSprite::Raycast(const float origin[3], const float direction[3], std::vector<HitResult>& intersects) {
