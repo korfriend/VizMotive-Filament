@@ -11,6 +11,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "generated/res/mat_internal.h"
+
 extern Engine* gEngine;
 extern Material* gMaterialTransparent; // do not release
 extern vzm::VzEngineApp* gEngineApp;
@@ -664,21 +666,8 @@ namespace vzm
         //aabb.min = { -0.5, -0.5, -0.5 };
         //aabb.max = { 0.5, 0.5, 0.5 };
 
-        std::ifstream file("D:\\VizMotive_Filament\\HighlevelAPIs\\API_SOURCE\\mat\\compositor.filamat", std::ios::binary | std::ios::ate);
-        if (!file.is_open()) {
-            backlog::post("Essential resources loading failure!", backlog::LogLevel::Error);
-            return;
-        }
-        std::streamsize size = file.tellg();
-        file.seekg(0, std::ios::beg);
-        std::vector<uint8_t> buffer(size);
-        if (!file.read(reinterpret_cast<char*>(buffer.data()), size)) {
-            backlog::post("Essential resources loading failure!", backlog::LogLevel::Error);
-            return;
-        }
-
         compositorMaterial_ = Material::Builder()
-            .package(buffer.data(), size)
+            .package(MAT_INTERNAL_COMPOSITOR_DATA, MAT_INTERNAL_COMPOSITOR_SIZE)
             .build(*gEngine);
 
         /*

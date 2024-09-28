@@ -181,7 +181,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     float anchorU = 0.5f, anchorV = 0.5f;
     float spriteW, spriteH, posCS[3];
-    vzm::VzBaseSprite::ComputeScreenSpriteParams(w / 2, 0, 0.0f, w / 2, h / 2, anchorU, anchorV, cam->GetVID(), renderer->GetVID(), spriteW, spriteH, posCS);
+    vzm::VzBaseSprite::ComputeScreenSpriteParams(10, 10, 0.0f, 211, 126, anchorU, anchorV, cam->GetVID(), renderer->GetVID(), spriteW, spriteH, posCS);
     vzm::VzSpriteActor* sprite_on_cam =
         (vzm::VzSpriteActor*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR, "my sprite in front of cam");
     sprite_on_cam->SetSpriteWidth(spriteW)
@@ -255,7 +255,7 @@ int main(int, char**)
     return wWinMain(GetModuleHandle(NULL), NULL, GetCommandLine(), SW_SHOWNORMAL);\
 }
 
-#define USE_PICK 1
+#define USE_PICK 0
 
 #if USE_PICK
 void pickCallback(VID vid) {
@@ -399,14 +399,14 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             //camera->GetWorldPose((float*)&p, (float*)&v, (float*)&u);
             //*(glm::fvec3*)cc->orbitHomePosition = p;
             //cc->UpdateControllerSettings();
-            cc->GrabBegin(x, h - y, msg == WM_RBUTTONDOWN);
+            cc->GrabBegin(x, y, msg == WM_RBUTTONDOWN);
             if (msg == WM_LBUTTONDOWN) {
 #if USE_PICK
                 renderer->Pick(x, y, pickCallback);
 #else
                 std::vector<vzm::HitResult> results;
                 std::vector<VID> vidActors;
-                vzm::GetVidsByName("my text-sprite in front of cam", vidActors);
+                vzm::GetVidsByName("my sprite in front of cam", vidActors);
                 renderer->IntersectActors(x, y, vid_camera, vidActors, results);
                 if (!results.empty()) {
                     auto comp = (vzm::VzSceneComp*) vzm::GetVzComponent(results[0].actor);
@@ -422,7 +422,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         if (is_valid) {
             int x = GET_X_LPARAM(lParam);
-            int y = h - GET_Y_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
             cc->GrabDrag(x, y);
         }
         break;
@@ -440,7 +440,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (is_valid) {
             int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
             int x = GET_X_LPARAM(lParam);
-            int y = h - GET_Y_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
             cc->Scroll(x, y, -(float)zDelta);
         }
         break;

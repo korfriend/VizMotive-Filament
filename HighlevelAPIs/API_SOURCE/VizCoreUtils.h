@@ -3,6 +3,6 @@
 
 namespace vzm::helpers
 {
-    void ComputePosSS2WS(const uint32_t x, const uint32_t y, const float d, const VID camera, const VID renderer, float posWS[3]);
-    void ComputePosSS2CS(const uint32_t x, const uint32_t y, const float d, const VID camera, const VID renderer, float posCS[3]);
+    void ComputePosSS2WS(const float x, const float y, const float d, const VID camera, const VID renderer, float posWS[3]);
+    void ComputePosSS2CS(const float x, const float y, const float d, const VID camera, const VID renderer, float posCS[3]);
 }

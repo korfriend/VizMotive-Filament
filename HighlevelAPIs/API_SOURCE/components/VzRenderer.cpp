@@ -52,7 +52,9 @@ namespace vzm
     void VzRenderer::SetViewport(const uint32_t x, const uint32_t y, const uint32_t w, const uint32_t h)
     {
         COMP_RENDERPATH(render_path, );
-        render_path->SetViewport(x, y, w, h);
+        uint32_t canvas_h;
+        render_path->GetCanvas(nullptr, &canvas_h, nullptr, nullptr);
+        render_path->SetViewport(x, canvas_h - y - h, w, h);
     }
 
     void VzRenderer::GetViewport(uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h)
@@ -76,8 +78,13 @@ namespace vzm
     void VzRenderer::Pick(const uint32_t x, const uint32_t y, PickCallback callback) {
         COMP_RENDERPATH(render_path, );
         View* view = render_path->GetView();
+        uint32_t canvas_h;
+        render_path->GetCanvas(nullptr, &canvas_h, nullptr, nullptr);
         const filament::Viewport& vp = view->getViewport();
-        view->pick(x, vp.height - y, [callback](View::PickingQueryResult const& result) {
+        uint32_t x_ = x - vp.left;
+        uint32_t y_ = (canvas_h - y) - vp.bottom;
+        if (x_ >= vp.width || y_ >= vp.height) return;
+        view->pick(x_, y_, [callback](View::PickingQueryResult const& result) {
             callback(result.renderable.getId());
         });
     }
@@ -87,8 +94,14 @@ namespace vzm
         results.clear();
         const Camera* camera = gEngine->getCameraComponent(utils::Entity::import(vidCam));
         if (camera == nullptr) return 0;
+        uint32_t canvas_h;
+        render_path->GetCanvas(nullptr, &canvas_h, nullptr, nullptr);
+        const filament::Viewport& vp = render_path->GetView()->getViewport();
+        uint32_t x_ = x - vp.left;
+        uint32_t y_ = vp.height - ((canvas_h - y) - vp.bottom);
+        if (x_ >= vp.width || y_ >= vp.height) return 0;
         float3 p_ws;
-        helpers::ComputePosSS2WS(x, y, 0.0f, vidCam, GetVID(), __FP p_ws);
+        helpers::ComputePosSS2WS(x_, y_, 0.0f, vidCam, GetVID(), __FP p_ws);
         float3 rayOrigin = camera->getPosition();
         float3 rayDirection = normalize(p_ws - rayOrigin);
         std::function<void(VID)> intersect = [&](const VID vidActor) {
@@ -1379,9 +1392,11 @@ namespace vzm
             });
 
         filament::Texture* fogColorTexture = gEngineApp->GetSceneRes(vidScene)->GetIBL()->getFogTexture();
-        render_path->viewSettings.fog.skyColor = fogColorTexture;
+        render_path->viewSettings.fogSettings.fogColorTexture = fogColorTexture;
         render_path->ApplySettings();
 
+#define SELECTIVE_POSTPROCESSING 0
+#if SELECTIVE_POSTPROCESSING
         // 1. main rendering 
         view->setVisibleLayers(0x3, 0x1);
         view->setPostProcessingEnabled(true);
@@ -1436,6 +1451,13 @@ namespace vzm
         }
 
         renderer->setClearOptions(restore_clear_options);
+#else
+        filament::SwapChain* sc = render_path->GetSwapChain();
+        if (renderer->beginFrame(sc)) {
+            renderer->render(view);
+            renderer->endFrame();
+        }
+#endif
 
         for (auto& it : restore_billboard_tr)
         {

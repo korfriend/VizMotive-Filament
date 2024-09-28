@@ -324,7 +324,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         if (is_valid) {
             int x = GET_X_LPARAM(lParam);
-            int y = h - GET_Y_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
             //glm::fvec3 p, v, u;
             //camera->GetWorldPose((float*)&p, (float*)&v, (float*)&u);
             //*(glm::fvec3*)cc->orbitHomePosition = p;
@@ -337,7 +337,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         if (is_valid) {
             int x = GET_X_LPARAM(lParam);
-            int y = h - GET_Y_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
             cc->GrabDrag(x, y);
         }
         break;
@@ -355,7 +355,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (is_valid) {
             int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
             int x = GET_X_LPARAM(lParam);
-            int y = h - GET_Y_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
             cc->Scroll(x, y, -(float)zDelta);
         }
         break;

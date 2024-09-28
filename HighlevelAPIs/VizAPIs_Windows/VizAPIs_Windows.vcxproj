@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <None Include="compile-resources.bat" />
     <None Include="install.bat" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -134,6 +135,9 @@
     <PostBuildEvent>
       <Command>install.bat</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>compile-resources.bat</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -157,8 +161,19 @@
     <PostBuildEvent>
       <Command>install.bat</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>compile-resources.bat</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ItemGroup>
+    <ClCompile Update="D:\source\VizMotive-Filament\HighlevelAPIs\API_SOURCE\res\materials.c">
+      <FileType>CppCode</FileType>
+    </ClCompile>
+    <ClCompile Update="D:\source\VizMotive-Filament\HighlevelAPIs\API_SOURCE\res\mat_internal.c">
+      <FileType>CppCode</FileType>
+    </ClCompile>
+  </ItemGroup>
 </Project>

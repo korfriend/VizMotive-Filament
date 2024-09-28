@@ -51,8 +51,8 @@ namespace vzm
 
         // Sprite Helpers...
         static void ComputeScreenSpriteParams(
-            const uint32_t x, const uint32_t y, const float d,
-            const uint32_t w, const uint32_t h,
+            const float x, const float y, const float d,
+            const float w, const float h,
             const float u, const float v,
             const VID camera, const VID renderer,
             float& spriteW, float& spriteH, float p[3]);

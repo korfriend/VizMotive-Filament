@@ -34,6 +34,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)components\VzSkeleton.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)components\VzTexture.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)FIncludes.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)generated\res\mat_internal.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PreDefs.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)VzComponents.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)VzNameComponents.hpp" />
@@ -67,6 +68,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)components\VzScene.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)components\VzSkeleton.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)components\VzTexture.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)generated\res\mat_internal.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)VizComponentAPIs.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)VizCoreUtils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)VizEngineAPIs.cpp" />

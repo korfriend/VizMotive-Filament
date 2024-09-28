@@ -151,6 +151,8 @@ namespace vzm
         TimeStamp timer;
         float deltaTime = 0;
         float deltaTimeAccumulator = 0;
+        size_t width = 0;
+        size_t height = 0;
 
         void SetCamera(Camera* camera);
         Camera* GetCamera();

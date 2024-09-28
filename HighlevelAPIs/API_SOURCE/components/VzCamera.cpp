@@ -202,17 +202,17 @@ namespace vzm
     void VzCamera::Controller::Scroll(const int x, const int y, const float scrollDelta)
     {
         GET_CM_WARN(cam_res, cm);
-        cm->scroll(x, y, scrollDelta);
+        cm->scroll(x, cam_res->height - y, scrollDelta);
     }
     void VzCamera::Controller::GrabBegin(const int x, const int y, const bool strafe)
     {
         GET_CM_WARN(cam_res, cm);
-        cm->grabBegin(x, y, strafe);
+        cm->grabBegin(x, cam_res->height - y, strafe);
     }
     void VzCamera::Controller::GrabDrag(const int x, const int y)
     {
         GET_CM_WARN(cam_res, cm);
-        cm->grabUpdate(x, y);
+        cm->grabUpdate(x, cam_res->height - y);
         if (mode == Mode::ORBIT)
         {
             camutils::Bookmark<float> camutilsBookmark = cm->getCurrentBookmark();
@@ -248,6 +248,8 @@ namespace vzm
     void VzCamera::Controller::SetViewport(const int w, const int h)
     {
         GET_CM_WARN(cam_res, cm);
+        cam_res->width = w;
+        cam_res->height = h;
         cm->setViewport(w, h);
     }
     void VzCamera::Controller::UpdateCamera(const float deltaTime)
