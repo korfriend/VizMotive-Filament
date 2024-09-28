@@ -395,10 +395,10 @@ namespace vzm
         return gEngineApp->CreateScene(sceneName);
     }
 
-    VzRenderer* NewRenderer(const std::string& sceneName)
+    VzRenderer* NewRenderer(const std::string& rendererName)
     {
         CHECK_API_VALIDITY(nullptr);
-        return gEngineApp->CreateRenderPath(sceneName);
+        return gEngineApp->CreateRenderPath(rendererName);
     }
 
     VzSceneComp* NewSceneComponent(const SCENE_COMPONENT_TYPE compType, const std::string& compName, const VID parentVid)
