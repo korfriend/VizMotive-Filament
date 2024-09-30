@@ -1318,8 +1318,9 @@ int main(int, char**) {
           // delta time 만큼 시간 진행
           if (isPlay) {
             currentAnimPlayTime += (currentTime - prevTime) / 1000.0f;
-            if (currentAnimPlayTime > currentAnimTotalTime) {
-              currentAnimPlayTime -= currentAnimTotalTime;
+            if (currentAnimPlayTime > currentAnimTotalTime && currentAnimTotalTime > 0.0f) {
+              currentAnimPlayTime = fmod(currentAnimPlayTime,
+                                      currentAnimTotalTime);
             }
 
             for (int i = 0; i < animationCount; i++) {
@@ -1349,6 +1350,15 @@ int main(int, char**) {
           if (ImGui::SliderFloat("Time", &currentAnimPlayTime, 0.0f,
                                  currentAnimTotalTime, "%4.2f seconds",
                                  ImGuiSliderFlags_AlwaysClamp)) {
+            for (int i = 0; i < animationCount; i++) {
+              if (animActiveVec[i]) {
+                animator->ApplyAnimationTimeAt(i, currentAnimPlayTime);
+              }
+            }
+            animator->UpdateBoneMatrices();
+          }
+          ImGui::SameLine();
+          if (ImGui::InputFloat("##inputtime", &currentAnimPlayTime)) {
             for (int i = 0; i < animationCount; i++) {
               if (animActiveVec[i]) {
                 animator->ApplyAnimationTimeAt(i, currentAnimPlayTime);
