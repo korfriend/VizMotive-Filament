@@ -153,6 +153,10 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
           }
         }
       }
+
+      if (jsonNode.HasMember("priority")) {
+        actor->SetPriority(jsonNode["priority"].GetInt()); 
+      }
       break;
     }
     case vzm::SCENE_COMPONENT_TYPE::CAMERA: {
@@ -397,6 +401,8 @@ void ExportMaterials(rapidjson::Value& jsonNode,
       }
 
       jsonNode.AddMember("materials", materials, allocator);
+
+      jsonNode.AddMember("priority", (int)actor->GetPriority(), allocator);
       break;
     }
     case vzm::SCENE_COMPONENT_TYPE::CAMERA: {

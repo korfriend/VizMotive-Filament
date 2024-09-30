@@ -791,7 +791,7 @@ void setMouseButton(GLFWwindow* window, int button, int state,
   float xRatio = (float)render_width / workspace_width;
   float yRatio = (float)render_height / workspace_height;
   int xPos = static_cast<int>((x - left_editUIWidth) * xRatio);
-  int yPos = static_cast<int>((y - (height - workspace_height - toolbar_height)) * yRatio);
+  int yPos = static_cast<int>((y - toolbar_height) * yRatio);
   switch (state) {
     case GLFW_PRESS:
       if (x > left_editUIWidth && x < left_editUIWidth + workspace_width &&
@@ -829,7 +829,7 @@ void setCursorPos(GLFWwindow* window, double x, double y) {
   float xRatio = (float)render_width / workspace_width;
   float yRatio = (float)render_height / workspace_height;
   int xPos = static_cast<int>((x - left_editUIWidth) * xRatio);
-  int yPos = static_cast<int>((y - (height - workspace_height - toolbar_height)) * yRatio);
+  int yPos = static_cast<int>((y - toolbar_height) * yRatio);
 
   if (glfwGetMouseButton(window, 0) == GLFW_PRESS ||
       glfwGetMouseButton(window, 1) == GLFW_PRESS) {
@@ -851,7 +851,7 @@ void setMouseScroll(GLFWwindow* window, double xOffset, double yOffset) {
   float xRatio = (float)render_width / workspace_width;
   float yRatio = (float)render_height / workspace_height;
   int xPos = static_cast<int>((x - left_editUIWidth) * xRatio);
-  int yPos = static_cast<int>((y - (height - workspace_height - toolbar_height)) * yRatio);
+  int yPos = static_cast<int>((y - toolbar_height) * yRatio);
   if (x > left_editUIWidth && x < left_editUIWidth + workspace_width &&
       y > toolbar_height && y < workspace_height + toolbar_height) { 
     g_cam->GetController()->Scroll(xPos, yPos, -5.0f * (float)yOffset);
@@ -1318,8 +1318,9 @@ int main(int, char**) {
           // delta time 만큼 시간 진행
           if (isPlay) {
             currentAnimPlayTime += (currentTime - prevTime) / 1000.0f;
-            if (currentAnimPlayTime > currentAnimTotalTime) {
-              currentAnimPlayTime -= currentAnimTotalTime;
+            if (currentAnimPlayTime > currentAnimTotalTime && currentAnimTotalTime > 0.0f) {
+              currentAnimPlayTime = fmod(currentAnimPlayTime,
+                                      currentAnimTotalTime);
             }
 
             for (int i = 0; i < animationCount; i++) {
@@ -1349,6 +1350,15 @@ int main(int, char**) {
           if (ImGui::SliderFloat("Time", &currentAnimPlayTime, 0.0f,
                                  currentAnimTotalTime, "%4.2f seconds",
                                  ImGuiSliderFlags_AlwaysClamp)) {
+            for (int i = 0; i < animationCount; i++) {
+              if (animActiveVec[i]) {
+                animator->ApplyAnimationTimeAt(i, currentAnimPlayTime);
+              }
+            }
+            animator->UpdateBoneMatrices();
+          }
+          ImGui::SameLine();
+          if (ImGui::InputFloat("##inputtime", &currentAnimPlayTime)) {
             for (int i = 0; i < animationCount; i++) {
               if (animActiveVec[i]) {
                 animator->ApplyAnimationTimeAt(i, currentAnimPlayTime);
