@@ -1247,6 +1247,8 @@ namespace vzm
                     tcm.setParent(ins, ins_dst);
                 }
                 });
+            removeScene(vid_scene_src);
+            scene_src = nullptr;
         }
         else if (vidSrc != vid_scene_src && vidDst == vid_scene_dst)
         {
