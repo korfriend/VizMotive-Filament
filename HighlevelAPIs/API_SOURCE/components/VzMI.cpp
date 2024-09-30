@@ -145,6 +145,30 @@ namespace vzm
         return true;
     }
 
+    bool VzMI::GetUvTransform(const std::string& name, float offset[2], float& rotation, float scale[2]) const {
+        SET_PARAM_COMP(mi, mi_res, m_res, false);
+        math::mat3f uvmat = mi->getParameter<math::mat3f>(name.c_str());
+        offset[0] = uvmat[0][2];
+        offset[1] = uvmat[1][2];
+        scale[0] = sqrt(uvmat[0][0] * uvmat[0][0] + uvmat[1][0] * uvmat[1][0]);
+        scale[1] = sqrt(uvmat[0][1] * uvmat[0][1] + uvmat[1][1] * uvmat[1][1]);
+        rotation = atan2(uvmat[1][0], uvmat[0][0]);
+        return true;
+    }
+
+    bool VzMI::SetUvTransform(const std::string& name, const float offset[2], const float rotation, const float scale[2]) {
+        SET_PARAM_COMP(mi, mi_res, m_res, false);
+        float tx = offset[0];
+        float ty = offset[1];
+        float sx = scale[0];
+        float sy = scale[1];
+        float c = cos(rotation);
+        float s = sin(rotation);
+        mi->setParameter(name.c_str(), math::mat3f(sx * c, sx * s, tx, -sy * s, sy * c, ty, 0.0f, 0.0f, 1.0f));
+        UpdateTimeStamp();
+        return true;
+    }
+
     VID VzMI::GetTexture(const std::string& name)
     {
         SET_PARAM_COMP(mi, mi_res, m_res, INVALID_VID);

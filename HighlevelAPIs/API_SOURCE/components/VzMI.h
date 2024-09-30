@@ -26,7 +26,9 @@ namespace vzm
         VID GetTexture(const std::string& name);
         bool SetTexture(const std::string& name, const VID vidTexture,
                   const bool retainSampler = true);
-
+        bool GetUvTransform(const std::string& name, float offset[2], float& rotation, float scale[2]) const;
+        bool SetUvTransform(const std::string& name, const float offset[2], const float rotation, const float scale[2]);
+        
         VID GetMaterial();
         bool SetMaterial(const VID vidMaterial);
     };

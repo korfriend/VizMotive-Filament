@@ -1871,6 +1871,33 @@ int main(int, char**) {
                         }
                         break;
                       case vzm::UniformType::MAT3:
+                        float offset[2];
+                        float rotation;
+                        float scale[2];
+                        mi->GetUvTransform(paramInfo.name, offset, rotation,
+                                           scale);
+                        ImGui::Text("offset");
+                        ImGui::SameLine();
+                        if (ImGui::InputFloat2((param_label + "offset").c_str(),
+                                               offset)) {
+                          mi->SetUvTransform(paramInfo.name, offset, rotation,
+                                             scale);
+                        }
+                        ImGui::Text("rotation");
+                        ImGui::SameLine();
+                        if (ImGui::InputFloat(
+                                (param_label + "rotation").c_str(),
+                                &rotation)) {
+                          mi->SetUvTransform(paramInfo.name, offset, rotation,
+                                             scale);
+                        }
+                        ImGui::Text("scale");
+                        ImGui::SameLine();
+                        if (ImGui::InputFloat2((param_label + "scale").c_str(),
+                                               scale)) {
+                          mi->SetUvTransform(paramInfo.name, offset, rotation,
+                                             scale);
+                        }
                         break;
                       default:
                         std::cout
