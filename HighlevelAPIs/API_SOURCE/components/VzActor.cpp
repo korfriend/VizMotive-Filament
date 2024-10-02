@@ -332,6 +332,8 @@ namespace vzm
             .receiveShadows(actor_res->receiveShadow) // false
             .priority(actor_res->priority)
             .build(*gEngine, ett_actor);
+
+        Fence::waitAndDestroy(gEngine->createFence());
     }
 
     float VzSpriteActor::GetSpriteWidth()

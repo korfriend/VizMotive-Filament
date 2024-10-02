@@ -1457,8 +1457,6 @@ namespace vzm
             renderer->render(view);
             renderer->endFrame();
         }
-
-        gEngine->flushAndWait();
 #endif
 
         for (auto& it : restore_billboard_tr)
