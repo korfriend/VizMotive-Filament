@@ -157,8 +157,8 @@ namespace vzm
         }
         return cc;
     }
-#define GET_CM(CAMRES, CM) VzCameraRes* CAMRES = gEngineApp->GetCameraRes(GetCameraVID()); if (CAMRES == nullptr) return;  CameraManipulator* CM = CAMRES->GetCameraManipulator();
-#define GET_CM_WARN(CAMRES, CM) GET_CM(CAMRES, CM) if (CM == nullptr) { backlog::post("camera manipulator is not set!", backlog::LogLevel::Warning); return; }
+#define GET_CM(CAMRES, CM, FAILRET) VzCameraRes* CAMRES = gEngineApp->GetCameraRes(GetCameraVID()); if (CAMRES == nullptr) return FAILRET;  CameraManipulator* CM = CAMRES->GetCameraManipulator();
+#define GET_CM_WARN(CAMRES, CM, FAILRET) GET_CM(CAMRES, CM, FAILRET) if (CM == nullptr) { backlog::post("camera manipulator is not set!", backlog::LogLevel::Warning); return FAILRET; }
     struct Bookmark
     {
         struct MapParams
@@ -186,32 +186,32 @@ namespace vzm
     };
     void VzCamera::Controller::UpdateControllerSettings()
     {
-        GET_CM(cam_res, cm);
+        GET_CM(cam_res, cm, );
         cam_res->NewCameraManipulator(*this);
     }
     void VzCamera::Controller::KeyDown(const Key key)
     {
-        GET_CM_WARN(cam_res, cm);
+        GET_CM_WARN(cam_res, cm, );
         cm->keyDown((CameraManipulator::Key)key);
     }
     void VzCamera::Controller::KeyUp(const Key key)
     {
-        GET_CM_WARN(cam_res, cm);
+        GET_CM_WARN(cam_res, cm, );
         cm->keyUp((CameraManipulator::Key)key);
     }
     void VzCamera::Controller::Scroll(const int x, const int y, const float scrollDelta)
     {
-        GET_CM_WARN(cam_res, cm);
+        GET_CM_WARN(cam_res, cm, );
         cm->scroll(x, cam_res->height - y, scrollDelta);
     }
     void VzCamera::Controller::GrabBegin(const int x, const int y, const bool strafe)
     {
-        GET_CM_WARN(cam_res, cm);
+        GET_CM_WARN(cam_res, cm, );
         cm->grabBegin(x, cam_res->height - y, strafe);
     }
     void VzCamera::Controller::GrabDrag(const int x, const int y)
     {
-        GET_CM_WARN(cam_res, cm);
+        GET_CM_WARN(cam_res, cm, );
         cm->grabUpdate(x, cam_res->height - y);
         if (mode == Mode::ORBIT)
         {
@@ -242,19 +242,94 @@ namespace vzm
     }
     void VzCamera::Controller::GrabEnd()
     {
-        GET_CM_WARN(cam_res, cm);
+        GET_CM_WARN(cam_res, cm, );
         cm->grabEnd();
     }
     void VzCamera::Controller::SetViewport(const int w, const int h)
     {
-        GET_CM_WARN(cam_res, cm);
+        GET_CM_WARN(cam_res, cm, );
         cam_res->width = w;
         cam_res->height = h;
         cm->setViewport(w, h);
     }
     void VzCamera::Controller::UpdateCamera(const float deltaTime)
     {
-        GET_CM_WARN(cam_res, cm);
+        GET_CM_WARN(cam_res, cm, );
         cam_res->UpdateCameraWithCM(deltaTime);
+    }
+    void VzCamera::Controller::SetOrbitPhi(const float phi) {
+        GET_CM_WARN(cam_res, cm, );
+        if (mode != Mode::ORBIT) return;
+        camutils::Bookmark<float> camutilsBookmark = cm->getCurrentBookmark();
+        Bookmark bookmark = *(Bookmark*) &camutilsBookmark;
+        bookmark.orbit.phi = phi;
+        cm->jumpToBookmark(*(camutils::Bookmark<float>*) & bookmark);
+    }
+    float VzCamera::Controller::GetOrbitPhi() {
+        GET_CM_WARN(cam_res, cm, 0.0f);
+        if (mode != Mode::ORBIT) return 0.0f;
+        camutils::Bookmark<float> camutilsBookmark = cm->getCurrentBookmark();
+        Bookmark bookmark = *(Bookmark*) &camutilsBookmark;
+        return bookmark.orbit.phi;
+    }
+    void VzCamera::Controller::SetOrbitTheta(const float theta) {
+        GET_CM_WARN(cam_res, cm, );
+        if (mode != Mode::ORBIT) return;
+        camutils::Bookmark<float> camutilsBookmark = cm->getCurrentBookmark();
+        Bookmark bookmark = *(Bookmark*) &camutilsBookmark;
+        bookmark.orbit.theta = theta;
+        cm->jumpToBookmark(*(camutils::Bookmark<float>*) & bookmark);
+    }
+    float VzCamera::Controller::GetOrbitTheta() {
+        GET_CM_WARN(cam_res, cm, 0.0f);
+        if (mode != Mode::ORBIT) return 0.0f;
+        camutils::Bookmark<float> camutilsBookmark = cm->getCurrentBookmark();
+        Bookmark bookmark = *(Bookmark*) &camutilsBookmark;
+        return bookmark.orbit.theta;
+    }
+    void VzCamera::Controller::SetOrbitDistance(const float distance) {
+        GET_CM_WARN(cam_res, cm, );
+        if (mode != Mode::ORBIT) return;
+        camutils::Bookmark<float> camutilsBookmark = cm->getCurrentBookmark();
+        Bookmark bookmark = *(Bookmark*) &camutilsBookmark;
+        bookmark.orbit.distance = distance;
+        cm->jumpToBookmark(*(camutils::Bookmark<float>*) & bookmark);
+    }
+    float VzCamera::Controller::GetOrbitDistance() {
+        GET_CM_WARN(cam_res, cm, 0.0f);
+        if (mode != Mode::ORBIT) return 0.0f;
+        camutils::Bookmark<float> camutilsBookmark = cm->getCurrentBookmark();
+        Bookmark bookmark = *(Bookmark*) &camutilsBookmark;
+        return bookmark.orbit.distance;
+    }
+    void VzCamera::Controller::SetFlightPitch(const float pitch) {
+        GET_CM_WARN(cam_res, cm, );
+        if (mode != Mode::FREE_FLIGHT) return;
+        camutils::Bookmark<float> camutilsBookmark = cm->getCurrentBookmark();
+        Bookmark bookmark = *(Bookmark*) &camutilsBookmark;
+        bookmark.flight.pitch = pitch;
+        cm->jumpToBookmark(*(camutils::Bookmark<float>*) & bookmark);
+    }
+    float VzCamera::Controller::GetFlightPitch() {
+        GET_CM_WARN(cam_res, cm, 0.0f);
+        if (mode != Mode::FREE_FLIGHT) return 0.0f;
+        camutils::Bookmark<float> camutilsBookmark = cm->getCurrentBookmark();
+        Bookmark bookmark = *(Bookmark*) &camutilsBookmark;
+        return bookmark.flight.pitch;
+    }
+    void VzCamera::Controller::SetFlightYaw(const float yaw) {
+        GET_CM_WARN(cam_res, cm, );
+        if (mode != Mode::FREE_FLIGHT) return;
+        camutils::Bookmark<float> camutilsBookmark = cm->getCurrentBookmark();
+        Bookmark bookmark = *(Bookmark*) &camutilsBookmark;
+        bookmark.flight.yaw = yaw;
+        cm->jumpToBookmark(*(camutils::Bookmark<float>*) & bookmark);
+    }
+    float VzCamera::Controller::GetFlightYaw() {
+        GET_CM_WARN(cam_res, cm, 0.0f);
+        if (mode != Mode::FREE_FLIGHT) return 0.0f;
+        camutils::Bookmark<float> camutilsBookmark = cm->getCurrentBookmark();
+        Bookmark bookmark = *(Bookmark*) &camutilsBookmark;
+        return bookmark.flight.yaw;
     }
 }

@@ -84,6 +84,18 @@ namespace vzm
             void GrabEnd();
             void SetViewport(const int w, const int h);
             void UpdateCamera(const float deltaTime); // this is for final sync to the camera
+
+            void SetOrbitPhi(const float phi);
+            float GetOrbitPhi();
+            void SetOrbitTheta(const float theta);
+            float GetOrbitTheta();
+            void SetOrbitDistance(const float distance);
+            float GetOrbitDistance();
+
+            void SetFlightPitch(const float pitch);
+            float GetFlightPitch();
+            void SetFlightYaw(const float yaw);
+            float GetFlightYaw();
         };
         Controller* GetController();              // this activates the camera manipulator
     };
