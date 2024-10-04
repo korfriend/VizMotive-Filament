@@ -385,6 +385,10 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             mi->SetParameter("baseColorFactor", vzm::UniformType::FLOAT3, &b_color);
             break;
         }
+        case 'C':
+            if (camera)
+                camera->IsControllerEnabled() ? camera->SetControllerEnabled(false) : camera->SetControllerEnabled(true);
+            break;
         default:
             break;
         }

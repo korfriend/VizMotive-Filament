@@ -1269,7 +1269,10 @@ namespace vzm
         }
 
         VzCameraRes* cam_res = gEngineApp->GetCameraRes(vidCam);
-        cam_res->UpdateCameraWithCM(render_path->deltaTime);
+        if (cam_res->cameraControllerEnabled)
+        {
+            cam_res->UpdateCameraWithCM(render_path->deltaTime);
+        }
 
         if (cam_res->FRAMECOUNT == 0)
         {

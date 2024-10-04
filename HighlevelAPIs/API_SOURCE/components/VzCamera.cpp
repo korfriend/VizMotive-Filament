@@ -157,6 +157,16 @@ namespace vzm
         }
         return cc;
     }
+    void VzCamera::SetControllerEnabled(bool enabled) {
+        VzCameraRes* cam_res = gEngineApp->GetCameraRes(GetVID());
+        if (cam_res == nullptr) return;
+        cam_res->cameraControllerEnabled = enabled;
+    }
+    bool VzCamera::IsControllerEnabled() {
+        VzCameraRes* cam_res = gEngineApp->GetCameraRes(GetVID());
+        if (cam_res == nullptr) return false;
+        return cam_res->cameraControllerEnabled;
+    }
 #define GET_CM(CAMRES, CM, FAILRET) VzCameraRes* CAMRES = gEngineApp->GetCameraRes(GetCameraVID()); if (CAMRES == nullptr) return FAILRET;  CameraManipulator* CM = CAMRES->GetCameraManipulator();
 #define GET_CM_WARN(CAMRES, CM, FAILRET) GET_CM(CAMRES, CM, FAILRET) if (CM == nullptr) { backlog::post("camera manipulator is not set!", backlog::LogLevel::Warning); return FAILRET; }
     struct Bookmark
@@ -192,26 +202,31 @@ namespace vzm
     void VzCamera::Controller::KeyDown(const Key key)
     {
         GET_CM_WARN(cam_res, cm, );
+        if (!cam_res->cameraControllerEnabled) return;
         cm->keyDown((CameraManipulator::Key)key);
     }
     void VzCamera::Controller::KeyUp(const Key key)
     {
         GET_CM_WARN(cam_res, cm, );
+        if (!cam_res->cameraControllerEnabled) return;
         cm->keyUp((CameraManipulator::Key)key);
     }
     void VzCamera::Controller::Scroll(const int x, const int y, const float scrollDelta)
     {
         GET_CM_WARN(cam_res, cm, );
+        if (!cam_res->cameraControllerEnabled) return;
         cm->scroll(x, cam_res->height - y, scrollDelta);
     }
     void VzCamera::Controller::GrabBegin(const int x, const int y, const bool strafe)
     {
         GET_CM_WARN(cam_res, cm, );
+        if (!cam_res->cameraControllerEnabled) return;
         cm->grabBegin(x, cam_res->height - y, strafe);
     }
     void VzCamera::Controller::GrabDrag(const int x, const int y)
     {
         GET_CM_WARN(cam_res, cm, );
+        if (!cam_res->cameraControllerEnabled) return;
         cm->grabUpdate(x, cam_res->height - y);
         if (mode == Mode::ORBIT)
         {
@@ -243,6 +258,7 @@ namespace vzm
     void VzCamera::Controller::GrabEnd()
     {
         GET_CM_WARN(cam_res, cm, );
+        if (!cam_res->cameraControllerEnabled) return;
         cm->grabEnd();
     }
     void VzCamera::Controller::SetViewport(const int w, const int h)

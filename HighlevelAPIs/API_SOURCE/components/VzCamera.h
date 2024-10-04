@@ -98,5 +98,8 @@ namespace vzm
             float GetFlightYaw();
         };
         Controller* GetController();              // this activates the camera manipulator
+
+        void SetControllerEnabled(bool enabled);
+        bool IsControllerEnabled();
     };
 }

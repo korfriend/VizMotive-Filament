@@ -153,6 +153,7 @@ namespace vzm
         float deltaTimeAccumulator = 0;
         size_t width = 0;
         size_t height = 0;
+        bool cameraControllerEnabled = false;
 
         void SetCamera(Camera* camera);
         Camera* GetCamera();

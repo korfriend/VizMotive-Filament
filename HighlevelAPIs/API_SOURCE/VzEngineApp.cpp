@@ -343,6 +343,8 @@ namespace vzm
             .groundPlane(camController_.groundPlane[0], camController_.groundPlane[1], camController_.groundPlane[2], camController_.groundPlane[3])
             .panning(camController_.panning)
             .build((camutils::Mode)camController_.mode);
+
+        cameraControllerEnabled = true;
     }
     VzCamera::Controller* VzCameraRes::GetCameraController()
     {
