@@ -226,7 +226,7 @@ namespace vzm
         VID GetScene();
 
         void GetPosition(float position[3]) const;
-        void GetRotation(float rotation[3], EULER_ORDER* order = nullptr) const;
+        void GetRotation(float rotation[3], EULER_ORDER* order = nullptr);
         void GetQuaternion(float quaternion[4]) const;
         void GetScale(float scale[3]) const;
 

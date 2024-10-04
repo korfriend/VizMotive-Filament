@@ -232,12 +232,19 @@ namespace vzm
     }
     void VzSceneComp::GetPosition(float position[3]) const
     {
+        COMP_TRANSFORM(tc, ett, ins, );
+        const math::mat4f& mat = tc.getTransform(ins);
+        decomposeMatrix(mat, (float3*) position_, (quatf*) quaternion_, (float3*) scale_);
         position[0] = position_[0];
         position[1] = position_[1];
         position[2] = position_[2];
     }
-    void VzSceneComp::GetRotation(float rotation[3], EULER_ORDER* order) const
+    void VzSceneComp::GetRotation(float rotation[3], EULER_ORDER* order)
     {
+        COMP_TRANSFORM(tc, ett, ins, );
+        const math::mat4f& mat = tc.getTransform(ins);
+        decomposeMatrix(mat, (float3*) position_, (quatf*) quaternion_, (float3*) scale_);
+        setEulerFromQuaternion();
         rotation[0] = rotation_[0];
         rotation[1] = rotation_[1];
         rotation[2] = rotation_[2];
@@ -248,6 +255,9 @@ namespace vzm
     }
     void VzSceneComp::GetQuaternion(float quaternion[4]) const
     {
+        COMP_TRANSFORM(tc, ett, ins, );
+        const math::mat4f& mat = tc.getTransform(ins);
+        decomposeMatrix(mat, (float3*) position_, (quatf*) quaternion_, (float3*) scale_);
         quaternion[0] = quaternion_[0];
         quaternion[1] = quaternion_[1];
         quaternion[2] = quaternion_[2];
@@ -255,6 +265,9 @@ namespace vzm
     }
     void VzSceneComp::GetScale(float scale[3]) const
     {
+        COMP_TRANSFORM(tc, ett, ins, );
+        const math::mat4f& mat = tc.getTransform(ins);
+        decomposeMatrix(mat, (float3*) position_, (quatf*) quaternion_, (float3*) scale_);
         scale[0] = scale_[0];
         scale[1] = scale_[1];
         scale[2] = scale_[2];
