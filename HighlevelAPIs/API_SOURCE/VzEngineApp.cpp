@@ -613,6 +613,11 @@ namespace vzm
             {{ halfSize,  halfSize, 0}, {1, 1}},
             {{-halfSize, -halfSize, 0}, {0, 0}},
             {{ halfSize, -halfSize, 0}, {1, 0}} };
+    constexpr Vertex kQuadVerticesFlipY[4] = {
+            {{-halfSize,  halfSize, 0}, {0, 0}},
+            {{ halfSize,  halfSize, 0}, {1, 0}},
+            {{-halfSize, -halfSize, 0}, {0, 1}},
+            {{ halfSize, -halfSize, 0}, {1, 1}}};
     static constexpr uint16_t kQuadIndices[6] = { 0, 2, 1, 1, 2, 3 };
 
     CompositorQuad::~CompositorQuad()
@@ -655,8 +660,11 @@ namespace vzm
             .attribute(VertexAttribute::POSITION, 0, VertexBuffer::AttributeType::FLOAT3, 0, sizeof(Vertex))
             .attribute(VertexAttribute::UV0, 0, VertexBuffer::AttributeType::FLOAT2, sizeof(float3), sizeof(Vertex))
             .build(*gEngine);
-        quadVb_->setBufferAt(*gEngine, 0,
-            VertexBuffer::BufferDescriptor(kQuadVertices, sizeof(Vertex) * 4, nullptr));
+        quadVb_->setBufferAt(
+            *gEngine, 0,
+            VertexBuffer::BufferDescriptor(
+                gEngine->getBackend() == Backend::VULKAN ? kQuadVerticesFlipY : kQuadVertices,
+                sizeof(Vertex) * 4, nullptr));
 
         // Create quad index buffer.
         quadIb_ = IndexBuffer::Builder()
