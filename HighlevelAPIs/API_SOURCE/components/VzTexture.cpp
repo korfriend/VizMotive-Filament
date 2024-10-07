@@ -73,7 +73,7 @@ namespace vzm
             std::ifstream inputStream(file_name, std::ios::binary);
 
             image::LinearImage* image = new LinearImage(ImageDecoder::decode(
-                inputStream, file_name, ImageDecoder::ColorSpace::SRGB));
+                inputStream, file_name, ImageDecoder::ColorSpace::LINEAR));
 
             if (!image->isValid()) {
                 backlog::post("The input image is invalid:: " + fileName, backlog::LogLevel::Error);
