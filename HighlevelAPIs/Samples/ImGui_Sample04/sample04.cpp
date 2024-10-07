@@ -192,7 +192,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     sprite_on_cam->SetTexture(texture1->GetVID());
     sprite_on_cam->SetPosition(posCS);
-    sprite_on_cam->SetVisibleLayerMask(0x3, 0x1);
+    //sprite_on_cam->SetVisibleLayerMask(0x3, 0x1);
+    sprite_on_cam->SetVisibleLayer(vzm::VzBaseActor::VISIBIE_LAYER::VISIBLE);
     //sprite->EnableBillboard(true);
     vzm::AppendSceneCompTo(sprite_on_cam, cam); // parent is cam
 
@@ -212,7 +213,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         .Build();
     glm::fvec3 sprite_p2 = glm::fvec3(-2.f, 1.f, -7.f);
     textsprite_on_cam->SetPosition(__FP sprite_p2);
-    textsprite_on_cam->SetVisibleLayerMask(0x3, 0x2);
+    //textsprite_on_cam->SetVisibleLayerMask(0x3, 0x2);
+    textsprite_on_cam->SetVisibleLayer(vzm::VzBaseActor::VISIBIE_LAYER::GUI);
     //sprite->EnableBillboard(true);
     vzm::AppendSceneCompTo(textsprite_on_cam, cam); // parent is cam
 

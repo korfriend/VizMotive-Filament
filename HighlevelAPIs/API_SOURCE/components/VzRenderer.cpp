@@ -1398,8 +1398,6 @@ namespace vzm
         render_path->viewSettings.fogSettings.fogColorTexture = fogColorTexture;
         render_path->ApplySettings();
 
-#define SELECTIVE_POSTPROCESSING 0
-#if SELECTIVE_POSTPROCESSING
         // 1. main rendering 
         view->setVisibleLayers(0x3, 0x1);
         view->setPostProcessingEnabled(true);
@@ -1447,6 +1445,8 @@ namespace vzm
         clear_options.discard = true;
         renderer->setClearOptions(clear_options);
 
+        Fence::waitAndDestroy(gEngine->createFence());
+
         filament::SwapChain* sc = render_path->GetSwapChain();
         if (renderer->beginFrame(sc)) {
             renderer->render(view_compositor);
@@ -1454,13 +1454,6 @@ namespace vzm
         }
 
         renderer->setClearOptions(restore_clear_options);
-#else
-        filament::SwapChain* sc = render_path->GetSwapChain();
-        if (renderer->beginFrame(sc)) {
-            renderer->render(view);
-            renderer->endFrame();
-        }
-#endif
 
         for (auto& it : restore_billboard_tr)
         {

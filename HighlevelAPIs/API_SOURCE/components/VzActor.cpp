@@ -9,6 +9,11 @@ extern vzm::VzEngineApp* gEngineApp;
 
 namespace vzm
 {
+    void VzBaseActor::SetVisibleLayer(const VISIBIE_LAYER layer) {
+        COMP_ACTOR(rcm, ett, ins, );
+        rcm.setLayerMask(ins, 0x3, (uint8_t) layer);
+        UpdateTimeStamp();
+    }
     uint8_t VzBaseActor::GetVisibleLayerMask() const
     {
         COMP_ACTOR(rcm, ett, ins, 0);
