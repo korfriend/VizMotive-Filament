@@ -111,7 +111,13 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
                           vzm::VzTexture* texture =
                               (vzm::VzTexture*)vzm::NewResComponent(
                                   vzm::RES_COMPONENT_TYPE::TEXTURE, "my image");
-                          texture->ReadImage(absImagePath);
+                          bool isLinear = true;
+                          if (name == "baseColorMap" || name == "emissiveMap" ||
+                              name == "sheenColorMap" ||
+                              name == "specularColorMap") {
+                            isLinear = false;
+                          }
+                          texture->ReadImage(absImagePath, isLinear);
                           mi->SetTexture(name, texture->GetVID());
                           int sequenceIndex =
                               parameters[j]["sequenceIndex"].GetInt();
@@ -155,7 +161,7 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
       }
 
       if (jsonNode.HasMember("priority")) {
-        actor->SetPriority(jsonNode["priority"].GetInt()); 
+        actor->SetPriority(jsonNode["priority"].GetInt());
       }
       break;
     }
@@ -516,7 +522,7 @@ void ExportMaterials(rapidjson::Value& jsonNode,
   rapidjson::Value children;
   children.SetObject();
   for (const VID childVID : childrenVIDs) {
-    //sprite, text component 무시
+    // sprite, text component 무시
     vzm::VzSceneComp* childComp =
         (vzm::VzSceneComp*)vzm::GetVzComponent(childVID);
     if (childComp->GetSceneCompType() > (vzm::SCENE_COMPONENT_TYPE)7) {
@@ -549,7 +555,7 @@ void ImportGlobalSettings(const rapidjson::Value& globalSettings,
       rapidjson::Value::ConstArray perSequenceTextureArray =
           sequenceTextureArray[i].GetArray();
       std::vector<vzm::VzTexture*> tempSequenceTextures;
-      for (int j = 0; j < perSequenceTextureArray.Size(); j++) {
+      for (int j = 0; j < (int)perSequenceTextureArray.Size(); j++) {
         vzm::VzTexture* texture = (vzm::VzTexture*)vzm::NewResComponent(
             vzm::RES_COMPONENT_TYPE::TEXTURE,
             perSequenceTextureArray[j].GetString());
@@ -1110,6 +1116,8 @@ void importSettings(VID root, std::string filePath, vzm::VzRenderer* renderer,
 #if _WIN32
   fopen_s(&fp, filePath.c_str(), "r");
 #elif __linux__
+  fp = fopen(filePath.c_str(), "r");
+#elif __ANDROID__
   fp = fopen(filePath.c_str(), "r");
 #endif
   if (fp == nullptr) return;

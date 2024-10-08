@@ -16,7 +16,7 @@ namespace vzm
 {
 #define ASYNCCHECK if (tex_res->isAsyncLocked) { backlog::post("Texture (" + GetName() + ") is under asynchronuous loading, so not allowed be to update!", backlog::LogLevel::Error); return false; }
 
-    bool VzTexture::ReadImage(const std::string& fileName, const bool generateMIPs)
+    bool VzTexture::ReadImage(const std::string& fileName, const bool isLinear, const bool generateMIPs)
     {
         // need 'safe check'
         // check if the texture is async texture
@@ -72,8 +72,10 @@ namespace vzm
         } else {
             std::ifstream inputStream(file_name, std::ios::binary);
 
-            image::LinearImage* image = new LinearImage(ImageDecoder::decode(
-                inputStream, file_name, ImageDecoder::ColorSpace::LINEAR));
+            ImageDecoder::ColorSpace colorSpace =
+                isLinear ? ImageDecoder::ColorSpace::LINEAR
+                         : ImageDecoder::ColorSpace::SRGB;
+            image::LinearImage* image = new LinearImage(ImageDecoder::decode(inputStream, file_name, colorSpace));
 
             if (!image->isValid()) {
                 backlog::post("The input image is invalid:: " + fileName, backlog::LogLevel::Error);
