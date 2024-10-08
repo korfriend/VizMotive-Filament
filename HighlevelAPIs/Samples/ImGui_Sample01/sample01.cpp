@@ -853,7 +853,7 @@ void setMouseScroll(GLFWwindow* window, double xOffset, double yOffset) {
   int xPos = static_cast<int>((x - left_editUIWidth) * xRatio);
   int yPos = static_cast<int>((y - toolbar_height) * yRatio);
   if (x > left_editUIWidth && x < left_editUIWidth + workspace_width &&
-      y > toolbar_height && y < workspace_height + toolbar_height) { 
+      y > toolbar_height && y < workspace_height + toolbar_height) {
     g_cam->GetController()->Scroll(xPos, yPos, -5.0f * (float)yOffset);
   }
 }
@@ -1192,7 +1192,8 @@ int main(int, char**) {
             }
             ImGui::SameLine(100);
             if (ImGui::RadioButton(
-                    "Free Flight", g_cam->GetController()->mode ==
+                    "Free Flight",
+                    g_cam->GetController()->mode ==
                         vzm::VzCamera::Controller::Mode::FREE_FLIGHT)) {
               if (g_cam->GetController()->mode !=
                   vzm::VzCamera::Controller::Mode::FREE_FLIGHT) {
@@ -1318,9 +1319,10 @@ int main(int, char**) {
           // delta time 만큼 시간 진행
           if (isPlay) {
             currentAnimPlayTime += (currentTime - prevTime) / 1000.0f;
-            if (currentAnimPlayTime > currentAnimTotalTime && currentAnimTotalTime > 0.0f) {
-              currentAnimPlayTime = fmod(currentAnimPlayTime,
-                                      currentAnimTotalTime);
+            if (currentAnimPlayTime > currentAnimTotalTime &&
+                currentAnimTotalTime > 0.0f) {
+              currentAnimPlayTime =
+                  fmod(currentAnimPlayTime, currentAnimTotalTime);
             }
 
             for (int i = 0; i < animationCount; i++) {
@@ -1472,8 +1474,8 @@ int main(int, char**) {
 
         ImGui::SetNextWindowSize(ImVec2(workspace_width, height),
                                  ImGuiCond_Once);
-        ImGui::SetNextWindowSizeConstraints(
-            ImVec2(workspace_width, height), ImVec2(workspace_width, height));
+        ImGui::SetNextWindowSizeConstraints(ImVec2(workspace_width, height),
+                                            ImVec2(workspace_width, height));
         ImGui::Begin("swapchain", nullptr,
                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove |
                          ImGuiWindowFlags_NoBringToFrontOnFocus);
@@ -1797,21 +1799,17 @@ int main(int, char**) {
                                 OpenFileDialog(L"Image\0*.png;*.jpg\0");
 
                             if (filePath.size() > 0) {
-                              // vzm::VzTexture* oldTexture =
-                              //     (vzm::VzTexture*)vzm::GetVzComponent(
-                              //         mi->GetTexture(pname));
-                              // oldTexture->get
                               std::string str_path;
                               str_path.assign(filePath.begin(), filePath.end());
-                              texture->ReadImage(str_path);
-                              /*texture->SetMagFilter(
-                                  vzm::SamplerMagFilter::NEAREST);
-                              texture->SetMinFilter(
-                                  vzm::SamplerMinFilter::NEAREST);
-                              texture->SetWrapModeS(
-                                  vzm::SamplerWrapMode::CLAMP_TO_EDGE);
-                              texture->SetWrapModeT(
-                                  vzm::SamplerWrapMode::CLAMP_TO_EDGE);*/
+                              bool isLinear = true;
+                              if (pname == "baseColorMap" ||
+                                  pname == "emissiveMap" ||
+                                  pname == "sheenColorMap" ||
+                                  pname == "specularColorMap") {
+                                isLinear = false;
+                              }
+
+                              texture->ReadImage(str_path, isLinear);
 
                               mi->SetTexture(pname, texture->GetVID());
                             }
@@ -1901,7 +1899,8 @@ int main(int, char**) {
                         break;
                       default:
                         std::cout
-                            << "warning from sample1: UniformType" << paramInfo.name
+                            << "warning from sample1: UniformType"
+                            << paramInfo.name
                             << ", TYPE: " << std::to_string((int)paramInfo.type)
                             << std::endl;
                         break;
@@ -3007,7 +3006,8 @@ int main(int, char**) {
                     vzm::VzTexture* texture =
                         (vzm::VzTexture*)vzm::NewResComponent(
                             vzm::RES_COMPONENT_TYPE::TEXTURE, str_path.c_str());
-                    texture->ReadImage(str_path);
+                    //TODO: 현재는 emissive, base 등(SRGB)로 가정 중
+                    texture->ReadImage(str_path, false);
 
                     sequenceImgVec.emplace_back(texture);
                   }
