@@ -240,7 +240,7 @@ private:
     FLOAT mScrollWheel = 0.0f;
     FLOAT mScrollPositionNormalized = 0.0f;
     FLOAT mMoveSpeed = 1.0f;
-    vec3 mEyeVelocity;
+    vec3 mEyeVelocity = vec3(0, 0, 0);
 };
 
 } // namespace camutils
