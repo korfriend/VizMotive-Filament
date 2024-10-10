@@ -7,7 +7,7 @@ namespace vzm
     {
         VzTexture(const VID vid, const std::string& originFrom)
             : VzResource(vid, originFrom, "VzTexture", RES_COMPONENT_TYPE::TEXTURE) {}
-        bool ReadImage(const std::string& fileName, const bool generateMIPs = true);
+        bool ReadImage(const std::string& fileName, const bool isLinear = true, const bool generateMIPs = true);
         std::string GetImageFileName();
 
         // sampler
