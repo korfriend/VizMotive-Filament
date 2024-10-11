@@ -132,7 +132,9 @@ namespace vzm
         for (auto vidActor : vidActors) {
             intersect(vidActor);
         }
-        std::ranges::sort(results, {}, &HitResult::distance);
+        std::sort(results.begin(), results.end(), [](const HitResult& lhs, const HitResult& rhs) {
+            return lhs.distance < rhs.distance;
+        });
         UpdateTimeStamp();
         return results.size();
     }
