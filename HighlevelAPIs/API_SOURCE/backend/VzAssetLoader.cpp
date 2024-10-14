@@ -836,6 +836,7 @@ namespace filament::gltfio {
             CopyFPrim2VFrim(outputPrim, &v_primitives[index]);
             v_primitives[index].ptype = ptype_vids[index];
         }
+        geo_res->Set(v_primitives);
         assert(mi_vids.size() == primitiveCount);
         VzActorRes* actor_res = gEngineApp->GetActorRes(entity.getId());
         actor_res->SetGeometry(vid_geo);
