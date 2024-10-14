@@ -633,6 +633,8 @@ namespace vzm
             gEngine->destroy(ett);
             });
 
+        gEngine->destroy(qaudRenderableEntity_);
+
         quadVb_ = nullptr;
         quadIb_ = nullptr;
         compositorMI_ = nullptr;
@@ -726,12 +728,12 @@ namespace vzm
 
         std::vector<Material::ParameterInfo> params(compositorMaterial_->getParameterCount());
         compositorMaterial_->getParameters(&params[0], params.size());
-        std::cout << "Compositor ====> Parameters" << std::endl;
-        for (auto& it : params)
-        {
-            std::cout << it.name << ", " << (uint8_t)it.type << std::endl;
-        }
-        std::cout << "           <==== Compositor " << std::endl;
+        //std::cout << "Compositor ====> Parameters" << std::endl;
+        //for (auto& it : params)
+        //{
+        //    std::cout << it.name << ", " << (uint8_t)it.type << std::endl;
+        //}
+        //std::cout << "           <==== Compositor " << std::endl;
 
         //MaterialKey m_key = {};
         //m_key.alphaMode = AlphaMode::BLEND;
@@ -750,16 +752,16 @@ namespace vzm
         cameraQuad_->setProjection(Camera::Projection::ORTHO, -1, 1, -1, 1, -10, 10);
         cameraQuad_->lookAt(double3(0, 0, 1), double3(0, 0, 0), double3(0, 1, 0));
 
-        Entity qaud_renderable_ett = EntityManager::get().create();
+        qaudRenderableEntity_ = EntityManager::get().create();
         RenderableManager::Builder(1).culling(false)
             .boundingBox({ {  -0.5, -0.5, -0.5 },
                           { 0.5, 0.5, 0.5 } })
             .geometry(0, RenderableManager::PrimitiveType::TRIANGLES, quadVb_, quadIb_)
             .material(0, compositorMI_)
-            .build(*gEngine, qaud_renderable_ett);
+            .build(*gEngine, qaudRenderableEntity_);
 
         sceneQuad_ = gEngine->createScene();
-        sceneQuad_->addEntity(qaud_renderable_ett);
+        sceneQuad_->addEntity(qaudRenderableEntity_);
     }
 }
 
@@ -1404,12 +1406,12 @@ namespace vzm
                     vid_m = gEngineApp->CreateMaterial("_PROVIDER_SPRITE_MATERIAL", material, nullptr, true)->GetVID();
                     std::vector<Material::ParameterInfo> params(material->getParameterCount());
                     material->getParameters(&params[0], params.size());
-                    std::cout << "_PROVIDER_SPRITE_MATERIAL ====> Parameters" << std::endl;
-                    for (auto& it : params)
-                    {
-                        std::cout << it.name << ", " << (uint8_t)it.type << std::endl;
-                    }
-                    std::cout << "           <==== _PROVIDER_SPRITE_MATERIAL " << std::endl;
+                    //std::cout << "_PROVIDER_SPRITE_MATERIAL ====> Parameters" << std::endl;
+                    //for (auto& it : params)
+                    //{
+                    //    std::cout << it.name << ", " << (uint8_t)it.type << std::endl;
+                    //}
+                    //std::cout << "           <==== _PROVIDER_SPRITE_MATERIAL " << std::endl;
                 }
             }
             else
@@ -1457,9 +1459,9 @@ namespace vzm
                     vid_m = gEngineApp->CreateMaterial("_BUILDER_TEXT_SPRITE_MATERIAL", material, nullptr, true)->GetVID();
                     std::vector<Material::ParameterInfo> params(material->getParameterCount());
                     material->getParameters(&params[0], params.size());
-                    for (auto& it : params) {
-                        std::cout << it.name << ", " << (uint8_t) it.type << std::endl;
-                    }
+                    //for (auto& it : params) {
+                    //    std::cout << it.name << ", " << (uint8_t) it.type << std::endl;
+                    //}
                 }
             }
 

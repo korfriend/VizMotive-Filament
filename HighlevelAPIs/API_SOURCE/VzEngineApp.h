@@ -337,6 +337,7 @@ namespace vzm
         MaterialInstance* compositorMI_ = nullptr;
         Camera* cameraQuad_ = nullptr;
         Scene* sceneQuad_ = nullptr;
+        utils::Entity qaudRenderableEntity_;
     public:
         CompositorQuad();
         ~CompositorQuad();
