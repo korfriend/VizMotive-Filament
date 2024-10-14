@@ -393,6 +393,8 @@ namespace filament::gltfio {
         // Now that all entities have been created, the instance can create the animator component.
         // Note that it may need to defer actual creation until external buffers are fully loaded.
         instance->createAnimator();
+        //instance->mAnimator
+        //instance->mAnimator = nullptr;
 
         fAsset->mInstances.push_back(instance);
 
