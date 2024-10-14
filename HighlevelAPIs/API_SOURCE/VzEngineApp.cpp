@@ -3,6 +3,7 @@
 #include "backend/VzAssetLoader.h"
 #include "backend/VzAssetExporter.h"
 #include "backend/VzMeshAssimp.h"
+#include "backend/VzAnimator.h"
 #include "VzNameComponents.hpp"
 
 #include "FIncludes.h"
@@ -498,6 +499,19 @@ namespace vzm
         }
     }
 #pragma endregion
+
+#pragma region // VzAniRes
+    VzAniRes::~VzAniRes()
+    {
+        if (assetOwner == nullptr && !isSystem)
+        {
+            if (animator)
+                delete animator;
+            animator = nullptr;
+            // check MI...
+        }
+    }
+#pragma endregion
 }
 
 #pragma region // VzFontRes
@@ -633,6 +647,8 @@ namespace vzm
             gEngine->destroy(ett);
             });
 
+        gEngine->destroy(qaudRenderableEntity_);
+
         quadVb_ = nullptr;
         quadIb_ = nullptr;
         compositorMI_ = nullptr;
@@ -750,16 +766,16 @@ namespace vzm
         cameraQuad_->setProjection(Camera::Projection::ORTHO, -1, 1, -1, 1, -10, 10);
         cameraQuad_->lookAt(double3(0, 0, 1), double3(0, 0, 0), double3(0, 1, 0));
 
-        Entity qaud_renderable_ett = EntityManager::get().create();
+        qaudRenderableEntity_ = EntityManager::get().create();
         RenderableManager::Builder(1).culling(false)
             .boundingBox({ {  -0.5, -0.5, -0.5 },
                           { 0.5, 0.5, 0.5 } })
             .geometry(0, RenderableManager::PrimitiveType::TRIANGLES, quadVb_, quadIb_)
             .material(0, compositorMI_)
-            .build(*gEngine, qaud_renderable_ett);
+            .build(*gEngine, qaudRenderableEntity_);
 
         sceneQuad_ = gEngine->createScene();
-        sceneQuad_->addEntity(qaud_renderable_ett);
+        sceneQuad_->addEntity(qaudRenderableEntity_);
     }
 }
 

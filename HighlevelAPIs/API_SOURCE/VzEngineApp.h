@@ -316,6 +316,24 @@ namespace vzm
 
         std::unordered_map<size_t, TextureVID> asyncTextures; // fasset.mTextures
     };
+    
+    namespace skm {
+        struct AnimatorImpl;
+    }
+    struct VzAniRes
+    {
+        bool isSystem = false;
+
+        // 'assetOwner' will be deprecated!
+        gltfio::FilamentAsset* assetOwner = nullptr; // has ownership
+
+        // move high-level VzAsset::Animator's parameters here
+        // TODO
+
+        skm::AnimatorImpl* animator = nullptr;
+        ~VzAniRes();
+    };
+
     struct VzSkeletonRes
     {
         std::unordered_map<BoneVID, std::string> bones;
@@ -337,6 +355,7 @@ namespace vzm
         MaterialInstance* compositorMI_ = nullptr;
         Camera* cameraQuad_ = nullptr;
         Scene* sceneQuad_ = nullptr;
+        utils::Entity qaudRenderableEntity_;
     public:
         CompositorQuad();
         ~CompositorQuad();
