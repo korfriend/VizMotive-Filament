@@ -1975,10 +1975,33 @@ int main(int, char**) {
                   }
                   break;
                 }
-                case vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT:
+                case vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT:{
+                  vzm::VzFocusedSpotLight* focusedSpotLight =
+                      (vzm::VzFocusedSpotLight*)lightComponent;
+                  float spotLightInnerCone =
+                      focusedSpotLight->GetSpotLightInnerCone();
+                  float spotLightOuterCone =
+                      focusedSpotLight->GetSpotLightOuterCone();
+                  float falloff = focusedSpotLight->GetFalloff();
+
+                  if (ImGui::InputFloat("Falloff", &falloff)) {
+                    focusedSpotLight->SetFalloff(falloff);
+                  }
+                  if (ImGui::InputFloat("Spot Light Inner Cone",
+                                        &spotLightInnerCone)) {
+                    focusedSpotLight->SetSpotLightCone(spotLightInnerCone,
+                                                spotLightOuterCone);
+                  }
+                  if (ImGui::InputFloat("Spot Light Outer Cone",
+                                        &spotLightOuterCone)) {
+                    focusedSpotLight->SetSpotLightCone(spotLightInnerCone,
+                                                spotLightOuterCone);
+                  }
+                  break;
+                }
                 case vzm::SCENE_COMPONENT_TYPE::LIGHT_SPOT: {
-                  vzm::VzBaseSpotLight* spotLight =
-                      (vzm::VzBaseSpotLight*)lightComponent;
+                  vzm::VzSpotLight* spotLight =
+                      (vzm::VzSpotLight*)lightComponent;
                   float spotLightInnerCone = spotLight->GetSpotLightInnerCone();
                   float spotLightOuterCone = spotLight->GetSpotLightOuterCone();
                   float falloff = spotLight->GetFalloff();
