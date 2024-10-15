@@ -23,7 +23,7 @@
 #include "savefileio.h"
 
 // 배포시 DEPLOY_VERSION 활성화
-//#define DEPLOY_VERSION
+// #define DEPLOY_VERSION
 
 // #define APP_USE_UNLIMITED_FRAME_RATE
 #ifdef _DEBUG
@@ -1707,51 +1707,32 @@ int main(int, char**) {
                   ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent();
             float position[3];
-            // float rotation[3];
             float quaternion[4];
             float scale[3];
             component->GetPosition(position);
-            // component->GetRotation(rotation);
             component->GetQuaternion(quaternion);
             component->GetScale(scale);
 
-            ImGui::Text("Position");
-            if (ImGui::InputFloat3("##Position", position)) {
+            if (ImGui::InputFloat3("Position", position)) {
               component->SetPosition(position);
             }
-            ImGui::Text("Rotation");
-            {
-              ImGui::BeginTabBar("rotTab");
-              if (ImGui::BeginTabItem("Euler")) {
-                if (rotIdx == 1) {
-                  component->GetRotation(g_rotation);
-                  g_rotation[0] *= 180.0f / VZ_PI;
-                  g_rotation[1] *= 180.0f / VZ_PI;
-                  g_rotation[2] *= 180.0f / VZ_PI;
-                }
-                rotIdx = 0;
-                ImGui::EndTabItem();
-              }
-              if (ImGui::BeginTabItem("Quaternion")) {
-                rotIdx = 1;
-                ImGui::EndTabItem();
-              }
-              ImGui::EndTabBar();
+            if (ImGui::InputFloat3("Rotation", g_rotation)) {
+              float rotation[3] = {g_rotation[0] * VZ_PI / 180.0f,
+                                   g_rotation[1] * VZ_PI / 180.0f,
+                                   g_rotation[2] * VZ_PI / 180.0f};
+              component->SetRotation(rotation);
             }
-            if (rotIdx == 0) {
-              if (ImGui::InputFloat3("##Euler", g_rotation)) {
-                float rotation[3] = {g_rotation[0] * VZ_PI / 180.0f,
-                                     g_rotation[1] * VZ_PI / 180.0f,
-                                     g_rotation[2] * VZ_PI / 180.0f};
-                component->SetRotation(rotation);
-              }
-            } else {
-              if (ImGui::InputFloat4("##Quaternion", quaternion)) {
-                component->SetQuaternion(quaternion);
-              }
+            ImVec4 inputBgColor = ImVec4(0.0f, 0.1f, 0.0f, 1.0f); 
+            ImVec4 inputTextColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_FrameBg,
+                                  inputBgColor);
+            ImGui::PushStyleColor(ImGuiCol_Text,
+                                  inputTextColor); 
+            if (ImGui::InputFloat4("Quaternion", quaternion, "%.3f", ImGuiInputTextFlags_ReadOnly)) {
             }
-            ImGui::Text("Scale");
-            if (ImGui::InputFloat3("##Scale", scale)) {
+            ImGui::PopStyleColor(2);
+
+            if (ImGui::InputFloat3("Scale", scale)) {
               component->SetScale(scale);
             }
             ImGui::Unindent();
@@ -2032,13 +2013,11 @@ int main(int, char**) {
                   if (ImGui::InputFloat("Falloff", &falloff)) {
                     focusedSpotLight->SetFalloff(falloff);
                   }
-                  if (ImGui::InputFloat("Inner Cone",
-                                        &spotLightInnerCone)) {
+                  if (ImGui::InputFloat("Inner Cone", &spotLightInnerCone)) {
                     focusedSpotLight->SetSpotLightCone(spotLightInnerCone,
                                                        spotLightOuterCone);
                   }
-                  if (ImGui::InputFloat("Outer Cone",
-                                        &spotLightOuterCone)) {
+                  if (ImGui::InputFloat("Outer Cone", &spotLightOuterCone)) {
                     focusedSpotLight->SetSpotLightCone(spotLightInnerCone,
                                                        spotLightOuterCone);
                   }
@@ -2054,13 +2033,11 @@ int main(int, char**) {
                   if (ImGui::InputFloat("Falloff", &falloff)) {
                     spotLight->SetFalloff(falloff);
                   }
-                  if (ImGui::InputFloat("Inner Cone",
-                                        &spotLightInnerCone)) {
+                  if (ImGui::InputFloat("Inner Cone", &spotLightInnerCone)) {
                     spotLight->SetSpotLightCone(spotLightInnerCone,
                                                 spotLightOuterCone);
                   }
-                  if (ImGui::InputFloat("Outer Cone",
-                                        &spotLightOuterCone)) {
+                  if (ImGui::InputFloat("Outer Cone", &spotLightOuterCone)) {
                     spotLight->SetSpotLightCone(spotLightInnerCone,
                                                 spotLightOuterCone);
                   }
@@ -3074,7 +3051,7 @@ int main(int, char**) {
                     vzm::VzTexture* texture =
                         (vzm::VzTexture*)vzm::NewResComponent(
                             vzm::RES_COMPONENT_TYPE::TEXTURE, str_path.c_str());
-                    //TODO: 현재는 emissive, base 등(SRGB)로 가정 중
+                    // TODO: 현재는 emissive, base 등(SRGB)로 가정 중
                     texture->ReadImage(str_path, false);
 
                     sequenceImgVec.emplace_back(texture);
