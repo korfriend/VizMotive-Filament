@@ -207,15 +207,21 @@ void ImportMaterials(const rapidjson::Value& jsonNode,
       } else if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_POINT) {
         vzm::VzPointLight* pointLight = (vzm::VzPointLight*)lightComponent;
         pointLight->SetFalloff(lightNode["falloff"].GetFloat());
-      } else if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_SPOT ||
-                 type == vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT) {
-        vzm::VzBaseSpotLight* spotLight = (vzm::VzBaseSpotLight*)lightComponent;
+      } else if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_SPOT) {
+        vzm::VzSpotLight* spotLight = (vzm::VzSpotLight*)lightComponent;
+
+        spotLight->SetFalloff(lightNode["falloff"].GetFloat());
+        spotLight->SetSpotLightCone(lightNode["spotLightInnerCone"].GetFloat(),
+                                    lightNode["spotLightOuterCone"].GetFloat());
+      } else if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT) {
+        vzm::VzFocusedSpotLight* spotLight =
+            (vzm::VzFocusedSpotLight*)lightComponent;
 
         spotLight->SetFalloff(lightNode["falloff"].GetFloat());
         spotLight->SetSpotLightCone(lightNode["spotLightInnerCone"].GetFloat(),
                                     lightNode["spotLightOuterCone"].GetFloat());
       }
-
+      
       lightComponent->SetShadowCaster(lightNode["shadowEnabled"].GetBool());
       vzm::VzBaseLight::ShadowOptions sOpts =
           *lightComponent->GetShadowOptions();
@@ -471,9 +477,16 @@ void ExportMaterials(rapidjson::Value& jsonNode,
         vzm::VzPointLight* pointLight = (vzm::VzPointLight*)lightComponent;
         lightSettings.AddMember("falloff", pointLight->GetFalloff(), allocator);
 
-      } else if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_SPOT ||
-                 type == vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT) {
-        vzm::VzBaseSpotLight* spotLight = (vzm::VzBaseSpotLight*)lightComponent;
+      } else if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_SPOT) {
+        vzm::VzSpotLight* spotLight = (vzm::VzSpotLight*)lightComponent;
+        lightSettings.AddMember("falloff", spotLight->GetFalloff(), allocator);
+        lightSettings.AddMember("spotLightInnerCone",
+                                spotLight->GetSpotLightInnerCone(), allocator);
+        lightSettings.AddMember("spotLightOuterCone",
+                                spotLight->GetSpotLightOuterCone(), allocator);
+      } else if (type == vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT) {
+        vzm::VzFocusedSpotLight* spotLight =
+            (vzm::VzFocusedSpotLight*)lightComponent;
         lightSettings.AddMember("falloff", spotLight->GetFalloff(), allocator);
         lightSettings.AddMember("spotLightInnerCone",
                                 spotLight->GetSpotLightInnerCone(), allocator);
