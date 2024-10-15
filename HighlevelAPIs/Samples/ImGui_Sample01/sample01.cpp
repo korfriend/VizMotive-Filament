@@ -1703,7 +1703,7 @@ int main(int, char**) {
             if (ImGui::InputFloat3("Rotation", rotation)) {
               component->SetRotation(rotation);
             }
-            if (ImGui::InputFloat4("Quaternion", quaternion)) {
+            if (ImGui::SliderFloat4("Quaternion", quaternion, -1.0f, 1.0f)) {
               component->SetQuaternion(quaternion);
             }
             if (ImGui::InputFloat3("Scale", scale)) {

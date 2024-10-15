@@ -292,10 +292,20 @@ namespace vzm
     }
     void VzSceneComp::SetQuaternion(const float quaternion[4])
     {
-        quaternion_[0] = quaternion[0];
-        quaternion_[1] = quaternion[1];
-        quaternion_[2] = quaternion[2];
-        quaternion_[3] = quaternion[3];
+        float len = sqrt(quaternion[0] * quaternion[0] + quaternion[1] * quaternion[1] +
+                         quaternion[2] * quaternion[2] + quaternion[3] * quaternion[3]);
+        if (len < std::numeric_limits<float>::epsilon()) {
+            quaternion_[0] = 0.0f;
+            quaternion_[1] = 0.0f;
+            quaternion_[2] = 0.0f;
+            quaternion_[3] = 1.0f;
+        } else {
+            float oneOverLen = 1.0f / len;
+            quaternion_[0] = quaternion[0] * oneOverLen;
+            quaternion_[1] = quaternion[1] * oneOverLen;
+            quaternion_[2] = quaternion[2] * oneOverLen;
+            quaternion_[3] = quaternion[3] * oneOverLen;
+        }
         setEulerFromQuaternion();
         UpdateMatrix();
         UpdateTimeStamp();
