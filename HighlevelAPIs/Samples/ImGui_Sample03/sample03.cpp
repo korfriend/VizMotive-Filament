@@ -252,12 +252,19 @@ int main(int, char**)
 // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    //VID vid_scene = vzm::GetFirstVidByName("my scene");
-    VID vid_renderer = vzm::GetFirstVidByName("my renderer");
-    VID vid_camera = vzm::GetFirstVidByName("my camera");
-    //vzm::VzScene* scene = (vzm::VzScene*)vzm::GetVzComponent(vid_scene);
-    vzm::VzRenderer* renderer = (vzm::VzRenderer*)vzm::GetVzComponent(vid_renderer);
-    vzm::VzCamera* camera = (vzm::VzCamera*)vzm::GetVzComponent(vid_camera);
+    vzm::VzRenderer* renderer = nullptr;
+    vzm::VzCamera* camera = nullptr;
+
+    if (vzm::IsEngineAvailable())
+    {
+        //VID vid_scene = vzm::GetFirstVidByName("my scene");
+        VID vid_renderer = vzm::GetFirstVidByName("my renderer");
+        VID vid_camera = vzm::GetFirstVidByName("my camera");
+        //vzm::VzScene* scene = (vzm::VzScene*)vzm::GetVzComponent(vid_scene);
+        renderer = (vzm::VzRenderer*)vzm::GetVzComponent(vid_renderer);
+        camera = (vzm::VzCamera*)vzm::GetVzComponent(vid_camera);
+    }
+
     vzm::VzCamera::Controller* cc = nullptr;
     bool is_valid = false;
     uint32_t w = 0, h = 0;

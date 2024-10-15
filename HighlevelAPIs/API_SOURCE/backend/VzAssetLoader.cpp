@@ -393,7 +393,9 @@ namespace filament::gltfio {
         // Now that all entities have been created, the instance can create the animator component.
         // Note that it may need to defer actual creation until external buffers are fully loaded.
         instance->createAnimator();
-        //instance->mAnimator
+        mAnimator = instance->mAnimator;
+
+        //instance->mAnimator = nullptr;
         //instance->mAnimator = nullptr;
 
         fAsset->mInstances.push_back(instance);
@@ -834,6 +836,7 @@ namespace filament::gltfio {
             CopyFPrim2VFrim(outputPrim, &v_primitives[index]);
             v_primitives[index].ptype = ptype_vids[index];
         }
+        geo_res->Set(v_primitives);
         assert(mi_vids.size() == primitiveCount);
         VzActorRes* actor_res = gEngineApp->GetActorRes(entity.getId());
         actor_res->SetGeometry(vid_geo);
