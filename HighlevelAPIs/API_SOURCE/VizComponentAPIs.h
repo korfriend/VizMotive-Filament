@@ -254,7 +254,6 @@ namespace vzm
 // enumerations
 namespace vzm
 {
-    // update this when a new version of filament wouldn't work with older materials
     static constexpr size_t MATERIAL_VERSION = 53;
 
     enum class UniformType : uint8_t {

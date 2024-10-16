@@ -98,7 +98,7 @@ namespace vzm
           uint16_t padding2;
         };
 
-        bool IsStandardMaterial() const; // custom (user material) or standard (filament-built-in material)
+        bool IsStandardMaterial() const;
 
         void SetLightingModel(const LightingModel model);
         LightingModel GetLightingModel() const;
