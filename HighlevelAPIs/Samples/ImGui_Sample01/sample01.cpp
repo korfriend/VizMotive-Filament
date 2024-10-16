@@ -23,7 +23,7 @@
 #include "savefileio.h"
 
 // 배포시 DEPLOY_VERSION 활성화
-//#define DEPLOY_VERSION
+// #define DEPLOY_VERSION
 
 // #define APP_USE_UNLIMITED_FRAME_RATE
 #ifdef _DEBUG
@@ -679,6 +679,10 @@ bool g_bPickMode = true;
 
 VID currentVID = -1;
 
+float g_rotation[3];
+// 0: euler, 1: quaternion
+int rotIdx = 0;
+
 std::unordered_map<VID, bool> castShadows;
 std::unordered_map<VID, bool> receiveShadows;
 std::unordered_map<VID, bool> screenSpaceContactShadows;
@@ -712,12 +716,26 @@ void resize(int width, int height) {
 }
 
 std::set<VID> pickedParents;
+
+void setCurrentVID(VID vid) {
+  currentVID = vid;
+  if (currentVID == -1) {
+    return;
+  }
+  vzm::VzSceneComp* currentComp =
+      (vzm::VzSceneComp*)vzm::GetVzComponent(currentVID);
+  currentComp->GetRotation(g_rotation);
+  g_rotation[0] *= 180.0f / VZ_PI;
+  g_rotation[1] *= 180.0f / VZ_PI;
+  g_rotation[2] *= 180.0f / VZ_PI;
+}
+
 void pickCallback(VID vid) {
   vzm::VzBaseComp* pickedComponent = vzm::GetVzComponent(vid);
   if (!pickedComponent) {
     return;
   }
-  currentVID = vid;
+  setCurrentVID(vid);
   vzm::VzSceneComp* currentComp = (vzm::VzSceneComp*)pickedComponent;
   while (currentComp) {
     pickedParents.insert(currentComp->GetVID());
@@ -885,7 +903,7 @@ void treeNode(VID id) {
 
   if (ImGui::TreeNodeEx((const void*)id, flags, "%s", name)) {
     if (ImGui::IsItemClicked()) {
-      currentVID = id;
+      setCurrentVID(id);
     }
     std::vector<VID> children = component->GetChildren();
     for (auto ce : children) {
@@ -894,7 +912,7 @@ void treeNode(VID id) {
     ImGui::TreePop();
   } else {
     if (ImGui::IsItemClicked()) {
-      currentVID = id;
+      setCurrentVID(id);
     }
   }
 };
@@ -1689,23 +1707,31 @@ int main(int, char**) {
                   ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent();
             float position[3];
-            float rotation[3];
             float quaternion[4];
             float scale[3];
             component->GetPosition(position);
-            component->GetRotation(rotation);
             component->GetQuaternion(quaternion);
             component->GetScale(scale);
 
             if (ImGui::InputFloat3("Position", position)) {
               component->SetPosition(position);
             }
-            if (ImGui::InputFloat3("Rotation", rotation)) {
+            if (ImGui::InputFloat3("Rotation", g_rotation)) {
+              float rotation[3] = {g_rotation[0] * VZ_PI / 180.0f,
+                                   g_rotation[1] * VZ_PI / 180.0f,
+                                   g_rotation[2] * VZ_PI / 180.0f};
               component->SetRotation(rotation);
             }
-            if (ImGui::SliderFloat4("Quaternion", quaternion, -1.0f, 1.0f)) {
-              component->SetQuaternion(quaternion);
+            ImVec4 inputBgColor = ImVec4(0.0f, 0.1f, 0.0f, 1.0f); 
+            ImVec4 inputTextColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_FrameBg,
+                                  inputBgColor);
+            ImGui::PushStyleColor(ImGuiCol_Text,
+                                  inputTextColor); 
+            if (ImGui::InputFloat4("Quaternion", quaternion, "%.3f", ImGuiInputTextFlags_ReadOnly)) {
             }
+            ImGui::PopStyleColor(2);
+
             if (ImGui::InputFloat3("Scale", scale)) {
               component->SetScale(scale);
             }
@@ -1975,7 +2001,7 @@ int main(int, char**) {
                   }
                   break;
                 }
-                case vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT:{
+                case vzm::SCENE_COMPONENT_TYPE::LIGHT_FOCUSED_SPOT: {
                   vzm::VzFocusedSpotLight* focusedSpotLight =
                       (vzm::VzFocusedSpotLight*)lightComponent;
                   float spotLightInnerCone =
@@ -1987,15 +2013,13 @@ int main(int, char**) {
                   if (ImGui::InputFloat("Falloff", &falloff)) {
                     focusedSpotLight->SetFalloff(falloff);
                   }
-                  if (ImGui::InputFloat("Spot Light Inner Cone",
-                                        &spotLightInnerCone)) {
+                  if (ImGui::InputFloat("Inner Cone", &spotLightInnerCone)) {
                     focusedSpotLight->SetSpotLightCone(spotLightInnerCone,
-                                                spotLightOuterCone);
+                                                       spotLightOuterCone);
                   }
-                  if (ImGui::InputFloat("Spot Light Outer Cone",
-                                        &spotLightOuterCone)) {
+                  if (ImGui::InputFloat("Outer Cone", &spotLightOuterCone)) {
                     focusedSpotLight->SetSpotLightCone(spotLightInnerCone,
-                                                spotLightOuterCone);
+                                                       spotLightOuterCone);
                   }
                   break;
                 }
@@ -2009,13 +2033,11 @@ int main(int, char**) {
                   if (ImGui::InputFloat("Falloff", &falloff)) {
                     spotLight->SetFalloff(falloff);
                   }
-                  if (ImGui::InputFloat("Spot Light Inner Cone",
-                                        &spotLightInnerCone)) {
+                  if (ImGui::InputFloat("Inner Cone", &spotLightInnerCone)) {
                     spotLight->SetSpotLightCone(spotLightInnerCone,
                                                 spotLightOuterCone);
                   }
-                  if (ImGui::InputFloat("Spot Light Outer Cone",
-                                        &spotLightOuterCone)) {
+                  if (ImGui::InputFloat("Outer Cone", &spotLightOuterCone)) {
                     spotLight->SetSpotLightCone(spotLightInnerCone,
                                                 spotLightOuterCone);
                   }
@@ -2171,7 +2193,7 @@ int main(int, char**) {
               type == vzm::SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR) {
             if (ImGui::Button("Remove")) {
               vzm::RemoveComponent(component->GetVID());
-              currentVID = -1;
+              setCurrentVID(-1);
             }
           }
 
@@ -3029,7 +3051,7 @@ int main(int, char**) {
                     vzm::VzTexture* texture =
                         (vzm::VzTexture*)vzm::NewResComponent(
                             vzm::RES_COMPONENT_TYPE::TEXTURE, str_path.c_str());
-                    //TODO: 현재는 emissive, base 등(SRGB)로 가정 중
+                    // TODO: 현재는 emissive, base 등(SRGB)로 가정 중
                     texture->ReadImage(str_path, false);
 
                     sequenceImgVec.emplace_back(texture);
