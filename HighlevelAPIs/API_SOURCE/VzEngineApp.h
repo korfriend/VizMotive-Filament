@@ -11,6 +11,7 @@
 
 #include "gltfio/MaterialProvider.h"
 #include "gltfio/FilamentAsset.h"
+#include "gltfio/FilamentInstance.h"
 #include "gltfio/ResourceLoader.h"
 
 #include <array>
@@ -28,6 +29,7 @@ using MaterialVID = VID;
 using TextureVID = VID;
 using MInstanceVID = VID;
 using AssetVID = VID;
+using AnimatorVID = VID;
 using SkeletonVID = VID;
 using BoneVID = VID;
 using FontVID = VID;
@@ -313,6 +315,7 @@ namespace vzm
         std::set<SkeletonVID> fromAssetSketetons;
 
         VzAsset::Animator animator = VzAsset::Animator(0);
+        AnimatorVID animatorVID = INVALID_VID;
 
         std::unordered_map<size_t, TextureVID> asyncTextures; // fasset.mTextures
     };
@@ -327,8 +330,18 @@ namespace vzm
         // 'assetOwner' will be deprecated!
         gltfio::FilamentAsset* assetOwner = nullptr; // has ownership
 
-        // move high-level VzAsset::Animator's parameters here
-        // TODO
+        std::set<size_t> activatedAnimations = {}; // if this becomes GetAnimationCount(), apply all.
+        size_t animationIndex = 0;
+        int crossFadeAnimationIndex = -1;
+        int crossFadePrevAnimationIndex = -1;
+        double crossFadeDurationSec = 1.0;
+        TimeStamp timer = {};
+        double elapsedTimeSec = 0.0;
+        double prevElapsedTimeSec = 0.0;
+        double fixedUpdateTime = 1. / 60.; // default is 60 fps
+        std::set<VID> associatedScenes;
+        VzAnimator::PlayMode playMode = VzAnimator::PlayMode::INIT_POSE;
+        bool resetAnimation = true;
 
         skm::AnimatorImpl* animator = nullptr;
         ~VzAniRes();
@@ -396,6 +409,7 @@ namespace vzm
 
         // GLTF Asset
         std::unordered_map<AssetVID, std::unique_ptr<VzAssetRes>> assetResMap_;
+        std::unordered_map<AnimatorVID, std::unique_ptr<VzAniRes>> aniResMap_;
         std::unordered_map<SkeletonVID, std::unique_ptr<VzSkeletonRes>> skeletonResMap_;
 
         std::unordered_map<VID, std::unique_ptr<VzBaseComp>> vzCompMap_;
@@ -409,6 +423,7 @@ namespace vzm
         VzScene* CreateScene(const std::string& name);
         VzRenderer* CreateRenderPath(const std::string& name);
         VzAsset* CreateAsset(const std::string& name);
+        VzAnimator* CreateAnimator(const std::string& name);
         VzSkeleton* CreateSkeleton(const std::string& name, const SkeletonVID vidExist = 0);
         size_t GetVidsByName(const std::string& name, std::vector<VID>& vids);
         VID GetFirstVidByName(const std::string& name);
@@ -430,6 +445,7 @@ namespace vzm
         std::unordered_map<AssetVID, std::unique_ptr<VzAssetRes>>* GetAssetResMap() {
             return &assetResMap_;
         }
+        VzAniRes* GetAniRes(const AnimatorVID vid);
         VzSkeletonRes* GetSkeletonRes(const SkeletonVID vid);
         AssetVID GetAssetOwner(VID vid);
 
