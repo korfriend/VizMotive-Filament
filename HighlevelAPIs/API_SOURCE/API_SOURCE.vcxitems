@@ -15,7 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)backend\resource_internal.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzAnimator.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzAnimatorImpl.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzAssetExporter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzAssetLoader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzConfig.h" />
@@ -23,6 +23,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzIBL.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzMeshAssimp.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)components\VzActor.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)components\VzAnimator.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)components\VzAsset.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)components\VzCamera.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)components\VzFont.h" />
@@ -47,7 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)backend\resource_internal.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzAnimator.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzAnimatorImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzAssetExporter.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzAssetLoader.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
@@ -59,6 +60,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzIBL.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzMeshAssimp.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)components\VzActor.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)components\VzAnimator.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)components\VzAsset.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)components\VzCamera.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)components\VzFont.cpp" />

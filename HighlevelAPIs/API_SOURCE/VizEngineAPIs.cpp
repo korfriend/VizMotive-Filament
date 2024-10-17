@@ -19,6 +19,7 @@
 #include <memory>
 
 //#include "FIncludes.h"
+#include "backend/VzAnimatorImpl.h"
 #include "backend/VzAssetLoader.h"
 #include "backend/VzAssetExporter.h"
 using namespace vzm;
@@ -759,6 +760,92 @@ namespace vzm
             backlog::post("Unable to start loading resources for " + filename, backlog::LogLevel::Error);
             return nullptr;
         }
+
+        auto createAnimator = [&]() {
+            VzAnimator* animator = gEngineApp->CreateAnimator("animator_" + assetName);
+            asset_res.animatorVID = animator->GetVID();
+            VzAniRes* ani_res = gEngineApp->GetAniRes(asset_res.animatorVID);
+            ani_res->assetOwner = asset;
+
+            assert(fasset->mInstances.size() > 0);
+            filament::gltfio::FFilamentInstance* instance = fasset->mInstances[0];
+
+            assert(fasset->mResourcesLoaded && fasset->mSourceAsset);
+            auto& impl = ani_res->animator;
+            impl = new skm::AnimatorImpl();
+            impl->animatorVID = animator->GetVID();
+
+            impl->skins.resize(instance->mSkins.size());
+            for (size_t i = 0, len = instance->mSkins.size(); i < len; ++i)
+            {
+                const FFilamentInstance::Skin& srcSkin = instance->mSkins[i];
+                skm::Skin& dstSkin = impl->skins[i];
+                dstSkin.targets = srcSkin.targets;
+                dstSkin.joints = srcSkin.joints;
+            }
+
+            impl->rootEntity = instance->mRoot;
+            impl->renderableManager = &fasset->mEngine->getRenderableManager();
+            impl->transformManager = &fasset->mEngine->getTransformManager();
+            impl->trsTransformManager = fasset->getTrsTransformManager();
+
+            const cgltf_data* srcAsset = fasset->mSourceAsset->hierarchy;
+            const cgltf_animation* srcAnims = srcAsset->animations;
+            for (cgltf_size i = 0, len = srcAsset->animations_count; i < len; ++i)
+            {
+                const cgltf_animation& anim = srcAnims[i];
+                if (!skm::validateAnimation(anim))
+                {
+                    backlog::post("Disabling animation due to validation failure.",
+                                  backlog::LogLevel::Warning);
+                    return;
+                }
+            }
+
+            // Loop over the glTF animation definitions.
+            impl->animations.resize(srcAsset->animations_count);
+            for (cgltf_size i = 0, len = srcAsset->animations_count; i < len; ++i)
+            {
+                const cgltf_animation& srcAnim = srcAnims[i];
+                skm::Animation& dstAnim = impl->animations[i];
+                dstAnim.duration = 0;
+                if (srcAnim.name)
+                {
+                    dstAnim.name = srcAnim.name;
+                }
+
+                // Import each glTF sampler into a custom data structure.
+                cgltf_animation_sampler* srcSamplers = srcAnim.samplers;
+                dstAnim.samplers.resize(srcAnim.samplers_count);
+                for (cgltf_size j = 0, nsamps = srcAnim.samplers_count; j < nsamps; ++j)
+                {
+                    const cgltf_animation_sampler& srcSampler = srcSamplers[j];
+                    skm::Sampler& dstSampler = dstAnim.samplers[j];
+                    skm::createSampler(srcSampler, dstSampler);
+                    if (dstSampler.times.size() > 1)
+                    {
+                        float maxtime = (--dstSampler.times.end())->first;
+                        dstAnim.duration = std::max(dstAnim.duration, maxtime);
+                    }
+                }
+
+                // Import each glTF channel into a custom data structure.
+                const cgltf_node* nodes = fasset->mSourceAsset->hierarchy->nodes;
+                if (instance)
+                {
+                    impl->addChannels(instance->mNodeMap, nodes, srcAnim, dstAnim);
+                }
+                else
+                {
+                    for (FFilamentInstance* instance : fasset->mInstances)
+                    {
+                        impl->addChannels(instance->mNodeMap, nodes, srcAnim, dstAnim);
+                    }
+                }
+            }
+        };
+
+        createAnimator();
 
         gEngineApp->activeAsyncAsset = vid_asset;
 

@@ -71,7 +71,10 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)generated\res\mat_internal.c">
       <Filter>generated\res</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzAnimator.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)components\VzAnimator.cpp">
+      <Filter>components</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzAnimatorImpl.cpp">
       <Filter>backend</Filter>
     </ClCompile>
   </ItemGroup>
@@ -161,7 +164,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)generated\res\mat_internal.h">
       <Filter>generated\res</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzAnimator.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)components\VzAnimator.h">
+      <Filter>components</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzAnimatorImpl.h">
       <Filter>backend</Filter>
     </ClInclude>
   </ItemGroup>

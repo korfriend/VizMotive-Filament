@@ -3,7 +3,7 @@
 #include "backend/VzAssetLoader.h"
 #include "backend/VzAssetExporter.h"
 #include "backend/VzMeshAssimp.h"
-#include "backend/VzAnimator.h"
+#include "backend/VzAnimatorImpl.h"
 #include "VzNameComponents.hpp"
 
 #include "FIncludes.h"
@@ -937,6 +937,18 @@ namespace vzm
         auto it = vzCompMap_.emplace(vid, std::make_unique<VzAsset>(vid, "CreateAsset"));
         return (VzAsset*)it.first->second.get();
     }
+    VzAnimator* VzEngineApp::CreateAnimator(const std::string& name)
+    {
+        auto& em = gEngine->getEntityManager();
+        auto& ncm = VzNameCompManager::Get();
+        utils::Entity ett = em.create();
+        AnimatorVID vid = ett.getId();
+        aniResMap_[vid] = std::make_unique<VzAniRes>();
+        ncm.CreateNameComp(ett, name);
+
+        auto it = vzCompMap_.emplace(vid, std::make_unique<VzAnimator>(vid, "CreateAnimator"));
+        return (VzAnimator*)it.first->second.get();
+    }
     VzSkeleton* VzEngineApp::CreateSkeleton(const std::string& name, const SkeletonVID vidExist)
     {
         auto& em = gEngine->getEntityManager();
@@ -1071,6 +1083,10 @@ namespace vzm
     VzAssetRes* VzEngineApp::GetAssetRes(const AssetVID vid)
     {
         GET_RES_PTR(assetResMap_);
+    }
+    VzAniRes* VzEngineApp::GetAniRes(const AnimatorVID vid)
+    {
+        GET_RES_PTR(aniResMap_);
     }
     VzSkeletonRes* VzEngineApp::GetSkeletonRes(const SkeletonVID vid)
     {
