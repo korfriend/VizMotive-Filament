@@ -21,7 +21,8 @@ material {
     requires : [ uv0 ],
     shadingModel : unlit,
     flipUV : false,
-    blending : transparent
+    blending : transparent,
+    doubleSided : true
 }
 
 fragment {
