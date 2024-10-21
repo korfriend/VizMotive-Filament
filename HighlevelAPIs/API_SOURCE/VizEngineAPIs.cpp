@@ -779,7 +779,7 @@ namespace vzm
             for (size_t i = 0, len = instance->mSkins.size(); i < len; ++i)
             {
                 const FFilamentInstance::Skin& srcSkin = instance->mSkins[i];
-                skm::Skin& dstSkin = impl->skins[i];
+                skm::Skeleton& dstSkin = impl->skins[i];
                 dstSkin.targets = srcSkin.targets;
                 dstSkin.joints = srcSkin.joints;
             }

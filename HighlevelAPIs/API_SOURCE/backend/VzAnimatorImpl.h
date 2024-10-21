@@ -30,7 +30,7 @@ namespace vzm::skm
     using SourceValues = vector<float>;
     using BoneVector = vector<mat4f>;
 
-    struct Skin
+    struct Skeleton
     {
         // The list of entities whose transform components define the joints of the skin.
         utils::FixedCapacityVector<utils::Entity> joints;
@@ -38,6 +38,9 @@ namespace vzm::skm
         // The set of all entities that are influenced by this skin.
         // This is initially derived from the glTF, but users can dynamically add or remove targets.
         tsl::robin_set<utils::Entity, utils::Entity::Hasher> targets;
+
+        utils::CString name;
+        utils::FixedCapacityVector<math::mat4f> inverseBindMatrices;
     };
 
     struct Sampler
@@ -69,24 +72,32 @@ namespace vzm::skm
     {
         float duration;
         std::string name;
-        vector<Sampler> samplers;
-        vector<Channel> channels;
+        vector<Sampler> samplers;   // bones
+        vector<Channel> channels;   // bones...156?
+        vector<float> weights;
+
+        Entity skeletonEntity;
     };
+
+    Animation skm_walk; // skm has 10 joints and 20 key frames (only TR channels)
 
     struct AnimatorImpl
     {
-        vector<Animation> animations;
-        BoneVector boneMatrices;
+        std::map<utils::Entity, Animation> mapAnimations;
+        std::map<utils::Entity, Skeleton> mapSkeletons;
+
+        //BoneVector boneMatrices;  // ==> renderable, VzActorRes
+
         //FFilamentAsset const* asset = nullptr;
         //FFilamentInstance* instance = nullptr;
-        AnimatorVID animatorVID = INVALID_VID; // TODO: SkeletonVID?
-        std::vector<Skin> skins;
-        Entity rootEntity;
-        RenderableManager* renderableManager;
-        TransformManager* transformManager;
-        TrsTransformManager* trsTransformManager;
-        vector<float> weights;
+        //AnimatorVID animatorVID = INVALID_VID; // TODO: SkeletonVID?
+        //std::vector<Skeleton> skins; ==> mapSkeletons
+        //Entity rootEntity;
+        //vector<float> weights;
         FixedCapacityVector<mat4f> crossFade;
+
+
+
         //void addChannels(const FixedCapacityVector<Entity>& nodeMap, const cgltf_animation& srcAnim,
         //    Animation& dst);
         void addChannels(const FixedCapacityVector<Entity>& nodeMap, const cgltf_node* nodes, const cgltf_animation& srcAnim, Animation& dst);
@@ -96,8 +107,8 @@ namespace vzm::skm
 
         //void resetBoneMatrices(FFilamentInstance* instance);
         //void updateBoneMatrices(FFilamentInstance* instance);
-        void resetBoneMatrices(std::vector<Skin>& skins);
-        void updateBoneMatrices(std::vector<Skin>& skins);
+        void resetBoneMatrices(std::vector<Skeleton>& skins);
+        void updateBoneMatrices(std::vector<Skeleton>& skins);
     };
 
     void createSampler(const cgltf_animation_sampler& src, Sampler& dst);

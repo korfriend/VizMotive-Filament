@@ -512,6 +512,16 @@ namespace vzm
         }
     }
 #pragma endregion
+
+    
+#pragma region // VzAniRes
+    VzSkeletonRes::~VzSkeletonRes()
+    {
+        if (skeleton)
+            delete skeleton;
+        skeleton = nullptr;
+    }
+#pragma endregion
 }
 
 #pragma region // VzFontRes

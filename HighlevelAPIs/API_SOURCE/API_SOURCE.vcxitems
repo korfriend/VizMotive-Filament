@@ -15,6 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)backend\resource_internal.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzAnimationComponents.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzAnimatorImpl.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzAssetExporter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzAssetLoader.h" />
@@ -22,6 +23,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzCube.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzIBL.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzMeshAssimp.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzSkeletonComponents.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)components\VzActor.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)components\VzAnimator.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)components\VzAsset.h" />
@@ -48,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)backend\resource_internal.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzAnimationComponents.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzAnimatorImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzAssetExporter.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzAssetLoader.cpp">
@@ -59,6 +62,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzCube.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzIBL.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzMeshAssimp.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzSkeletonComponents.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)components\VzActor.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)components\VzAnimator.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)components\VzAsset.cpp" />

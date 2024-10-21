@@ -335,7 +335,7 @@ namespace vzm::skm
         recursiveFn(root, 0, recursiveFn);
     }
 
-    void AnimatorImpl::resetBoneMatrices(std::vector<Skin>& skins)
+    void AnimatorImpl::resetBoneMatrices(std::vector<Skeleton>& skins)
     {
         for (const auto& skin : skins)
         {
@@ -356,7 +356,7 @@ namespace vzm::skm
         }
     }
 
-    void AnimatorImpl::updateBoneMatrices(std::vector<Skin>& skins)
+    void AnimatorImpl::updateBoneMatrices(std::vector<Skeleton>& skins)
     {
         VzAniRes* ani_res = gEngineApp->GetAniRes(animatorVID);
         if (!ani_res)

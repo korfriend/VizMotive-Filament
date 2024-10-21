@@ -129,22 +129,9 @@ namespace filament::gltfio {
         Entry mDefaultMaterialInstanceWithVertexColor = {};
     };
 
-    struct VzAssetLoader : public AssetLoader {
-        VzAssetLoader(AssetConfiguration const& config) :
-            mEntityManager(config.entities ? *config.entities : EntityManager::get()),
-            mRenderableManager(config.engine->getRenderableManager()),
-            mNameManager((vzm::VzNameCompManager*)config.names),
-            mTransformManager(config.engine->getTransformManager()),
-            mMaterials(*config.materials),
-            mEngine(*config.engine),
-            mDefaultNodeName(config.defaultNodeName) {
-            if (config.ext) {
-                FILAMENT_CHECK_PRECONDITION(AssetConfigurationExtended::isSupported())
-                    << "Extend asset loading is not supported on this platform";
-                mLoaderExtended = std::make_unique<AssetLoaderExtended>(
-                    *config.ext, config.engine, mMaterials);
-            }
-        }
+    struct VzAssetLoader : public AssetLoader 
+    {
+        VzAssetLoader(AssetConfiguration const& config);
 
         std::string mAssetName = "";
 
@@ -212,14 +199,15 @@ namespace filament::gltfio {
             cgltf_texture_view* metallicRoughnessTexture) const;
 
     public:
+        FNodeManager mNodeManager;
+
         EntityManager& mEntityManager;
         RenderableManager& mRenderableManager;
         vzm::VzNameCompManager* const mNameManager;
         TransformManager& mTransformManager;
         MaterialProvider& mMaterials;
         Engine& mEngine;
-        FNodeManager mNodeManager;
-        FTrsTransformManager mTrsTransformManager;
+        FTrsTransformManager& mTrsTransformManager;
 
         // Transient state used only for the asset currently being loaded:
         const char* mDefaultNodeName;

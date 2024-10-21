@@ -173,6 +173,8 @@ namespace vzm
         std::vector<std::vector<MInstanceVID>> vidMIVariants_;
 
     public:
+        std::vector<mat4f> boneMatrices;
+
         bool isSprite = false;
         bool isBillboard = false;
         bool culling = true;
@@ -321,7 +323,8 @@ namespace vzm
     };
     
     namespace skm {
-        struct AnimatorImpl;
+        struct Skeleton;
+        struct Animation;
     }
     struct VzAniRes
     {
@@ -329,29 +332,31 @@ namespace vzm
 
         // 'assetOwner' will be deprecated!
         gltfio::FilamentAsset* assetOwner = nullptr; // has ownership
+        
+        skm::Animation* animation = nullptr;
 
-        std::set<size_t> activatedAnimations = {}; // if this becomes GetAnimationCount(), apply all.
-        size_t animationIndex = 0;
-        int crossFadeAnimationIndex = -1;
-        int crossFadePrevAnimationIndex = -1;
-        double crossFadeDurationSec = 1.0;
-        TimeStamp timer = {};
-        double elapsedTimeSec = 0.0;
-        double prevElapsedTimeSec = 0.0;
-        double fixedUpdateTime = 1. / 60.; // default is 60 fps
-        std::set<VID> associatedScenes;
-        VzAnimator::PlayMode playMode = VzAnimator::PlayMode::INIT_POSE;
-        bool resetAnimation = true;
-
-        skm::AnimatorImpl* animator = nullptr;
+        //std::set<size_t> activatedAnimations = {}; // if this becomes GetAnimationCount(), apply all.
+        //size_t animationIndex = 0;
+        //int crossFadeAnimationIndex = -1;
+        //int crossFadePrevAnimationIndex = -1;
+        //double crossFadeDurationSec = 1.0;
+        //TimeStamp timer = {};
+        //double elapsedTimeSec = 0.0;
+        //double prevElapsedTimeSec = 0.0;
+        //double fixedUpdateTime = 1. / 60.; // default is 60 fps
+        //std::set<VID> associatedScenes;
+        //VzAnimator::PlayMode playMode = VzAnimator::PlayMode::INIT_POSE;
+        //bool resetAnimation = true;
+        //
+        //skm::AnimatorImpl* animator = nullptr;
         ~VzAniRes();
     };
 
     struct VzSkeletonRes
     {
-        std::unordered_map<BoneVID, std::string> bones;
+        skm::Skeleton* skeleton = nullptr;
+        ~VzSkeletonRes();
     };
-
 }
 
 namespace vzm
@@ -417,8 +422,11 @@ namespace vzm
         bool removeScene(SceneVID vidScene);
 
         CompositorQuad* compositor_ = nullptr;
+        FTrsTransformManager mTrsTransformManager;
 
     public:
+        FTrsTransformManager& GetTrsTransformManager() { return mTrsTransformManager; }
+
         // Runtime can create a new entity with this
         VzScene* CreateScene(const std::string& name);
         VzRenderer* CreateRenderPath(const std::string& name);

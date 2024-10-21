@@ -209,6 +209,26 @@ namespace filament::gltfio {
         mi_res->texMap[miMapName] = tex_vid;
     };
 
+    
+    VzAssetLoader::VzAssetLoader(AssetConfiguration const& config) :
+        mEntityManager(config.entities ? *config.entities : EntityManager::get()),
+        mRenderableManager(config.engine->getRenderableManager()),
+        mNameManager((vzm::VzNameCompManager*)config.names),
+        mTransformManager(config.engine->getTransformManager()),
+        mTrsTransformManager(gEngineApp->GetTrsTransformManager()),
+        mMaterials(*config.materials),
+        mEngine(*config.engine),
+        mDefaultNodeName(config.defaultNodeName)
+    {
+        if (config.ext)
+        {
+            FILAMENT_CHECK_PRECONDITION(AssetConfigurationExtended::isSupported())
+                << "Extend asset loading is not supported on this platform";
+            mLoaderExtended = std::make_unique<AssetLoaderExtended>(
+                *config.ext, config.engine, mMaterials);
+        }
+    }
+
     FFilamentAsset* VzAssetLoader::createAsset(const uint8_t* bytes, uint32_t byteCount) {
         FilamentInstance* instances;
         return createInstancedAsset(bytes, byteCount, &instances, 1);
