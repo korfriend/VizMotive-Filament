@@ -328,27 +328,13 @@ namespace vzm
     }
     struct VzAniRes
     {
-        bool isSystem = false;
+        bool isPlaying = false;
+        bool isReversing = false;
+        float currentTime = 0.0f;
+        float playRate = 1.0f;
+        VzAnimation::LoopMode loopMode = VzAnimation::LoopMode::LOOP;
 
-        // 'assetOwner' will be deprecated!
-        gltfio::FilamentAsset* assetOwner = nullptr; // has ownership
-        
         skm::Animation* animation = nullptr;
-
-        //std::set<size_t> activatedAnimations = {}; // if this becomes GetAnimationCount(), apply all.
-        //size_t animationIndex = 0;
-        //int crossFadeAnimationIndex = -1;
-        //int crossFadePrevAnimationIndex = -1;
-        //double crossFadeDurationSec = 1.0;
-        //TimeStamp timer = {};
-        //double elapsedTimeSec = 0.0;
-        //double prevElapsedTimeSec = 0.0;
-        //double fixedUpdateTime = 1. / 60.; // default is 60 fps
-        //std::set<VID> associatedScenes;
-        //VzAnimator::PlayMode playMode = VzAnimator::PlayMode::INIT_POSE;
-        //bool resetAnimation = true;
-        //
-        //skm::AnimatorImpl* animator = nullptr;
         ~VzAniRes();
     };
 
