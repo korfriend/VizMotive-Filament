@@ -100,13 +100,13 @@ namespace vzm
 
         return false;
     }
-
+#if 0
     VID VzAsset::GetAnimatorVID()
     {
         COMP_ASSET(asset_res, INVALID_VID);
         return asset_res->animatorVID;
     }
-
+#endif
     size_t VzAsset::Animator::GetAnimationCount()
     {
         COMP_ASSET_ANI_INST_FANI(asset_res, finst, fani, 0);

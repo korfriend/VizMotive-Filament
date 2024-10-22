@@ -23,7 +23,7 @@ namespace vzm
         VzBaseComp(vid, originFrom, "VzAnimator")
     {
     }
-
+#if 0
     size_t VzAnimator::AddPlayScene(const VID vidScene) const
     {
         COMP_ANI(ani_res, 0)
@@ -303,5 +303,5 @@ namespace vzm
         }
         impl->updateBoneMatrices(impl->skins);
     }
-
+#endif
 }

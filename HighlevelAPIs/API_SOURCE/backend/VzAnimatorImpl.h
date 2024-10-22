@@ -79,7 +79,7 @@ namespace vzm::skm
         Entity skeletonEntity;
     };
 
-    Animation skm_walk; // skm has 10 joints and 20 key frames (only TR channels)
+    //Animation skm_walk; // skm has 10 joints and 20 key frames (only TR channels)
 
     struct AnimatorImpl
     {

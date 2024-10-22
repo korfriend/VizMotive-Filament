@@ -121,7 +121,7 @@ namespace vzm::skm
         }
         return true;
     }
-
+#if 0
     void AnimatorImpl::addChannels(const FixedCapacityVector<Entity>& nodeMap, const cgltf_node* nodes, const cgltf_animation& srcAnim, Animation& dst)
     {
         const cgltf_animation_channel* srcChannels = srcAnim.channels;
@@ -403,5 +403,5 @@ namespace vzm::skm
             }
         }
     }
-
+#endif
 } // namespace vzm::skm

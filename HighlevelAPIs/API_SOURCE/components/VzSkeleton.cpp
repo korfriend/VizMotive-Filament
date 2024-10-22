@@ -7,6 +7,7 @@ extern vzm::VzEngineApp* gEngineApp;
 
 namespace vzm
 {
+#if 0
 #define COMP_SKELETON(COMP, RESMAP, FAILRET)  auto it = RESMAP.find(GetVID()); if (it == RESMAP.end()) return FAILRET; VzAssetRes* COMP = it->second.get();
     std::vector<VID> VzSkeleton::GetBones()
     {
@@ -46,4 +47,5 @@ namespace vzm
     {
         assert(0 && "to do");
     }
+#endif
 }

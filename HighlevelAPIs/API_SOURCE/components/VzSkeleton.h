@@ -7,6 +7,7 @@ namespace vzm
     {
         VzSkeleton(const VID vid, const std::string& originFrom)
             : VzBaseComp(vid, originFrom, "VzSkeleton") {}
+#if 0
         using BoneVID = VID;
         // componentVID refers to the root bone
         std::vector<BoneVID> GetBones(); // including this
@@ -17,5 +18,6 @@ namespace vzm
         void UpdateBoneMatrices();
 
         // future work... skinning...
+#endif
     };
 }

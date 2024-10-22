@@ -725,7 +725,7 @@ namespace vzm
         {
             asset_res.rootVIDs.push_back(instance->mRoot.getId());
         }
-
+#if 0
         for (auto& it : asset_loader->mSkeltonRootMap)
         {
             asset_res.skeletons.push_back(it.first);
@@ -747,6 +747,7 @@ namespace vzm
             }
             //asset_res.assetOwnershipComponents.insert(it.first); // already involved
         }
+#endif
 
         ResourceConfiguration configuration = {};
         configuration.engine = gEngine;
@@ -760,7 +761,7 @@ namespace vzm
             backlog::post("Unable to start loading resources for " + filename, backlog::LogLevel::Error);
             return nullptr;
         }
-
+#if 0
         auto createAnimator = [&]() {
             VzAnimator* animator = gEngineApp->CreateAnimator("animator_" + assetName);
             asset_res.animatorVID = animator->GetVID();
@@ -846,7 +847,7 @@ namespace vzm
         };
 
         createAnimator();
-
+#endif
         gEngineApp->activeAsyncAsset = vid_asset;
 
         //auto& rcm = gEngine->getRenderableManager();

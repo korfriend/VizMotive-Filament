@@ -215,7 +215,7 @@ namespace filament::gltfio {
         mRenderableManager(config.engine->getRenderableManager()),
         mNameManager((vzm::VzNameCompManager*)config.names),
         mTransformManager(config.engine->getTransformManager()),
-        mTrsTransformManager(gEngineApp->GetTrsTransformManager()),
+        mTrsTransformManager(downcast(gEngineApp->GetTrsTransformManager())),
         mMaterials(*config.materials),
         mEngine(*config.engine),
         mDefaultNodeName(config.defaultNodeName)

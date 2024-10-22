@@ -218,7 +218,7 @@ namespace filament::gltfio {
         // Weak reference to the largest dummy buffer so far in the current loading phase.
         BufferObject* mDummyBufferObject = nullptr;
 
-        AnimatorVID mAnimatorVID = INVALID_VID;
+        //AnimatorVID mAnimatorVID = INVALID_VID;
         std::unordered_map<const cgltf_mesh*, GeometryVID> mGeometryMap;
         std::unordered_map<const Material*, MaterialVID> mMaterialMap;
         std::unordered_map<const MaterialInstance*, MInstanceVID> mMIMap;

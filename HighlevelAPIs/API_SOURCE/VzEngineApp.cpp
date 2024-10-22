@@ -503,13 +503,9 @@ namespace vzm
 #pragma region // VzAniRes
     VzAniRes::~VzAniRes()
     {
-        if (assetOwner == nullptr && !isSystem)
-        {
-            if (animator)
-                delete animator;
-            animator = nullptr;
-            // check MI...
-        }
+        if (animation)
+            delete animation;
+        animation = nullptr;
     }
 #pragma endregion
 
@@ -800,6 +796,8 @@ namespace vzm
         gltfio::TextureProvider* stbDecoder = nullptr;
         gltfio::TextureProvider* ktxDecoder = nullptr;
 
+        gltfio::FTrsTransformManager trsTransformManager;
+
         void Destory()
         {
             if (resourceLoader) {
@@ -907,6 +905,11 @@ namespace vzm
         return true;
     }
 
+    gltfio::TrsTransformManager& VzEngineApp::GetTrsTransformManager()
+    {
+        return vGltfIo.trsTransformManager;
+    }
+
     // Runtime can create a new entity with this
     VzScene* VzEngineApp::CreateScene(const std::string& name)
     {
@@ -947,17 +950,18 @@ namespace vzm
         auto it = vzCompMap_.emplace(vid, std::make_unique<VzAsset>(vid, "CreateAsset"));
         return (VzAsset*)it.first->second.get();
     }
-    VzAnimator* VzEngineApp::CreateAnimator(const std::string& name)
+    VzAnimation* VzEngineApp::CreateAnimation(const std::string& name)
     {
         auto& em = gEngine->getEntityManager();
         auto& ncm = VzNameCompManager::Get();
         utils::Entity ett = em.create();
-        AnimatorVID vid = ett.getId();
+        AnimationVID vid = ett.getId();
         aniResMap_[vid] = std::make_unique<VzAniRes>();
         ncm.CreateNameComp(ett, name);
 
-        auto it = vzCompMap_.emplace(vid, std::make_unique<VzAnimator>(vid, "CreateAnimator"));
-        return (VzAnimator*)it.first->second.get();
+        auto it = vzCompMap_.emplace(vid, std::make_unique<VzAnimation>(vid, "CreateAnimation"));
+        return (VzAnimation*)it.first->second.get();
+        return nullptr;
     }
     VzSkeleton* VzEngineApp::CreateSkeleton(const std::string& name, const SkeletonVID vidExist)
     {
@@ -1094,7 +1098,7 @@ namespace vzm
     {
         GET_RES_PTR(assetResMap_);
     }
-    VzAniRes* VzEngineApp::GetAniRes(const AnimatorVID vid)
+    VzAniRes* VzEngineApp::GetAniRes(const AnimationVID vid)
     {
         GET_RES_PTR(aniResMap_);
     }

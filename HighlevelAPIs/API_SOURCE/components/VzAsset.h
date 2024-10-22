@@ -16,9 +16,9 @@ namespace vzm
         size_t GetComponents(std::vector<VID>& components);
         bool IsAssetOwned(const VID vid, std::string* VZ_NULLABLE typeName = nullptr);
         bool IsAssetOwnedComp(const VzBaseComp* comp, std::string* VZ_NULLABLE typeName = nullptr) { return IsAssetOwned(comp->GetVID(), typeName); }
-
+#if 0
         VID GetAnimatorVID();
-
+#endif
         // Animator //
         struct API_EXPORT Animator{
         public:
