@@ -1465,7 +1465,9 @@ namespace vzm
 
         if (gEngine->getBackend() == Backend::OPENGL)
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            //std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            //https://github.com/google/filament/discussions/7968#discussioncomment-11020205
+            Fence::waitAndDestroy(gEngine->createFence());
         }
 
         TimeStamp timer2 = std::chrono::high_resolution_clock::now();
