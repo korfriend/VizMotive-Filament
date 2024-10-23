@@ -572,19 +572,8 @@ namespace filament::gltfio {
         }
         if (node->camera == nullptr && node->light == nullptr && node->mesh == nullptr)
         {
-            if (isNodeSkeleton(srcAsset, node))
-            {
-                //backlog::post(name, LogLevel::Default);
-                if (!isNodeSkeleton(srcAsset, node->parent))
-                {
-                    mSkeltonRootMap[entity.getId()] = name;
-                }
-            }
-            else
-            {
-                gEngineApp->CreateSceneComponent(SCENE_COMPONENT_TYPE::ACTOR, name, entity.getId());
-                mNodeActorMap[entity.getId()] = name;
-            }
+            gEngineApp->CreateSceneComponent(SCENE_COMPONENT_TYPE::ACTOR, name, entity.getId());
+            mNodeActorMap[entity.getId()] = name;
         }
 
         for (cgltf_size i = 0, len = node->children_count; i < len; ++i) {

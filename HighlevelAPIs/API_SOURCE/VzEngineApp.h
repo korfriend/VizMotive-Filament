@@ -174,8 +174,6 @@ namespace vzm
         std::vector<std::vector<MInstanceVID>> vidMIVariants_;
 
     public:
-        std::vector<math::mat4f> boneMatrices;
-
         bool isSprite = false;
         bool isBillboard = false;
         bool culling = true;
@@ -304,6 +302,7 @@ namespace vzm
         gltfio::FilamentAsset* asset = nullptr;
         std::vector<VID> rootVIDs;
         std::set<VID> assetOwnershipComponents;
+        std::vector<AnimationVID> animations;
         std::vector<SkeletonVID> skeletons;
 
         // to identify the entity's origin
@@ -315,7 +314,6 @@ namespace vzm
         std::set<LightVID> fromAssetLights;
         std::set<ActorVID> fromAssetRenderableActors;
         std::set<ActorVID> fromAssetNodes;
-        std::set<SkeletonVID> fromAssetSketetons;
 
         VzAsset::Animator animator = VzAsset::Animator(0);
 
@@ -340,6 +338,8 @@ namespace vzm
 
     struct VzSkeletonRes
     {
+        std::vector<math::mat4f> boneMatrices;
+
         skm::Skeleton* skeleton = nullptr;
         ~VzSkeletonRes();
     };
@@ -417,7 +417,7 @@ namespace vzm
         VzRenderer* CreateRenderPath(const std::string& name);
         VzAsset* CreateAsset(const std::string& name);
         VzAnimation* CreateAnimation(const std::string& name);
-        VzSkeleton* CreateSkeleton(const std::string& name, const SkeletonVID vidExist = 0);
+        VzSkeleton* CreateSkeleton(const std::string& name);
         size_t GetVidsByName(const std::string& name, std::vector<VID>& vids);
         VID GetFirstVidByName(const std::string& name);
         std::string GetNameByVid(const VID vid);

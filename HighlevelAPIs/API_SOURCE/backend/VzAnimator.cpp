@@ -1,5 +1,5 @@
 #include "../VzEngineApp.h"
-#include "VzAnimatorImpl.h"
+#include "VzAnimator.h"
 
 #include "../../libs/gltfio/src/FFilamentAsset.h" // FFilamentAsset
 
@@ -7,7 +7,6 @@ extern vzm::VzEngineApp* gEngineApp;
 
 namespace vzm::skm
 {
-
     void createSampler(const cgltf_animation_sampler& src, Sampler& dst)
     {
         // Copy the time values into a red-black tree.
@@ -122,47 +121,6 @@ namespace vzm::skm
         return true;
     }
 #if 0
-    void AnimatorImpl::addChannels(const FixedCapacityVector<Entity>& nodeMap, const cgltf_node* nodes, const cgltf_animation& srcAnim, Animation& dst)
-    {
-        const cgltf_animation_channel* srcChannels = srcAnim.channels;
-        const cgltf_animation_sampler* srcSamplers = srcAnim.samplers;
-        const Sampler* samplers = dst.samplers.data();
-        for (cgltf_size j = 0, nchans = srcAnim.channels_count; j < nchans; ++j)
-        {
-            const cgltf_animation_channel& srcChannel = srcChannels[j];
-            Entity targetEntity = nodeMap[srcChannel.target_node - nodes];
-            if (UTILS_UNLIKELY(!targetEntity))
-            {
-#ifdef _DEBUG
-                std::string input = "No scene root contains node ";
-                if (srcChannel.target_node->name)
-                {
-                    input += "'";
-                    input += srcChannel.target_node->name;
-                    input += "' ";
-                }
-                input += "for animation ";
-                if (srcAnim.name)
-                {
-                    input += "'";
-                    input += srcAnim.name;
-                    input += "' ";
-                }
-                input += "in channel ";
-                input += std::to_string(j);
-                input += "\n";
-                backlog::post(input, backlog::LogLevel::Warning);
-#endif
-                continue;
-            }
-            Channel dstChannel;
-            dstChannel.sourceData = samplers + (srcChannel.sampler - srcSamplers);
-            dstChannel.targetEntity = targetEntity;
-            setTransformType(srcChannel, dstChannel);
-            dst.channels.push_back(dstChannel);
-        }
-    }
-
     void AnimatorImpl::applyAnimation(const Channel& channel, float t, size_t prevIndex, size_t nextIndex)
     {
         const Sampler* sampler = channel.sourceData;
@@ -333,75 +291,6 @@ namespace vzm::skm
         };
         const Instance root = tm.getInstance(rootEntity);
         recursiveFn(root, 0, recursiveFn);
-    }
-
-    void AnimatorImpl::resetBoneMatrices(std::vector<Skeleton>& skins)
-    {
-        for (const auto& skin : skins)
-        {
-            size_t njoints = skin.joints.size();
-            boneMatrices.resize(njoints);
-            for (const auto& entity : skin.targets)
-            {
-                auto renderable = renderableManager->getInstance(entity);
-                if (renderable)
-                {
-                    for (size_t boneIndex = 0; boneIndex < njoints; ++boneIndex)
-                    {
-                        boneMatrices[boneIndex] = mat4f();
-                    }
-                    renderableManager->setBones(renderable, boneMatrices.data(), boneMatrices.size());
-                }
-            }
-        }
-    }
-
-    void AnimatorImpl::updateBoneMatrices(std::vector<Skeleton>& skins)
-    {
-        VzAniRes* ani_res = gEngineApp->GetAniRes(animatorVID);
-        if (!ani_res)
-        {
-            return;
-        }
-        gltfio::FFilamentAsset* asset = downcast(ani_res->assetOwner);
-        if (!asset)
-        {
-            return;
-        }
-        assert_invariant(skins.size() == asset->mSkins.size());
-        size_t skinIndex = 0;
-        for (const auto& skin : skins)
-        {
-            const auto& assetSkin = asset->mSkins[skinIndex++];
-            size_t njoints = skin.joints.size();
-            boneMatrices.resize(njoints);
-            for (Entity entity : skin.targets)
-            {
-                auto renderable = renderableManager->getInstance(entity);
-                if (!renderable)
-                {
-                    continue;
-                }
-                mat4 inverseGlobalTransform;
-                auto xformable = transformManager->getInstance(entity);
-                if (xformable)
-                {
-                    inverseGlobalTransform =
-                        inverse(transformManager->getWorldTransformAccurate(xformable));
-                }
-                for (size_t boneIndex = 0; boneIndex < njoints; ++boneIndex)
-                {
-                    const auto& joint = skin.joints[boneIndex];
-                    const mat4f& inverseBindMatrix = assetSkin.inverseBindMatrices[boneIndex];
-                    TransformManager::Instance jointInstance = transformManager->getInstance(joint);
-                    mat4 globalJointTransform =
-                        transformManager->getWorldTransformAccurate(jointInstance);
-                    boneMatrices[boneIndex] =
-                        mat4f{ inverseGlobalTransform * globalJointTransform } * inverseBindMatrix;
-                }
-                renderableManager->setBones(renderable, boneMatrices.data(), boneMatrices.size());
-            }
-        }
     }
 #endif
 } // namespace vzm::skm

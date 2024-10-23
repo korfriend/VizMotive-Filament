@@ -8,6 +8,7 @@ namespace vzm
         VzAsset(const VID vid, const std::string& originFrom)
             : VzBaseComp(vid, originFrom, "VzAsset") {}
         std::vector<VID> GetGLTFRoots();
+        std::vector<VID> GetAnimations();
         std::vector<VID> GetSkeletons();
         size_t GetVariantsCount();
         std::string GetVariantName(int variantIndex);
@@ -16,9 +17,7 @@ namespace vzm
         size_t GetComponents(std::vector<VID>& components);
         bool IsAssetOwned(const VID vid, std::string* VZ_NULLABLE typeName = nullptr);
         bool IsAssetOwnedComp(const VzBaseComp* comp, std::string* VZ_NULLABLE typeName = nullptr) { return IsAssetOwned(comp->GetVID(), typeName); }
-#if 0
-        VID GetAnimatorVID();
-#endif
+
         // Animator //
         struct API_EXPORT Animator{
         public:

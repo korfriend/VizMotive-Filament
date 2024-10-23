@@ -157,22 +157,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
     }
 
-    //vzm::VzAsset::Animator* animator = asset->GetAnimator();
-    auto animator = (vzm::VzAnimator*)vzm::GetVzComponent(asset->GetAnimatorVID());
-    if (animator)
-    {
-        animator->AddPlayScene(scene->GetVID());
-        animator->SetPlayMode(vzm::VzAnimator::PlayMode::PLAY);
-        animator->ActivateAnimation(0);
-
-        std::vector<std::string> animations = animator->GetAnimationLabels();
-        std::cout << "Total animations: " << animations.size() << std::endl;
-        std::cout << "Animation names:" << std::endl;
-        for (const auto& animName : animations) {
-            std::cout << "  - " << animName << std::endl;
-        }
-    }
-
     vzm::VzRenderer* renderer = vzm::NewRenderer("my renderer");
     renderer->SetCanvas(w, h, dpi, hwnd);
     renderer->SetVisibleLayerMask(0xFF, 0xFF);
@@ -231,7 +215,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
         if (done)
             break;
-        animator->UpdateAnimation();
         renderer->Render(scene, cam);
     }
     vzm::DeinitEngineLib();

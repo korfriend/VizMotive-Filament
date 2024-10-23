@@ -3,7 +3,7 @@
 #include "backend/VzAssetLoader.h"
 #include "backend/VzAssetExporter.h"
 #include "backend/VzMeshAssimp.h"
-#include "backend/VzAnimatorImpl.h"
+#include "backend/VzAnimator.h"
 #include "VzNameComponents.hpp"
 
 #include "FIncludes.h"
@@ -961,18 +961,13 @@ namespace vzm
 
         auto it = vzCompMap_.emplace(vid, std::make_unique<VzAnimation>(vid, "CreateAnimation"));
         return (VzAnimation*)it.first->second.get();
-        return nullptr;
     }
-    VzSkeleton* VzEngineApp::CreateSkeleton(const std::string& name, const SkeletonVID vidExist)
+    VzSkeleton* VzEngineApp::CreateSkeleton(const std::string& name)
     {
         auto& em = gEngine->getEntityManager();
         auto& ncm = VzNameCompManager::Get();
-        utils::Entity ett = utils::Entity::import(vidExist);
-        if (ett.isNull()) {
-            ett = em.create();
-        }
-
-        AssetVID vid = ett.getId();
+        utils::Entity ett = em.create();
+        SkeletonVID vid = ett.getId();
         skeletonResMap_[vid] = std::make_unique<VzSkeletonRes>();
         ncm.CreateNameComp(ett, name);
 
