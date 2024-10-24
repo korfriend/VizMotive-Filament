@@ -209,6 +209,26 @@ namespace filament::gltfio {
         mi_res->texMap[miMapName] = tex_vid;
     };
 
+    
+    VzAssetLoader::VzAssetLoader(AssetConfiguration const& config) :
+        mEntityManager(config.entities ? *config.entities : EntityManager::get()),
+        mRenderableManager(config.engine->getRenderableManager()),
+        mNameManager((vzm::VzNameCompManager*)config.names),
+        mTransformManager(config.engine->getTransformManager()),
+        mTrsTransformManager(downcast(gEngineApp->GetTrsTransformManager())),
+        mMaterials(*config.materials),
+        mEngine(*config.engine),
+        mDefaultNodeName(config.defaultNodeName)
+    {
+        if (config.ext)
+        {
+            FILAMENT_CHECK_PRECONDITION(AssetConfigurationExtended::isSupported())
+                << "Extend asset loading is not supported on this platform";
+            mLoaderExtended = std::make_unique<AssetLoaderExtended>(
+                *config.ext, config.engine, mMaterials);
+        }
+    }
+
     FFilamentAsset* VzAssetLoader::createAsset(const uint8_t* bytes, uint32_t byteCount) {
         FilamentInstance* instances;
         return createInstancedAsset(bytes, byteCount, &instances, 1);
@@ -393,10 +413,6 @@ namespace filament::gltfio {
         // Now that all entities have been created, the instance can create the animator component.
         // Note that it may need to defer actual creation until external buffers are fully loaded.
         instance->createAnimator();
-        mAnimator = instance->mAnimator;
-
-        //instance->mAnimator = nullptr;
-        //instance->mAnimator = nullptr;
 
         fAsset->mInstances.push_back(instance);
 
@@ -556,19 +572,8 @@ namespace filament::gltfio {
         }
         if (node->camera == nullptr && node->light == nullptr && node->mesh == nullptr)
         {
-            if (isNodeSkeleton(srcAsset, node))
-            {
-                //backlog::post(name, LogLevel::Default);
-                if (!isNodeSkeleton(srcAsset, node->parent))
-                {
-                    mSkeltonRootMap[entity.getId()] = name;
-                }
-            }
-            else
-            {
-                gEngineApp->CreateSceneComponent(SCENE_COMPONENT_TYPE::ACTOR, name, entity.getId());
-                mNodeActorMap[entity.getId()] = name;
-            }
+            gEngineApp->CreateSceneComponent(SCENE_COMPONENT_TYPE::ACTOR, name, entity.getId());
+            mNodeActorMap[entity.getId()] = name;
         }
 
         for (cgltf_size i = 0, len = node->children_count; i < len; ++i) {

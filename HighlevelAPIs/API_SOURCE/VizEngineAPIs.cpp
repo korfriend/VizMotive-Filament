@@ -19,6 +19,7 @@
 #include <memory>
 
 //#include "FIncludes.h"
+#include "backend/VzAnimator.h"
 #include "backend/VzAssetLoader.h"
 #include "backend/VzAssetExporter.h"
 using namespace vzm;
@@ -661,7 +662,6 @@ namespace vzm
         size_t num_node = asset_loader->mNodeActorMap.size();
         size_t num_camera = asset_loader->mCameraMap.size();
         size_t num_light = asset_loader->mLightMap.size();
-        size_t num_skeleton = asset_loader->mSkeltonRootMap.size();
         size_t num_ins = fasset->mInstances.size();
         backlog::post(std::to_string(num_m) + " system-owned material" + (num_m > 1 ? "s are" : " is") + " created", backlog::LogLevel::Default);
         backlog::post(std::to_string(num_mi) + " material instance" + (num_mi > 1 ? "s are" : " is") + " created", backlog::LogLevel::Default);
@@ -671,7 +671,6 @@ namespace vzm
         backlog::post(std::to_string(num_node) + " node actor" + (num_node > 1 ? "s are" : " is") + " created", backlog::LogLevel::Default);
         backlog::post(std::to_string(num_camera) + " camera" + (num_camera > 1 ? "s are" : " is") + " created", backlog::LogLevel::Default);
         backlog::post(std::to_string(num_light) + " light" + (num_light > 1 ? "s are" : " is") + " created", backlog::LogLevel::Default);
-        backlog::post(std::to_string(num_skeleton) + " skeleton" + (num_skeleton > 1 ? "s are" : " is") + " created", backlog::LogLevel::Default);
         backlog::post(std::to_string(num_ins) + " gltf instance" + (num_ins > 1 ? "s are" : " is") + " created", backlog::LogLevel::Default);
 
 #if !defined(__EMSCRIPTEN__)
@@ -705,14 +704,21 @@ namespace vzm
 
         // from asset components
         {
-#define RegisterFromAsset1(A, B) for (auto& it : B) { A.insert(it.first); }
-#define RegisterFromAsset2(A, B) for (auto& it : B) { A.insert(it.second); }
+#define RegisterFromAsset1(A, B) \
+    for (auto& it : B)           \
+    {                            \
+        A.insert(it.first);      \
+    }
+#define RegisterFromAsset2(A, B) \
+    for (auto& it : B)           \
+    {                            \
+        A.insert(it.second);     \
+    }
 
             RegisterFromAsset1(asset_res.fromAssetLights, asset_loader->mLightMap);
             RegisterFromAsset1(asset_res.fromAssetCameras, asset_loader->mCameraMap);
             RegisterFromAsset1(asset_res.fromAssetRenderableActors, asset_loader->mRenderableActorMap);
             RegisterFromAsset1(asset_res.fromAssetNodes, asset_loader->mNodeActorMap);
-            RegisterFromAsset1(asset_res.fromAssetSketetons, asset_loader->mSkeltonRootMap);
 
             RegisterFromAsset2(asset_res.fromAssetGeometries, asset_loader->mGeometryMap);
             RegisterFromAsset2(asset_res.fromAssetMaterials, asset_loader->mMaterialMap);
@@ -725,28 +731,6 @@ namespace vzm
             asset_res.rootVIDs.push_back(instance->mRoot.getId());
         }
 
-        for (auto& it : asset_loader->mSkeltonRootMap)
-        {
-            asset_res.skeletons.push_back(it.first);
-            std::vector<BoneVID> bone_vids;
-            bone_vids.push_back(it.first);
-            getDescendants(it.first, bone_vids);
-
-            gEngineApp->CreateSkeleton(it.second, it.first);
-            VzSkeletonRes* skeleton_res = gEngineApp->GetSkeletonRes(it.first);
-            
-            skeleton_res->bones.clear();
-            size_t num_bones = bone_vids.size();
-            skeleton_res->bones.reserve(num_bones);
-            for (size_t i = 0; i < num_bones; ++i)
-            {
-                BoneVID vid_bone = bone_vids[i];
-                skeleton_res->bones[i] = vid_bone;
-                asset_res.assetOwnershipComponents.insert(vid_bone);
-            }
-            //asset_res.assetOwnershipComponents.insert(it.first); // already involved
-        }
-
         ResourceConfiguration configuration = {};
         configuration.engine = gEngine;
         configuration.gltfPath = path.c_str();
@@ -754,11 +738,122 @@ namespace vzm
 
         ResourceLoader* resource_loader = gEngineApp->GetGltfResourceLoader();
         resource_loader->setConfiguration(configuration);
-        if (!resource_loader->asyncBeginLoad(asset)) {
+        if (!resource_loader->asyncBeginLoad(asset))
+        {
             asset_loader->destroyAsset((filament::gltfio::FFilamentAsset*)asset);
             backlog::post("Unable to start loading resources for " + filename, backlog::LogLevel::Error);
             return nullptr;
         }
+
+        assert(fasset->getAssetInstanceCount() == 1);
+        filament::gltfio::FFilamentInstance* instance = fasset->mInstances[0];
+        
+        assert_invariant(instance->mSkins.size() == fasset->mSkins.size());
+        for (size_t i = 0; i < instance->mSkins.size(); i++)
+        {
+            const auto& skin = instance->mSkins[i];
+            const auto& assetSkin = fasset->mSkins[i];
+
+            VzSkeleton* skeleton = gEngineApp->CreateSkeleton(assetSkin.name.c_str());
+            SkeletonVID vid_skeleton = skeleton->GetVID();
+            VzSkeletonRes* skeleton_res = gEngineApp->GetSkeletonRes(vid_skeleton);
+
+            skeleton_res->skeleton = new skm::Skeleton();
+
+            skeleton_res->skeleton->joints = skin.joints;
+            skeleton_res->skeleton->targets = skin.targets;
+            skeleton_res->skeleton->inverseBindMatrices = assetSkin.inverseBindMatrices;
+
+            asset_res.skeletons.push_back(vid_skeleton);
+        }
+        backlog::post(std::to_string(asset_res.skeletons.size()) + " skeleton" + (asset_res.skeletons.size() > 1 ? "s are" : " is") + " created", backlog::LogLevel::Default);
+
+        auto addChannels = [&](const FixedCapacityVector<Entity>& nodeMap, const cgltf_animation& srcAnim, skm::Animation& dst) {
+            const cgltf_animation_channel* srcChannels = srcAnim.channels;
+            const cgltf_animation_sampler* srcSamplers = srcAnim.samplers;
+            const skm::Sampler* samplers = dst.samplers.data();
+            for (cgltf_size j = 0, nchans = srcAnim.channels_count; j < nchans; ++j)
+            {
+                const cgltf_animation_channel& srcChannel = srcChannels[j];
+                const cgltf_node* nodes = fasset->mSourceAsset->hierarchy->nodes;
+                Entity targetEntity = nodeMap[srcChannel.target_node - nodes];
+                if (UTILS_UNLIKELY(!targetEntity))
+                {
+#ifdef _DEBUG
+                    std::string input = "No scene root contains node ";
+                    if (srcChannel.target_node->name)
+                    {
+                        input += "'";
+                        input += srcChannel.target_node->name;
+                        input += "' ";
+                    }
+                    input += "for animation ";
+                    if (srcAnim.name)
+                    {
+                        input += "'";
+                        input += srcAnim.name;
+                        input += "' ";
+                    }
+                    input += "in channel ";
+                    input += std::to_string(j);
+                    input += "\n";
+                    backlog::post(input, backlog::LogLevel::Warning);
+#endif
+                    continue;
+                }
+                skm::Channel dstChannel;
+                dstChannel.sourceData = samplers + (srcChannel.sampler - srcSamplers);
+                dstChannel.targetEntity = targetEntity;
+                setTransformType(srcChannel, dstChannel);
+                dst.channels.push_back(dstChannel);
+            }
+        };
+
+        const cgltf_data* srcAsset = fasset->mSourceAsset->hierarchy;
+        const cgltf_animation* srcAnims = srcAsset->animations;
+        for (cgltf_size i = 0; i < srcAsset->animations_count; i++)
+        {
+            const cgltf_animation& srcAnim = srcAnims[i];
+            if (!skm::validateAnimation(srcAnim))
+            {
+                backlog::post("Disabling animation due to validation failure.", backlog::LogLevel::Warning);
+                return nullptr;
+            }
+
+            VzAnimation* animation = gEngineApp->CreateAnimation(srcAnim.name);
+            AnimationVID vid_animation = animation->GetVID();
+            VzAniRes* ani_res = gEngineApp->GetAniRes(vid_animation);
+
+            ani_res->animation = new skm::Animation();
+
+            skm::Animation& dstAnim = *ani_res->animation;
+            dstAnim.duration = 0;
+
+            // Import each glTF sampler into a custom data structure.
+            cgltf_animation_sampler* srcSamplers = srcAnim.samplers;
+            dstAnim.samplers.resize(srcAnim.samplers_count);
+            for (cgltf_size j = 0, nsamps = srcAnim.samplers_count; j < nsamps; ++j)
+            {
+                const cgltf_animation_sampler& srcSampler = srcSamplers[j];
+                skm::Sampler& dstSampler = dstAnim.samplers[j];
+                createSampler(srcSampler, dstSampler);
+                if (dstSampler.times.size() > 1)
+                {
+                    float maxtime = (--dstSampler.times.end())->first;
+                    dstAnim.duration = std::max(dstAnim.duration, maxtime);
+                }
+            }
+
+            // Import each glTF channel into a custom data structure.
+            const cgltf_node* nodes = fasset->mSourceAsset->hierarchy->nodes;
+            if (instance)
+            {
+                addChannels(instance->mNodeMap, srcAnim, dstAnim);
+            }
+
+            asset_res.animations.push_back(vid_animation);
+        }
+        backlog::post(std::to_string(srcAsset->animations_count) + " animation" + (srcAsset->animations_count > 1 ? "s are" : " is") + " created", backlog::LogLevel::Default);
 
         gEngineApp->activeAsyncAsset = vid_asset;
 

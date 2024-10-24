@@ -74,6 +74,15 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzAnimator.cpp">
       <Filter>backend</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzAnimationComponents.cpp">
+      <Filter>backend</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)backend\VzSkeletonComponents.cpp">
+      <Filter>backend</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)components\VzAnimation.cpp">
+      <Filter>components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)VizEngineAPIs.h" />
@@ -163,6 +172,15 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzAnimator.h">
       <Filter>backend</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzAnimationComponents.h">
+      <Filter>backend</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)backend\VzSkeletonComponents.h">
+      <Filter>backend</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)components\VzAnimation.h">
+      <Filter>components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
