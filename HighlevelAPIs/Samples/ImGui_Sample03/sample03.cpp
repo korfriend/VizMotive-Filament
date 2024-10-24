@@ -120,6 +120,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     //vzm::VzAsset* asset = vzm::LoadFileIntoAsset("D:/data/showroom/show_car.gltf", "my gltf asset");
     //vzm::VzAsset* asset = vzm::LoadFileIntoAsset("D:/data/showroom1/car_action_08.gltf", "my gltf asset");
 
+    std::vector<VID> anims = asset->GetAnimations();
+    for (auto anim : anims)
+    {
+        vzm::VzAnimation* animation = (vzm::VzAnimation*)vzm::GetVzComponent(anim);
+        std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>> " << animation->GetName() << std::endl;
+    }
+
+    vzm::VzAnimation* anim = (vzm::VzAnimation*)vzm::GetFirstVzComponentByName("Walk");
+    if (anim)
+    {
+        anim->SetLoopMode(vzm::VzAnimation::LoopMode::PING_PONG);
+        anim->Play();
+    }
+
     std::vector<vzm::VzBaseComp*> components;
     if (vzm::GetVzComponentsByType("VzMI", components) > 0)
     {
@@ -305,6 +319,18 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             vzm::VzMI* mi = (vzm::VzMI*)vzm::GetVzComponent(miid);
             glm::fvec4 b_color(1.f);
             //mi->SetMaterialProperty(vzm::VzMI::MProp::BASE_COLOR, { 1.f, 1.f, 0, 0.4f });
+            break;
+        }
+        case 'P':
+        {
+            vzm::VzAnimation* anim = (vzm::VzAnimation*)vzm::GetFirstVzComponentByName("Run");
+            if (anim)
+            {
+                if (anim->IsPlaying())
+                    anim->Pause();
+                else
+                    anim->Play();
+            }
             break;
         }
         default:

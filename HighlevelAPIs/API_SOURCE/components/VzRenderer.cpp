@@ -1491,12 +1491,74 @@ namespace vzm
         for (auto& it : aniResMap)
         {
             VzAniRes* ani_res = it.second.get();
-            auto& time = ani_res->currentTime;
             if (ani_res->isPlaying)
             {
-                time += render_path->deltaTime * ani_res->playRate;
+                auto& time = ani_res->currentTime;
+                auto& duration = ani_res->animation->duration;
+                float effectiveDeltaTime = render_path->deltaTime * (ani_res->isReversing ? (-ani_res->playRate) : (ani_res->playRate));
+                float newTime = time + effectiveDeltaTime;
+                if (effectiveDeltaTime > 0.0f)
+                {
+                    if (newTime >= duration)
+                    {
+                        switch (ani_res->loopMode)
+                        {
+                        case VzAnimation::LoopMode::ONCE:
+                            newTime = duration ;
+                            ani_res->isPlaying = false;
+                            break;
+                        case VzAnimation::LoopMode::LOOP:
+                            if (duration > 0.0f)
+                            {
+                                while (newTime >= duration)
+                                {
+                                    newTime -= duration;
+                                }
+                            }
+                            else
+                            {
+                                newTime = 0.0f;
+                            }
+                            break;
+                        case VzAnimation::LoopMode::PING_PONG:
+                            ani_res->isReversing = !ani_res->isReversing;
+                            newTime = duration - (newTime - duration);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    if (newTime < 0.0f)
+                    {
+                        switch (ani_res->loopMode)
+                        {
+                        case VzAnimation::LoopMode::ONCE:
+                            newTime = 0.0f;
+                            ani_res->isPlaying = false;
+                            break;
+                        case VzAnimation::LoopMode::LOOP:
+                            if (duration > 0.0f)
+                            {
+                                while (newTime < 0.0f)
+                                {
+                                    newTime += duration;
+                                }
+                            }
+                            else
+                            {
+                                newTime = 0.0f;
+                            }
+                            break;
+                        case VzAnimation::LoopMode::PING_PONG:
+                            ani_res->isReversing = !ani_res->isReversing;
+                            newTime = -newTime;
+                            break;
+                        }
+                    }
+                }
+                time = newTime;
                 const skm::Animation& anim = *ani_res->animation;
-                time = fmod(time, anim.duration);
                 TransformManager& transformManager = gEngine->getTransformManager();
                 transformManager.openLocalTransformTransaction();
                 for (const auto& channel : anim.channels)
