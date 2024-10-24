@@ -4,6 +4,7 @@
 #include "components/VzActor.h"
 #include "components/VzAsset.h"
 #include "components/VzCamera.h"
+#include "components/VzCompositor.h"
 #include "components/VzGeometry.h"
 #include "components/VzLight.h"
 #include "components/VzMaterial.h"

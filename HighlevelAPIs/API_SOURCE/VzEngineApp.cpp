@@ -925,6 +925,18 @@ namespace vzm
         ncm.CreateNameComp(ett, name);
         return (VzRenderer*)it.first->second.get();
     }
+    VzCompositor* VzEngineApp::CreateCompositor(const std::string& name)
+    {
+      auto& em = utils::EntityManager::get();
+      utils::Entity ett = em.create();
+      VID vid = ett.getId();
+      auto it = vzCompMap_.emplace(
+          vid, std::make_unique<VzCompositor>(vid, "CreateCompositor"));
+
+      VzNameCompManager& ncm = VzNameCompManager::Get();
+      ncm.CreateNameComp(ett, name);
+      return (VzCompositor*)it.first->second.get();
+    }
     VzAsset* VzEngineApp::CreateAsset(const std::string& name)
     {
         auto& em = gEngine->getEntityManager();

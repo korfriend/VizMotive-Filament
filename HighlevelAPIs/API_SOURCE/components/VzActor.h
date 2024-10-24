@@ -8,12 +8,12 @@ namespace vzm
         VzBaseActor(const VID vid, const std::string & originFrom, const std::string & typeName, const SCENE_COMPONENT_TYPE scenecompType)
             : VzSceneComp(vid, originFrom, typeName, scenecompType) {}
 
-        enum class VISIBIE_LAYER : uint8_t {
+        enum class VISIBLE_LAYER : uint8_t {
             HIDDEN = 0x0,
             VISIBLE = 0x1,
             GUI = 0x2,
         };
-        void SetVisibleLayer(const VISIBIE_LAYER layer);
+        void SetVisibleLayer(const VISIBLE_LAYER layer);
         uint8_t GetVisibleLayerMask() const;
         void SetVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits);
         uint8_t GetPriority() const;

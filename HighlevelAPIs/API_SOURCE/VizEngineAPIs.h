@@ -24,6 +24,7 @@ namespace vzm
     //  - return zero in case of failure (the name is already registered or overflow VID)
     extern "C" API_EXPORT VzScene* NewScene(const std::string& sceneName);
     extern "C" API_EXPORT VzRenderer* NewRenderer(const std::string& rendererName);
+    extern "C" API_EXPORT VzCompositor* NewCompositor(const std::string& compositorName);
     // Create new scene component (SCENE_COMPONENT_TYPE::CAMERA, ACTOR, LIGHT) NOT SCENE_COMPONENT_TYPE::SCENEBASE
     //  - Must belong to a scene
     //  - parentVid cannot be a scene (renderable or 0)
