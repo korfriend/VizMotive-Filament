@@ -7,6 +7,8 @@
 
 #include "../../filament/src/PostProcessManager.h"
 
+#include "../backend/VzAnimator.h"
+
 extern Engine* gEngine;
 extern vzm::VzEngineApp* gEngineApp;
 
@@ -18,7 +20,7 @@ namespace vzm
 
         std::vector<RendererVID> render_path_vids;
         gEngineApp->GetRenderPathVids(render_path_vids);
-        if (window) 
+        if (window)
         {
             for (size_t i = 0, n = render_path_vids.size(); i < n; ++i)
             {
@@ -61,10 +63,14 @@ namespace vzm
     {
         COMP_RENDERPATH(render_path, );
         const filament::Viewport& vp = render_path->GetView()->getViewport();
-        if (x) *x = vp.left;
-        if (y) *y = vp.bottom;
-        if (w) *w = vp.width;
-        if (h) *h = vp.height;
+        if (x)
+            *x = vp.left;
+        if (y)
+            *y = vp.bottom;
+        if (w)
+            *w = vp.width;
+        if (h)
+            *h = vp.height;
     }
 
     void VzRenderer::SetVisibleLayerMask(const uint8_t layerBits, const uint8_t maskBits)
@@ -75,7 +81,8 @@ namespace vzm
         UpdateTimeStamp();
     }
 
-    void VzRenderer::Pick(const uint32_t x, const uint32_t y, PickCallback callback) {
+    void VzRenderer::Pick(const uint32_t x, const uint32_t y, PickCallback callback)
+    {
         COMP_RENDERPATH(render_path, );
         View* view = render_path->GetView();
         uint32_t canvas_h;
@@ -83,53 +90,62 @@ namespace vzm
         const filament::Viewport& vp = view->getViewport();
         uint32_t x_ = x - vp.left;
         uint32_t y_ = (canvas_h - y) - vp.bottom;
-        if (x_ >= vp.width || y_ >= vp.height) return;
+        if (x_ >= vp.width || y_ >= vp.height)
+            return;
         view->pick(x_, y_, [callback](View::PickingQueryResult const& result) {
             callback(result.renderable.getId());
         });
     }
 
-    size_t VzRenderer::IntersectActors(const uint32_t x, const uint32_t y, const VID vidCam, const std::vector<VID>& vidActors, std::vector<HitResult>& results, const bool recursive) {
+    size_t VzRenderer::IntersectActors(const uint32_t x, const uint32_t y, const VID vidCam, const std::vector<VID>& vidActors, std::vector<HitResult>& results, const bool recursive)
+    {
         COMP_RENDERPATH(render_path, 0);
         results.clear();
         const Camera* camera = gEngine->getCameraComponent(utils::Entity::import(vidCam));
-        if (camera == nullptr) return 0;
+        if (camera == nullptr)
+            return 0;
         uint32_t canvas_h;
         render_path->GetCanvas(nullptr, &canvas_h, nullptr, nullptr);
         const filament::Viewport& vp = render_path->GetView()->getViewport();
         uint32_t x_ = x - vp.left;
         uint32_t y_ = vp.height - ((canvas_h - y) - vp.bottom);
-        if (x_ >= vp.width || y_ >= vp.height) return 0;
+        if (x_ >= vp.width || y_ >= vp.height)
+            return 0;
         float3 p_ws;
         helpers::ComputePosSS2WS(x_, y_, 0.0f, vidCam, GetVID(), __FP p_ws);
         float3 rayOrigin = camera->getPosition();
         float3 rayDirection = normalize(p_ws - rayOrigin);
         std::function<void(VID)> intersect = [&](const VID vidActor) {
             VzSceneComp* actor = gEngineApp->GetVzComponent<VzSceneComp>(vidActor);
-            if (actor == nullptr) {
+            if (actor == nullptr)
+            {
                 backlog::post("actor is nullptr", backlog::LogLevel::Error);
                 return;
             }
             bool result = false;
-            switch (actor->GetSceneCompType()) {
-                case SCENE_COMPONENT_TYPE::SPRITE_ACTOR:
-                    result = ((VzSpriteActor*) actor)->Raycast(__FP rayOrigin, __FP rayDirection, results);
-                    break;
-                case SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR:
-                    result = ((VzTextSpriteActor*) actor)->Raycast(__FP rayOrigin, __FP rayDirection, results);
-                    break;
-                default:
-                    backlog::post("scene component type is not supported : " + std::to_string((int) actor->GetSceneCompType()), backlog::LogLevel::Error);
-                    break;
+            switch (actor->GetSceneCompType())
+            {
+            case SCENE_COMPONENT_TYPE::SPRITE_ACTOR:
+                result = ((VzSpriteActor*)actor)->Raycast(__FP rayOrigin, __FP rayDirection, results);
+                break;
+            case SCENE_COMPONENT_TYPE::TEXT_SPRITE_ACTOR:
+                result = ((VzTextSpriteActor*)actor)->Raycast(__FP rayOrigin, __FP rayDirection, results);
+                break;
+            default:
+                backlog::post("scene component type is not supported : " + std::to_string((int)actor->GetSceneCompType()), backlog::LogLevel::Error);
+                break;
             }
-            if (result && recursive) {
+            if (result && recursive)
+            {
                 std::vector<VID> vidChildren = actor->GetChildren();
-                for (auto vidChild : vidChildren) {
+                for (auto vidChild : vidChildren)
+                {
                     intersect(vidChild);
                 }
             }
-            };
-        for (auto vidActor : vidActors) {
+        };
+        for (auto vidActor : vidActors)
+        {
             intersect(vidActor);
         }
         std::sort(results.begin(), results.end(), [](const HitResult& lhs, const HitResult& rhs) {
@@ -308,20 +324,20 @@ namespace vzm
     }
     int VzRenderer::GetBloomLevels()
     {
-        COMP_RENDERPATH(render_path, (int) QualityLevel::LOW);
+        COMP_RENDERPATH(render_path, (int)QualityLevel::LOW);
         return render_path->viewSettings.bloom.levels;
     }
     void VzRenderer::SetBloomQuality(int quality)
     {
         COMP_RENDERPATH(render_path, );
-        render_path->viewSettings.bloom.quality = (QualityLevel) std::clamp(quality, 0, 3);
+        render_path->viewSettings.bloom.quality = (QualityLevel)std::clamp(quality, 0, 3);
         render_path->dirtyFlags |= VzRenderPath::DirtyFlags::BLOOM;
         UpdateTimeStamp();
     }
     int VzRenderer::GetBloomQuality()
     {
         COMP_RENDERPATH(render_path, 0);
-        return (int) render_path->viewSettings.bloom.quality;
+        return (int)render_path->viewSettings.bloom.quality;
     }
     void VzRenderer::SetBloomLensFlare(bool lensFlare)
     {
@@ -449,38 +465,38 @@ namespace vzm
     void VzRenderer::SetTaaJitterPattern(JitterPattern pattern)
     {
         COMP_RENDERPATH(render_path, );
-        render_path->viewSettings.taa.jitterPattern = (TemporalAntiAliasingOptions::JitterPattern) pattern;
+        render_path->viewSettings.taa.jitterPattern = (TemporalAntiAliasingOptions::JitterPattern)pattern;
         render_path->dirtyFlags |= VzRenderPath::DirtyFlags::TAA;
         UpdateTimeStamp();
     }
     VzRenderer::JitterPattern VzRenderer::GetTaaJitterPattern()
     {
         COMP_RENDERPATH(render_path, JitterPattern::HALTON_23_X16);
-        return (JitterPattern) render_path->viewSettings.taa.jitterPattern;
+        return (JitterPattern)render_path->viewSettings.taa.jitterPattern;
     }
     void VzRenderer::SetTaaBoxClipping(BoxClipping boxClipping)
     {
         COMP_RENDERPATH(render_path, );
-        render_path->viewSettings.taa.boxClipping = (TemporalAntiAliasingOptions::BoxClipping) boxClipping;
+        render_path->viewSettings.taa.boxClipping = (TemporalAntiAliasingOptions::BoxClipping)boxClipping;
         render_path->dirtyFlags |= VzRenderPath::DirtyFlags::TAA;
         UpdateTimeStamp();
     }
     VzRenderer::BoxClipping VzRenderer::GetTaaBoxClipping()
     {
         COMP_RENDERPATH(render_path, BoxClipping::ACCURATE);
-        return (BoxClipping) render_path->viewSettings.taa.boxClipping;
+        return (BoxClipping)render_path->viewSettings.taa.boxClipping;
     }
     void VzRenderer::SetTaaBoxType(BoxType boxType)
     {
         COMP_RENDERPATH(render_path, );
-        render_path->viewSettings.taa.boxType = (TemporalAntiAliasingOptions::BoxType) boxType;
+        render_path->viewSettings.taa.boxType = (TemporalAntiAliasingOptions::BoxType)boxType;
         render_path->dirtyFlags |= VzRenderPath::DirtyFlags::TAA;
         UpdateTimeStamp();
     }
     VzRenderer::BoxType VzRenderer::GetTaaBoxType()
     {
         COMP_RENDERPATH(render_path, BoxType::AABB);
-        return (BoxType) render_path->viewSettings.taa.boxType;
+        return (BoxType)render_path->viewSettings.taa.boxType;
     }
     void VzRenderer::SetTaaVarianceGamma(float varianceGamma)
     {
@@ -512,26 +528,26 @@ namespace vzm
     void VzRenderer::SetSsaoQuality(int quality)
     {
         COMP_RENDERPATH(render_path, );
-        render_path->viewSettings.ssao.quality = (QualityLevel) std::clamp(quality, 0, 3);
+        render_path->viewSettings.ssao.quality = (QualityLevel)std::clamp(quality, 0, 3);
         render_path->dirtyFlags |= VzRenderPath::DirtyFlags::SSAO;
         UpdateTimeStamp();
     }
     int VzRenderer::GetSsaoQuality()
     {
-        COMP_RENDERPATH(render_path, (int) QualityLevel::LOW);
-        return (int) render_path->viewSettings.ssao.quality;
+        COMP_RENDERPATH(render_path, (int)QualityLevel::LOW);
+        return (int)render_path->viewSettings.ssao.quality;
     }
     void VzRenderer::SetSsaoLowPassFilter(int lowPassFilter)
     {
         COMP_RENDERPATH(render_path, );
-        render_path->viewSettings.ssao.lowPassFilter = (QualityLevel) std::clamp(lowPassFilter, 0, 2);
+        render_path->viewSettings.ssao.lowPassFilter = (QualityLevel)std::clamp(lowPassFilter, 0, 2);
         render_path->dirtyFlags |= VzRenderPath::DirtyFlags::SSAO;
         UpdateTimeStamp();
     }
     int VzRenderer::GetSsaoLowPassFilter()
     {
-        COMP_RENDERPATH(render_path, (int) QualityLevel::MEDIUM);
-        return (int) render_path->viewSettings.ssao.lowPassFilter;
+        COMP_RENDERPATH(render_path, (int)QualityLevel::MEDIUM);
+        return (int)render_path->viewSettings.ssao.lowPassFilter;
     }
     void VzRenderer::SetSsaoBentNormals(bool bentNormals)
     {
@@ -682,7 +698,7 @@ namespace vzm
     void VzRenderer::SetSsaoSsctSampleCount(int sampleCount)
     {
         COMP_RENDERPATH(render_path, );
-        render_path->viewSettings.ssao.ssct.sampleCount = (uint8_t) sampleCount;
+        render_path->viewSettings.ssao.ssct.sampleCount = (uint8_t)sampleCount;
         render_path->dirtyFlags |= VzRenderPath::DirtyFlags::SSAO;
         UpdateTimeStamp();
     }
@@ -814,14 +830,14 @@ namespace vzm
     void VzRenderer::SetDynamicResoultionQuality(int quality)
     {
         COMP_RENDERPATH(render_path, );
-        render_path->viewSettings.dsr.quality = (QualityLevel) std::clamp(quality, 0, 3);
+        render_path->viewSettings.dsr.quality = (QualityLevel)std::clamp(quality, 0, 3);
         render_path->dirtyFlags |= VzRenderPath::DirtyFlags::DSR;
         UpdateTimeStamp();
     }
     int VzRenderer::GetDynamicResoultionQuality()
     {
         COMP_RENDERPATH(render_path, 0);
-        return (int) render_path->viewSettings.dsr.quality;
+        return (int)render_path->viewSettings.dsr.quality;
     }
     void VzRenderer::SetDynamicResoultionSharpness(float sharpness)
     {
@@ -841,14 +857,14 @@ namespace vzm
     void VzRenderer::SetShadowType(ShadowType shadowType)
     {
         COMP_RENDERPATH(render_path, );
-        render_path->viewSettings.shadowType = (filament::ShadowType) shadowType;
+        render_path->viewSettings.shadowType = (filament::ShadowType)shadowType;
         render_path->dirtyFlags |= VzRenderPath::DirtyFlags::VSM_SHADOW_OPTIONS;
         UpdateTimeStamp();
     }
     VzRenderer::ShadowType VzRenderer::GetShadowType()
     {
         COMP_RENDERPATH(render_path, ShadowType::PCF);
-        return (ShadowType) render_path->viewSettings.shadowType;
+        return (ShadowType)render_path->viewSettings.shadowType;
     }
     void VzRenderer::SetVsmHighPrecision(bool highPrecision)
     {
@@ -1025,19 +1041,20 @@ namespace vzm
     void VzRenderer::SetFogColorSource(FogColorSource fogColorSource)
     {
         COMP_RENDERPATH(render_path, );
-        switch (fogColorSource) {
-            case FogColorSource::CONSTANT:
-                render_path->viewSettings.fog.skyColor = nullptr;
-                render_path->viewSettings.fog.fogColorFromIbl = false;
-                break;
-            case FogColorSource::IBL:
-                render_path->viewSettings.fog.skyColor = nullptr;
-                render_path->viewSettings.fog.fogColorFromIbl = true;
-                break;
-            case FogColorSource::SKYBOX:
-                render_path->viewSettings.fog.skyColor = render_path->viewSettings.fogSettings.fogColorTexture;
-                render_path->viewSettings.fog.fogColorFromIbl = false;
-                break;
+        switch (fogColorSource)
+        {
+        case FogColorSource::CONSTANT:
+            render_path->viewSettings.fog.skyColor = nullptr;
+            render_path->viewSettings.fog.fogColorFromIbl = false;
+            break;
+        case FogColorSource::IBL:
+            render_path->viewSettings.fog.skyColor = nullptr;
+            render_path->viewSettings.fog.fogColorFromIbl = true;
+            break;
+        case FogColorSource::SKYBOX:
+            render_path->viewSettings.fog.skyColor = render_path->viewSettings.fogSettings.fogColorTexture;
+            render_path->viewSettings.fog.fogColorFromIbl = false;
+            break;
         }
         render_path->dirtyFlags |= VzRenderPath::DirtyFlags::FOG;
         UpdateTimeStamp();
@@ -1046,9 +1063,12 @@ namespace vzm
     {
         COMP_RENDERPATH(render_path, FogColorSource::CONSTANT);
         FogColorSource fogColorSource = FogColorSource::CONSTANT;
-        if (render_path->viewSettings.fog.skyColor) {
+        if (render_path->viewSettings.fog.skyColor)
+        {
             fogColorSource = FogColorSource::SKYBOX;
-        } else if (render_path->viewSettings.fog.fogColorFromIbl) {
+        }
+        else if (render_path->viewSettings.fog.fogColorFromIbl)
+        {
             fogColorSource = FogColorSource::IBL;
         }
         return fogColorSource;
@@ -1111,9 +1131,9 @@ namespace vzm
     void VzRenderer::SetDofRingCount(int dofRingCount)
     {
         COMP_RENDERPATH(render_path, );
-        render_path->viewSettings.dof.backgroundRingCount = (uint8_t) dofRingCount;
-        render_path->viewSettings.dof.foregroundRingCount = (uint8_t) dofRingCount;
-        render_path->viewSettings.dof.fastGatherRingCount = (uint8_t) dofRingCount;
+        render_path->viewSettings.dof.backgroundRingCount = (uint8_t)dofRingCount;
+        render_path->viewSettings.dof.foregroundRingCount = (uint8_t)dofRingCount;
+        render_path->viewSettings.dof.fastGatherRingCount = (uint8_t)dofRingCount;
         render_path->dirtyFlags |= VzRenderPath::DirtyFlags::DOF;
         UpdateTimeStamp();
     }
@@ -1125,8 +1145,8 @@ namespace vzm
     void VzRenderer::SetDofMaxCoc(int maxCoc)
     {
         COMP_RENDERPATH(render_path, );
-        render_path->viewSettings.dof.maxForegroundCOC = (uint16_t) maxCoc;
-        render_path->viewSettings.dof.maxBackgroundCOC = (uint16_t) maxCoc;
+        render_path->viewSettings.dof.maxForegroundCOC = (uint16_t)maxCoc;
+        render_path->viewSettings.dof.maxBackgroundCOC = (uint16_t)maxCoc;
         render_path->dirtyFlags |= VzRenderPath::DirtyFlags::DOF;
         UpdateTimeStamp();
     }
@@ -1229,14 +1249,14 @@ namespace vzm
     void VzRenderer::SetClearOptions(const ClearOptions& clearOptions)
     {
         COMP_RENDERPATH(render_path, );
-        render_path->GetRenderer()->setClearOptions((Renderer::ClearOptions&) clearOptions);
+        render_path->GetRenderer()->setClearOptions((Renderer::ClearOptions&)clearOptions);
         UpdateTimeStamp();
     }
 
     void VzRenderer::GetClearOptions(ClearOptions& clearOptions)
     {
         COMP_RENDERPATH(render_path, );
-        clearOptions = (ClearOptions&) render_path->GetRenderer()->getClearOptions();
+        clearOptions = (ClearOptions&)render_path->GetRenderer()->getClearOptions();
     }
 
     VZRESULT VzRenderer::Render(const VID vidScene, const VID vidCam)
@@ -1250,12 +1270,10 @@ namespace vzm
 
         View* view = render_path->GetView();
         Scene* scene = gEngineApp->GetScene(vidScene);
-        Camera * camera = gEngine->getCameraComponent(utils::Entity::import(vidCam));
+        Camera* camera = gEngine->getCameraComponent(utils::Entity::import(vidCam));
         if (view == nullptr || scene == nullptr || camera == nullptr)
         {
-            backlog::post("renderer has nullptr : " + std::string(view == nullptr ? "view " : "")
-                + std::string(scene == nullptr ? "scene " : "") + std::string(camera == nullptr ? "camera" : "")
-                , backlog::LogLevel::Error);
+            backlog::post("renderer has nullptr : " + std::string(view == nullptr ? "view " : "") + std::string(scene == nullptr ? "scene " : "") + std::string(camera == nullptr ? "camera" : ""), backlog::LogLevel::Error);
             return VZ_FAIL;
         }
         render_path->TryResizeRenderTargets();
@@ -1301,13 +1319,15 @@ namespace vzm
 
         // Update the cube distortion matrix used for frustum visualization.
         const Camera* lightmapCamera = view->getDirectionalShadowCamera();
-        if (lightmapCamera) {
+        if (lightmapCamera)
+        {
             VzSceneRes* scene_res = gEngineApp->GetSceneRes(vidScene);
             VzCube* lightmapCube = scene_res->GetLightmapCube();
             lightmapCube->mapFrustum(*gEngine, lightmapCamera);
         }
         VzCube* cameraCube = cam_res->GetCameraCube();
-        if (cameraCube) {
+        if (cameraCube)
+        {
             cameraCube->mapFrustum(*gEngine, camera);
         }
 
@@ -1347,6 +1367,202 @@ namespace vzm
                 animator->UpdateAnimation();
             }
         }
+
+#pragma region Animation
+        std::vector<float> weights;
+
+        auto applyAnimation = [&](const skm::Channel& channel, float t, size_t prevIndex, size_t nextIndex) {
+            const skm::Sampler* sampler = channel.sourceData;
+            const skm::TimeValues& times = sampler->times;
+            auto trsTransformManager = &gEngineApp->GetTrsTransformManager();
+            auto transformManager = &gEngine->getTransformManager();
+            auto renderableManager = &gEngine->getRenderableManager();
+            TrsTransformManager::Instance trsNode = trsTransformManager->getInstance(channel.targetEntity);
+            TransformManager::Instance node = transformManager->getInstance(channel.targetEntity);
+
+            switch (channel.transformType)
+            {
+            case skm::Channel::SCALE:
+            {
+                float3 scale;
+                const float3* srcVec3 = (const float3*)sampler->values.data();
+                if (sampler->interpolation == skm::Sampler::CUBIC)
+                {
+                    float3 vert0 = srcVec3[prevIndex * 3 + 1];
+                    float3 tang0 = srcVec3[prevIndex * 3 + 2];
+                    float3 tang1 = srcVec3[nextIndex * 3];
+                    float3 vert1 = srcVec3[nextIndex * 3 + 1];
+                    scale = cubicSpline(vert0, tang0, vert1, tang1, t);
+                }
+                else
+                {
+                    scale = ((1 - t) * srcVec3[prevIndex]) + (t * srcVec3[nextIndex]);
+                }
+                trsTransformManager->setScale(trsNode, scale);
+                break;
+            }
+
+            case skm::Channel::TRANSLATION:
+            {
+                float3 translation;
+                const float3* srcVec3 = (const float3*)sampler->values.data();
+                if (sampler->interpolation == skm::Sampler::CUBIC)
+                {
+                    float3 vert0 = srcVec3[prevIndex * 3 + 1];
+                    float3 tang0 = srcVec3[prevIndex * 3 + 2];
+                    float3 tang1 = srcVec3[nextIndex * 3];
+                    float3 vert1 = srcVec3[nextIndex * 3 + 1];
+                    translation = cubicSpline(vert0, tang0, vert1, tang1, t);
+                }
+                else
+                {
+                    translation = ((1 - t) * srcVec3[prevIndex]) + (t * srcVec3[nextIndex]);
+                }
+                trsTransformManager->setTranslation(trsNode, translation);
+                break;
+            }
+
+            case skm::Channel::ROTATION:
+            {
+                quatf rotation;
+                const quatf* srcQuat = (const quatf*)sampler->values.data();
+                if (sampler->interpolation == skm::Sampler::CUBIC)
+                {
+                    quatf vert0 = srcQuat[prevIndex * 3 + 1];
+                    quatf tang0 = srcQuat[prevIndex * 3 + 2];
+                    quatf tang1 = srcQuat[nextIndex * 3];
+                    quatf vert1 = srcQuat[nextIndex * 3 + 1];
+                    rotation = normalize(cubicSpline(vert0, tang0, vert1, tang1, t));
+                }
+                else
+                {
+                    rotation = slerp(srcQuat[prevIndex], srcQuat[nextIndex], t);
+                }
+                trsTransformManager->setRotation(trsNode, rotation);
+                break;
+            }
+
+            case skm::Channel::WEIGHTS:
+            {
+                const float* const samplerValues = sampler->values.data();
+                assert(sampler->values.size() % times.size() == 0);
+                const int valuesPerKeyframe = sampler->values.size() / times.size();
+
+                if (sampler->interpolation == skm::Sampler::CUBIC)
+                {
+                    assert(valuesPerKeyframe % 3 == 0);
+                    const int numMorphTargets = valuesPerKeyframe / 3;
+                    const float* const inTangents = samplerValues;
+                    const float* const splineVerts = samplerValues + numMorphTargets;
+                    const float* const outTangents = samplerValues + numMorphTargets * 2;
+
+                    weights.resize(numMorphTargets);
+                    for (int comp = 0; comp < numMorphTargets; ++comp)
+                    {
+                        float vert0 = splineVerts[comp + prevIndex * valuesPerKeyframe];
+                        float tang0 = outTangents[comp + prevIndex * valuesPerKeyframe];
+                        float tang1 = inTangents[comp + nextIndex * valuesPerKeyframe];
+                        float vert1 = splineVerts[comp + nextIndex * valuesPerKeyframe];
+                        weights[comp] = cubicSpline(vert0, tang0, vert1, tang1, t);
+                    }
+                }
+                else
+                {
+                    weights.resize(valuesPerKeyframe);
+                    for (int comp = 0; comp < valuesPerKeyframe; ++comp)
+                    {
+                        float previous = samplerValues[comp + prevIndex * valuesPerKeyframe];
+                        float current = samplerValues[comp + nextIndex * valuesPerKeyframe];
+                        weights[comp] = (1 - t) * previous + t * current;
+                    }
+                }
+
+                auto ci = renderableManager->getInstance(channel.targetEntity);
+                renderableManager->setMorphWeights(ci, weights.data(), weights.size());
+                return;
+            }
+            }
+
+            transformManager->setTransform(node, trsTransformManager->getTransform(trsNode));
+        };
+
+        auto& aniResMap = gEngineApp->GetAniResMap();
+
+        for (auto& it : aniResMap)
+        {
+            VzAniRes* ani_res = it.second.get();
+            auto& time = ani_res->currentTime;
+            if (ani_res->isPlaying)
+            {
+                time += render_path->deltaTime * ani_res->playRate;
+                const skm::Animation& anim = *ani_res->animation;
+                time = fmod(time, anim.duration);
+                TransformManager& transformManager = gEngine->getTransformManager();
+                transformManager.openLocalTransformTransaction();
+                for (const auto& channel : anim.channels)
+                {
+                    const skm::Sampler* sampler = channel.sourceData;
+                    if (sampler->times.size() < 2)
+                    {
+                        continue;
+                    }
+
+                    const skm::TimeValues& times = sampler->times;
+
+                    // Find the first keyframe after the given time, or the keyframe that matches it exactly.
+                    skm::TimeValues::const_iterator iter = times.lower_bound(time);
+
+                    // Compute the interpolant (between 0 and 1) and determine the keyframe pair.
+                    float t = 0.0f;
+                    size_t nextIndex;
+                    size_t prevIndex;
+                    if (iter == times.end())
+                    {
+                        nextIndex = times.size() - 1;
+                        prevIndex = nextIndex;
+                    }
+                    else if (iter == times.begin())
+                    {
+                        nextIndex = 0;
+                        prevIndex = 0;
+                    }
+                    else
+                    {
+                        skm::TimeValues::const_iterator prev = iter;
+                        --prev;
+                        nextIndex = iter->second;
+                        prevIndex = prev->second;
+                        const float nextTime = iter->first;
+                        const float prevTime = prev->first;
+                        float deltaTime = nextTime - prevTime;
+                        assert(deltaTime >= 0);
+                        if (deltaTime > 0)
+                        {
+                            t = (time - prevTime) / deltaTime;
+                        }
+                    }
+
+                    if (sampler->interpolation == skm::Sampler::STEP)
+                    {
+                        t = 0.0f;
+                    }
+
+                    applyAnimation(channel, t, prevIndex, nextIndex);
+                }
+                transformManager.commitLocalTransformTransaction();
+            }
+        }
+#pragma endregion
+
+#pragma region Skeleton
+        auto& skelResMap = gEngineApp->GetSkeletonResMap();
+
+        for (auto& it : skelResMap)
+        {
+            VzSkeleton* skel = gEngineApp->GetVzComponent<VzSkeleton>(it.first);
+            skel->UpdateBoneMatrices();
+        }
+#pragma endregion
 
         Renderer* renderer = render_path->GetRenderer();
 
@@ -1394,13 +1610,13 @@ namespace vzm
 
                 tcm.setTransform(ti, os2parent_new);
             }
-            });
+        });
 
         filament::Texture* fogColorTexture = gEngineApp->GetSceneRes(vidScene)->GetIBL()->getFogTexture();
         render_path->viewSettings.fogSettings.fogColorTexture = fogColorTexture;
         render_path->ApplySettings();
 
-        // 1. main rendering 
+        // 1. main rendering
         view->setVisibleLayers(0x3, 0x1);
         view->setPostProcessingEnabled(true);
         view->setRenderTarget(render_path->GetOffscreenRT());
@@ -1421,7 +1637,7 @@ namespace vzm
         clear_options.clear = true;
         clear_options.discard = true;
         renderer->setClearOptions(clear_options);
-        
+
         renderer->renderStandaloneView(view_gui);
 
         // 3. compositor
@@ -1450,7 +1666,8 @@ namespace vzm
         Fence::waitAndDestroy(gEngine->createFence());
 
         filament::SwapChain* sc = render_path->GetSwapChain();
-        if (renderer->beginFrame(sc)) {
+        if (renderer->beginFrame(sc))
+        {
             renderer->render(view_compositor);
             renderer->endFrame();
         }

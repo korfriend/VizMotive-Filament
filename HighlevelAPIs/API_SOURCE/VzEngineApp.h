@@ -439,7 +439,15 @@ namespace vzm
             return &assetResMap_;
         }
         VzAniRes* GetAniRes(const AnimationVID vid);
+        inline const std::unordered_map<AnimationVID, std::unique_ptr<VzAniRes>>& GetAniResMap()
+        {
+            return aniResMap_;
+        }
         VzSkeletonRes* GetSkeletonRes(const SkeletonVID vid);
+        inline const std::unordered_map<SkeletonVID, std::unique_ptr<VzSkeletonRes>>& GetSkeletonResMap()
+        {
+            return skeletonResMap_;
+        }
         AssetVID GetAssetOwner(VID vid);
 
         size_t GetCameraVids(std::vector<CamVID>& camVids);

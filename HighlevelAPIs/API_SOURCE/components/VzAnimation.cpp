@@ -61,12 +61,12 @@ namespace vzm
         COMP_ANIMATION(ani_res, false);
         return ani_res->isPlaying && ani_res->isReversing;
     }
-    void VzAnimation::SetCurrentTime(float time)
+    void VzAnimation::SetTime(float time)
     {
         COMP_ANIMATION(ani_res, );
         ani_res->currentTime = time;
     }
-    float VzAnimation::GetCurrentTime()
+    float VzAnimation::GetTime()
     {
         COMP_ANIMATION(ani_res, 0.0f);
         return ani_res->currentTime;

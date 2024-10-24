@@ -40,10 +40,10 @@ namespace vzm
         bool IsReversing();
 
         //! Sets the current time of the animation
-        void SetCurrentTime(float time);
+        void SetTime(float time);
 
         //! Returns the current time of the animation
-        float GetCurrentTime();
+        float GetTime();
 
         //! Sets the loop mode of the animation
         void SetLoopMode(LoopMode mode);
