@@ -1369,6 +1369,7 @@ namespace vzm
         }
 
 #pragma region Animation
+        float alpha = 1.0f;
         std::vector<float> weights;
 
         auto applyAnimation = [&](const skm::Channel& channel, float t, size_t prevIndex, size_t nextIndex) {
@@ -1379,6 +1380,11 @@ namespace vzm
             auto renderableManager = &gEngine->getRenderableManager();
             TrsTransformManager::Instance trsNode = trsTransformManager->getInstance(channel.targetEntity);
             TransformManager::Instance node = transformManager->getInstance(channel.targetEntity);
+
+            float3 scale0;
+            quatf rotation0;
+            float3 translation0;
+            decomposeMatrix(transformManager->getTransform(node), &translation0, &rotation0, &scale0);
 
             switch (channel.transformType)
             {
@@ -1398,6 +1404,9 @@ namespace vzm
                 {
                     scale = ((1 - t) * srcVec3[prevIndex]) + (t * srcVec3[nextIndex]);
                 }
+
+                scale = mix(scale0, scale, alpha);
+
                 trsTransformManager->setScale(trsNode, scale);
                 break;
             }
@@ -1418,6 +1427,9 @@ namespace vzm
                 {
                     translation = ((1 - t) * srcVec3[prevIndex]) + (t * srcVec3[nextIndex]);
                 }
+
+                translation = mix(translation0, translation, alpha);
+
                 trsTransformManager->setTranslation(trsNode, translation);
                 break;
             }
@@ -1438,6 +1450,9 @@ namespace vzm
                 {
                     rotation = slerp(srcQuat[prevIndex], srcQuat[nextIndex], t);
                 }
+
+                rotation = slerp(rotation0, rotation, alpha);
+
                 trsTransformManager->setRotation(trsNode, rotation);
                 break;
             }
@@ -1504,7 +1519,7 @@ namespace vzm
                         switch (ani_res->loopMode)
                         {
                         case VzAnimation::LoopMode::ONCE:
-                            newTime = duration ;
+                            newTime = duration;
                             ani_res->isPlaying = false;
                             break;
                         case VzAnimation::LoopMode::LOOP:
@@ -1558,6 +1573,36 @@ namespace vzm
                     }
                 }
                 time = newTime;
+
+                auto& fadeDuration = ani_res->fadeDuration;
+                if (fadeDuration > 0.0f)
+                {
+                    auto& weight = ani_res->weight;
+                    auto& fadeTime = ani_res->fadeTime;
+                    float weightNow, weightThen;
+                    if (ani_res->isFadeOut)
+                    {
+                        weightNow = 1.0f;
+                        weightThen = 0.0f;
+                    }
+                    else
+                    {
+                        weightNow = 0.0f;
+                        weightThen = 1.0f;
+                    }
+                    fadeTime += render_path->deltaTime;
+                    if (fadeTime > fadeDuration)
+                    {
+                        weight = weightThen;
+                        fadeTime = 0.0f;
+                        fadeDuration = 0.0f;
+                    }
+                    else
+                    {
+                        weight = mix(weightNow, weightThen, fadeTime / fadeDuration);
+                    }
+                }
+
                 const skm::Animation& anim = *ani_res->animation;
                 TransformManager& transformManager = gEngine->getTransformManager();
                 transformManager.openLocalTransformTransaction();
@@ -1608,6 +1653,8 @@ namespace vzm
                     {
                         t = 0.0f;
                     }
+
+                    alpha = ani_res->weight;
 
                     applyAnimation(channel, t, prevIndex, nextIndex);
                 }

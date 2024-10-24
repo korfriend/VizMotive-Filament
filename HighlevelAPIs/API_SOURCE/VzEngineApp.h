@@ -331,6 +331,11 @@ namespace vzm
         float currentTime = 0.0f;
         float playRate = 1.0f;
         VzAnimation::LoopMode loopMode = VzAnimation::LoopMode::LOOP;
+        
+        float weight = 1.0f;
+        float fadeTime = 0.0f;
+        float fadeDuration = 0.0f;
+        bool isFadeOut = false;
 
         skm::Animation* animation = nullptr;
         ~VzAniRes();

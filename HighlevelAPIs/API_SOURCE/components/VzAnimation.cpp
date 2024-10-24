@@ -96,4 +96,43 @@ namespace vzm
         COMP_ANIMATION(ani_res, 0.0f);
         return ani_res->animation->duration;
     }
+    void VzAnimation::SetWeight(float weight)
+    {
+        COMP_ANIMATION(ani_res, );
+        ani_res->weight = weight;
+    }
+    float VzAnimation::GetWeight()
+    {
+        COMP_ANIMATION(ani_res, 1.0f);
+        return ani_res->weight;
+    }
+    void VzAnimation::CrossFadeFrom(AnimationVID animation, float duration)
+    {
+        FadeIn(duration);
+        gEngineApp->GetVzComponent<VzAnimation>(animation)->FadeOut(duration);
+    }
+    void VzAnimation::CrossFadeTo(AnimationVID animation, float duration)
+    {
+        FadeOut(duration);
+        gEngineApp->GetVzComponent<VzAnimation>(animation)->FadeIn(duration);
+    }
+    void VzAnimation::FadeIn(float duration)
+    {
+        COMP_ANIMATION(ani_res, );
+        ani_res->weight = 0.0f;
+        ani_res->fadeDuration = duration;
+        ani_res->isFadeOut = false;
+    }
+    void VzAnimation::FadeOut(float duration)
+    {
+        COMP_ANIMATION(ani_res, );
+        ani_res->weight = 1.0f;
+        ani_res->fadeDuration = duration;
+        ani_res->isFadeOut = true;
+    }
+    void VzAnimation::StopFading()
+    {
+        COMP_ANIMATION(ani_res, );
+        ani_res->fadeDuration = 0.0f;
+    }
 }
