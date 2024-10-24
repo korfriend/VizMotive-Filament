@@ -92,38 +92,67 @@ int main(int, char**) {
   arguments.SetParam("api", std::string("opengl"));
 
   vzm::InitEngineLib(arguments);
-  vzm::VzScene* scene = vzm::NewScene("my scene");
+  vzm::VzScene* soldierScene = vzm::NewScene("soldier scene");
 
-  vzm::VzRenderer* renderer = vzm::NewRenderer("my renderer");
+  vzm::VzCompositor* compositor = vzm::NewCompositor("my compositor");
 #ifdef _WIN32
-  renderer->SetCanvas(w, h, 96.f, glfwGetWin32Window(window));
-  scene->LoadIBL("../../../VisualStudio/samples/assets/ibl/lightroom_14b");
+  compositor->SetCanvas(w, h, 96.f, glfwGetWin32Window(window));
+  soldierScene->LoadIBL(
+      "../../../VisualStudio/samples/assets/ibl/lightroom_14b");
   vzm::VzAsset* asset = vzm::LoadFileIntoAsset("../assets/Soldier.glb", "my gltf asset");
 #elif __linux__
-  renderer->SetCanvas(w, h, 96.f, (void*)(glfwGetX11Window(window)));
+  compositor->SetCanvas(w, h, 96.f, (void*)(glfwGetX11Window(window)));
 #ifdef _DEBUG
-  scene->LoadIBL("../../../../out/debug/filament/bin/assets/ibl/lightroom_14b");
+  soldierScene->LoadIBL(
+      "../../../../out/debug/filament/bin/assets/ibl/lightroom_14b");
 #else
-  scene->LoadIBL("../../../../out/release/filament/bin/assets/ibl/lightroom_14b");
+  soldierScene->LoadIBL(
+      "../../../../out/release/filament/bin/assets/ibl/lightroom_14b");
 #endif
   vzm::VzAsset* asset =
       vzm::LoadFileIntoAsset("../../assets/Soldier.glb", "my gltf asset");
 #endif
-  renderer->SetVisibleLayerMask(0x4, 0x4);
 
   vzm::VzAsset::Animator* animator = asset->GetAnimator();
   if (animator) {
-    animator->AddPlayScene(scene->GetVID());
+    animator->AddPlayScene(soldierScene->GetVID());
     animator->SetPlayMode(vzm::VzAsset::Animator::PlayMode::PLAY);
     animator->ActivateAnimation(1);
-
-    std::vector<std::string> animations = animator->GetAnimationLabels();
-    std::cout << "Total animations: " << animations.size() << std::endl;
-    std::cout << "Animation names:" << std::endl;
-    for (const auto& animName : animations) {
-      std::cout << "  - " << animName << std::endl;
-    }
   }
+
+  {
+    vzm::VzSpriteActor* sprite = (vzm::VzSpriteActor*)vzm::NewSceneComponent(
+        vzm::SCENE_COMPONENT_TYPE::SPRITE_ACTOR,
+        "my sprite");
+    sprite->SetSpriteWidth(2.0f)
+        .SetSpriteHeight(2.0f)
+        .SetAnchorU(0.5)
+        .SetAnchorV(0.5)
+        .Build();
+    vzm::VzTexture* texture = (vzm::VzTexture*)vzm::NewResComponent(
+        vzm::RES_COMPONENT_TYPE::TEXTURE, "my image 1");
+
+#ifdef _WIN32
+    texture->ReadImage("../assets/testimage.png");
+#elif __linux__
+    texture->ReadImage("../../assets/testimage.png");
+#endif
+    sprite->SetTexture(texture->GetVID());
+    glm::fvec3 sprite_p = glm::fvec3(0.0f, 2.0f, 0.0f);
+    sprite->SetPosition(__FP sprite_p);
+    sprite->EnableBillboard(true);
+    sprite->SetVisibleLayer(vzm::VzBaseActor::VISIBLE_LAYER::GUI);
+    vzm::AppendSceneCompTo(sprite, soldierScene);
+  }
+
+  vzm::VzCamera* fixedCam = (vzm::VzCamera*)vzm::NewSceneComponent(
+      vzm::SCENE_COMPONENT_TYPE::CAMERA, "fixed camera", 0);
+  glm::fvec3 fixed_p(0, 3, -5);
+  glm::fvec3 fixed_at(0, 0, 4);
+  glm::fvec3 fixed_u(0, 1, 0);
+  fixedCam->SetWorldPose((float*)&fixed_p, (float*)&fixed_at, (float*)&fixed_u);
+  fixedCam->SetPerspectiveProjection(0.1f, 1000.f, 45.f, (float)w / (float)h);
+  fixedCam->SetMatrixAutoUpdate(false);
 
   g_cam = (vzm::VzCamera*)vzm::NewSceneComponent(
       vzm::SCENE_COMPONENT_TYPE::CAMERA, "mycamera", 0);
@@ -138,19 +167,77 @@ int main(int, char**) {
   cc->UpdateControllerSettings();
   cc->SetViewport(w, h);
 
-  vzm::AppendSceneCompTo(g_cam, scene);
+  vzm::AppendSceneCompTo(fixedCam, soldierScene);
+  vzm::AppendSceneCompTo(g_cam, soldierScene);
+
+  vzm::VzScene* testScene = vzm::NewScene("test scene");
+  vzm::VzActor* testActor = vzm::LoadTestModelIntoActor("my test model");
+  vzm::VzCamera* testCam = (vzm::VzCamera*)vzm::NewSceneComponent(
+      vzm::SCENE_COMPONENT_TYPE::CAMERA, "fixed camera", 0);
+  glm::fvec3 test_p(0, 0, 10);
+  glm::fvec3 test_at(0, 0, -4);
+  glm::fvec3 test_u(0, 1, 0);
+  testCam->SetWorldPose((float*)&test_p, (float*)&test_at, (float*)&test_u);
+  testCam->SetPerspectiveProjection(0.1f, 1000.f, 45.f, (float)w / (float)h);
+  testCam->SetMatrixAutoUpdate(false);
+  vzm::VzSunLight* testLight = (vzm::VzSunLight*)vzm::NewSceneComponent(
+      vzm::SCENE_COMPONENT_TYPE::LIGHT_SUN, "sun");
+  testLight->SetIntensity(1000000.0f);
+  vzm::AppendSceneCompTo(testActor, testScene);
+  vzm::AppendSceneCompTo(testLight, testScene);
+  vzm::AppendSceneCompTo(testCam, testScene);
+
 
   if (asset) {
     std::vector<VID> root_vids = asset->GetGLTFRoots();
     if (root_vids.size() > 0) {
-      vzm::AppendSceneCompVidTo(root_vids[0], scene->GetVID());
+      vzm::AppendSceneCompVidTo(root_vids[0], soldierScene->GetVID());
     }
   }
 
+  vzm::CompositorLayer* layer1 =
+      compositor->AddLayer(soldierScene->GetVID(), g_cam->GetVID(), 
+                       vzm::VzBaseActor::VISIBLE_LAYER::VISIBLE);
+  layer1->SetViewport(0, 0, w / 2, h / 2);
+
+  vzm::CompositorLayer* testSceneLayer =
+      compositor->AddLayer(testScene->GetVID(), testCam->GetVID(),
+                       vzm::VzBaseActor::VISIBLE_LAYER::VISIBLE);
+  testSceneLayer->SetViewport(w / 2, 0, w / 2, h / 2);
+
+  vzm::CompositorLayer* postprocess_layer =
+      compositor->AddLayer(soldierScene->GetVID(), g_cam->GetVID(),
+                       vzm::VzBaseActor::VISIBLE_LAYER::VISIBLE);
+  postprocess_layer->SetViewport(0, h / 2, w / 2, h / 2);
+
+  postprocess_layer->SetPostProcessingEnabled(true);
+  postprocess_layer->SetBloomEnabled(true);
+  postprocess_layer->SetBloomLensFlare(true);
+  postprocess_layer->SetBloomStrength(20.0f);
+  postprocess_layer->SetFogEnabled(true);
+  float fogColor[3] = {0.7f, 0.3f, 0.2f};
+  postprocess_layer->SetFogColor(fogColor);
+  postprocess_layer->SetTaaEnabled(true);
+  postprocess_layer->SetVignetteEnabled(true);
+  
+  vzm::CompositorLayer* fixedCamLayer =
+      compositor->AddLayer(soldierScene->GetVID(), fixedCam->GetVID(),
+                       vzm::VzBaseActor::VISIBLE_LAYER(0x3));
+  fixedCamLayer->SetViewport(w / 2, h / 2, w / 2, h / 2);
+
+  vzm::CompositorLayer* guiLayer = compositor->AddLayer(soldierScene->GetVID(), g_cam->GetVID(),
+                       vzm::VzBaseActor::VISIBLE_LAYER::GUI);
+  guiLayer->SetViewport(0, 0, w, h);
+
+  compositor->SetLayerOrder(postprocess_layer, 4);
+
+  //layer1->ApplyViewSettingsFrom(postprocess_layer);
+  //compositor->RemoveLayer(fixedCamLayer);
+  
   // Main loop
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
-    renderer->Render(scene, g_cam);
+    compositor->Render();
   }
 
   vzm::DeinitEngineLib();

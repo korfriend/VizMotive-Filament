@@ -401,6 +401,12 @@ namespace vzm
         return gEngineApp->CreateRenderPath(rendererName);
     }
 
+    VzCompositor* NewCompositor(const std::string& compositorName)
+    {
+      CHECK_API_VALIDITY(nullptr);
+      return gEngineApp->CreateCompositor(compositorName);
+    }
+
     VzSceneComp* NewSceneComponent(const SCENE_COMPONENT_TYPE compType, const std::string& compName, const VID parentVid)
     {
         CHECK_API_VALIDITY(nullptr);
