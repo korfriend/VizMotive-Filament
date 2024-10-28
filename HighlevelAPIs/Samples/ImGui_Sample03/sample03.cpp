@@ -17,26 +17,32 @@
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // Windows 8.1 및 Windows 10에서 DPI 인식을 설정하는 코드
-void EnableDpiAwareness() {
+void EnableDpiAwareness()
+{
     // Windows 10에서 사용할 수 있는 DPI 인식 설정
     HMODULE hUser32 = LoadLibrary(TEXT("user32.dll"));
-    if (hUser32) {
-        typedef BOOL(WINAPI* SetProcessDpiAwarenessContextProc)(DPI_AWARENESS_CONTEXT);
+    if (hUser32)
+    {
+        typedef BOOL(WINAPI * SetProcessDpiAwarenessContextProc)(DPI_AWARENESS_CONTEXT);
         SetProcessDpiAwarenessContextProc SetProcessDpiAwarenessContextFunc =
             (SetProcessDpiAwarenessContextProc)GetProcAddress(hUser32, "SetProcessDpiAwarenessContext");
 
-        if (SetProcessDpiAwarenessContextFunc) {
+        if (SetProcessDpiAwarenessContextFunc)
+        {
             SetProcessDpiAwarenessContextFunc(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
         }
-        else {
+        else
+        {
             // Windows 8.1에서 사용할 수 있는 DPI 인식 설정
             HMODULE hShcore = LoadLibrary(TEXT("shcore.dll"));
-            if (hShcore) {
-                typedef HRESULT(WINAPI* SetProcessDpiAwarenessProc)(PROCESS_DPI_AWARENESS);
+            if (hShcore)
+            {
+                typedef HRESULT(WINAPI * SetProcessDpiAwarenessProc)(PROCESS_DPI_AWARENESS);
                 SetProcessDpiAwarenessProc SetProcessDpiAwarenessFunc =
                     (SetProcessDpiAwarenessProc)GetProcAddress(hShcore, "SetProcessDpiAwareness");
 
-                if (SetProcessDpiAwarenessFunc) {
+                if (SetProcessDpiAwarenessFunc)
+                {
                     SetProcessDpiAwarenessFunc(PROCESS_PER_MONITOR_DPI_AWARE);
                 }
                 FreeLibrary(hShcore);
@@ -46,10 +52,11 @@ void EnableDpiAwareness() {
     }
 }
 
-HWND createNativeWindow(HINSTANCE hInstance, int nCmdShow, int width, int height) {
+HWND createNativeWindow(HINSTANCE hInstance, int nCmdShow, int width, int height)
+{
     const wchar_t CLASS_NAME[] = L"Sample Window Class";
 
-    WNDCLASS wc = { };
+    WNDCLASS wc = {};
     wc.lpfnWndProc = WndProc;
     wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
@@ -57,18 +64,22 @@ HWND createNativeWindow(HINSTANCE hInstance, int nCmdShow, int width, int height
     RegisterClass(&wc);
 
     HWND hwnd = CreateWindowEx(
-        0,                              // Optional window styles.
-        CLASS_NAME,                     // Window class
-        L"Learn to Program Windows",    // Window text
-        WS_OVERLAPPEDWINDOW,            // Window style
-        CW_USEDEFAULT, CW_USEDEFAULT, width, height,
-        NULL,       // Parent window    
-        NULL,       // Menu
-        hInstance,  // Instance handle
-        NULL        // Additional application data
+        0, // Optional window styles.
+        CLASS_NAME, // Window class
+        L"Learn to Program Windows", // Window text
+        WS_OVERLAPPEDWINDOW, // Window style
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        width,
+        height,
+        NULL, // Parent window
+        NULL, // Menu
+        hInstance, // Instance handle
+        NULL // Additional application data
     );
 
-    if (hwnd == NULL) {
+    if (hwnd == NULL)
+    {
         std::cerr << "Failed to create window." << std::endl;
         return NULL;
     }
@@ -79,9 +90,9 @@ HWND createNativeWindow(HINSTANCE hInstance, int nCmdShow, int width, int height
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-    _In_opt_ HINSTANCE hPrevInstance,
-    _In_ LPWSTR    lpCmdLine,
-    _In_ int       nCmdShow)
+                      _In_opt_ HINSTANCE hPrevInstance,
+                      _In_ LPWSTR lpCmdLine,
+                      _In_ int nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
@@ -90,12 +101,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     EnableDpiAwareness();
 
     HWND hwnd = createNativeWindow(hInstance, nCmdShow, 800, 600);
-    if (!hwnd) {
+    if (!hwnd)
+    {
         return -1;
     }
 
     HDC hdc = GetDC(hwnd);
-    if (!hdc) {
+    if (!hdc)
+    {
         std::cerr << "Failed to get device context." << std::endl;
         return -1;
     }
@@ -119,6 +132,29 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     //vzm::VzAsset* asset = vzm::LoadFileIntoAsset("D:/data/show_car.glb", "my gltf asset");
     //vzm::VzAsset* asset = vzm::LoadFileIntoAsset("D:/data/showroom/show_car.gltf", "my gltf asset");
     //vzm::VzAsset* asset = vzm::LoadFileIntoAsset("D:/data/showroom1/car_action_08.gltf", "my gltf asset");
+
+    std::vector<VID> anims = asset->GetAnimations();
+    for (auto anim : anims)
+    {
+        vzm::VzAnimation* animation = (vzm::VzAnimation*)vzm::GetVzComponent(anim);
+        std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>> " << animation->GetName() << std::endl;
+    }
+
+    vzm::VzAnimation* run = (vzm::VzAnimation*)vzm::GetFirstVzComponentByName("Run");
+    if (run)
+    {
+        run->SetLoopMode(vzm::VzAnimation::LoopMode::LOOP);
+        run->SetWeight(1.0f);
+        run->Play();
+    }
+
+    vzm::VzAnimation* walk = (vzm::VzAnimation*)vzm::GetFirstVzComponentByName("Walk");
+    if (walk)
+    {
+        walk->SetLoopMode(vzm::VzAnimation::LoopMode::LOOP);
+        walk->SetWeight(0.0f);
+        walk->Play();
+    }
 
     std::vector<vzm::VzBaseComp*> components;
     if (vzm::GetVzComponentsByType("VzMI", components) > 0)
@@ -157,21 +193,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
     }
 
-    vzm::VzAsset::Animator* animator = asset->GetAnimator();
-    if (animator)
-    {
-        animator->AddPlayScene(scene->GetVID());
-        animator->SetPlayMode(vzm::VzAsset::Animator::PlayMode::PLAY);
-        animator->ActivateAnimation(0);
-
-        std::vector<std::string> animations = animator->GetAnimationLabels();
-        std::cout << "Total animations: " << animations.size() << std::endl;
-        std::cout << "Animation names:" << std::endl;
-        for (const auto& animName : animations) {
-            std::cout << "  - " << animName << std::endl;
-        }
-    }
-
     vzm::VzRenderer* renderer = vzm::NewRenderer("my renderer");
     renderer->SetCanvas(w, h, dpi, hwnd);
     renderer->SetVisibleLayerMask(0xFF, 0xFF);
@@ -189,7 +210,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     //vzm::VzCamera* cam1 = (vzm::VzCamera*)vzm::GetVzComponent(cameras[0]);
     //vzm::AppendSceneCompTo(cam1, scene);
     //cam1->SetCameraCubeVisibleLayerMask(0x4, 0x4);
-  
+
     cam->SetMatrixAutoUpdate(false);
     glm::fvec3 p(0, 0, 10);
     glm::fvec3 at(0, 0, -4);
@@ -200,7 +221,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     *(glm::fvec3*)cc->orbitHomePosition = p;
     cc->UpdateControllerSettings();
     cc->SetViewport(w, h);
-
 
     vzm::VzSunLight* light = (vzm::VzSunLight*)vzm::NewSceneComponent(vzm::SCENE_COMPONENT_TYPE::LIGHT_SUN, "my light");
 
@@ -224,7 +244,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         {
             ::TranslateMessage(&msg);
             ::DispatchMessage(&msg);
-            if (msg.message == WM_QUIT) {
+            if (msg.message == WM_QUIT)
+            {
                 done = true;
             }
         }
@@ -242,7 +263,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 // Main code
 int main(int, char**)
 {
-    return wWinMain(GetModuleHandle(NULL), NULL, GetCommandLine(), SW_SHOWNORMAL); 
+    return wWinMain(GetModuleHandle(NULL), NULL, GetCommandLine(), SW_SHOWNORMAL);
 }
 
 // Win32 message handler
@@ -280,6 +301,10 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     UINT height = rc.bottom - rc.top;
     is_valid &= width > 0 && height > 0;
 
+    vzm::VzAnimation* run = (vzm::VzAnimation*)vzm::GetFirstVzComponentByName("Run");
+    vzm::VzAnimation* walk = (vzm::VzAnimation*)vzm::GetFirstVzComponentByName("Walk");
+    float crossFadeDuration = 3.5f;
+
     switch (msg)
     {
     case WM_CLOSE:
@@ -289,13 +314,16 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
     }
     case WM_KEYDOWN:
-        switch (wParam) {
-        case 'T': {
+        switch (wParam)
+        {
+        case 'T':
+        {
             vzm::VzTexture* texture = (vzm::VzTexture*)vzm::GetFirstVzComponentByName("my image");
             texture->ReadImage("../assets/testimage1.png");
             break;
         }
-        case 'J': {
+        case 'J':
+        {
             VID aid = vzm::GetFirstVidByName("my test model");
             vzm::VzActor* actor = (vzm::VzActor*)vzm::GetVzComponent(aid);
             VID miid = actor->GetMI();
@@ -304,7 +332,8 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             //mi->SetMaterialProperty(vzm::VzMI::MProp::BASE_COLOR, { 1.f, 0, 0, 1.f });
             break;
         }
-        case 'K': {
+        case 'K':
+        {
             VID aid = vzm::GetFirstVidByName("my test model");
             vzm::VzActor* actor = (vzm::VzActor*)vzm::GetVzComponent(aid);
             VID miid = actor->GetMI();
@@ -313,13 +342,32 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             //mi->SetMaterialProperty(vzm::VzMI::MProp::BASE_COLOR, { 1.f, 0, 0, 0.4f });
             break;
         }
-        case 'L': {
+        case 'L':
+        {
             VID aid = vzm::GetFirstVidByName("my test model");
             vzm::VzActor* actor = (vzm::VzActor*)vzm::GetVzComponent(aid);
             VID miid = actor->GetMI();
             vzm::VzMI* mi = (vzm::VzMI*)vzm::GetVzComponent(miid);
             glm::fvec4 b_color(1.f);
             //mi->SetMaterialProperty(vzm::VzMI::MProp::BASE_COLOR, { 1.f, 1.f, 0, 0.4f });
+            break;
+        }
+        case 'W':
+        {
+            if (run && walk)
+            {
+                //run->CrossFadeTo(walk, crossFadeDuration);
+                walk->CrossFadeFrom(run, crossFadeDuration);
+            }
+            break;
+        }
+        case 'R':
+        {
+            if (run && walk)
+            {
+                //walk->CrossFadeTo(run, crossFadeDuration);
+                run->CrossFadeFrom(walk, crossFadeDuration);
+            }
             break;
         }
         default:
@@ -329,7 +377,8 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
     {
-        if (is_valid) {
+        if (is_valid)
+        {
             int x = GET_X_LPARAM(lParam);
             int y = GET_Y_LPARAM(lParam);
             //glm::fvec3 p, v, u;
@@ -342,7 +391,8 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
     case WM_MOUSEMOVE:
     {
-        if (is_valid) {
+        if (is_valid)
+        {
             int x = GET_X_LPARAM(lParam);
             int y = GET_Y_LPARAM(lParam);
             cc->GrabDrag(x, y);
@@ -352,14 +402,16 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
     {
-        if (is_valid) {
+        if (is_valid)
+        {
             cc->GrabEnd();
         }
         break;
     }
     case WM_MOUSEWHEEL:
     {
-        if (is_valid) {
+        if (is_valid)
+        {
             int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
             int x = GET_X_LPARAM(lParam);
             int y = GET_Y_LPARAM(lParam);

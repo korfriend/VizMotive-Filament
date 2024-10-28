@@ -2,48 +2,78 @@
 #include "../VzEngineApp.h"
 #include "../FIncludes.h"
 
+#include "../backend/VzAnimator.h"
+
 extern Engine* gEngine;
 extern vzm::VzEngineApp* gEngineApp;
 
 namespace vzm
 {
-#define COMP_SKELETON(COMP, RESMAP, FAILRET)  auto it = RESMAP.find(GetVID()); if (it == RESMAP.end()) return FAILRET; VzAssetRes* COMP = it->second.get();
-    std::vector<VID> VzSkeleton::GetBones()
-    {
-        std::vector<VID> root_vids;
-        VzSkeletonRes* skeleton_res = gEngineApp->GetSkeletonRes(GetVID());
-        if (skeleton_res == nullptr) return root_vids;
+#define COMP_SKELETON(COMP, FAILRET)                            \
+    VzSkeletonRes* COMP = gEngineApp->GetSkeletonRes(GetVID()); \
+    if (COMP == nullptr)                                        \
+        return FAILRET;
 
-        root_vids.reserve(skeleton_res->bones.size());
-        for (auto& it : skeleton_res->bones)
+    std::vector<BoneVID> VzSkeleton::GetBones()
+    {
+        COMP_SKELETON(skel_res, {});
+        auto result = std::vector<BoneVID>();
+        for (auto& joint : skel_res->skeleton->joints)
         {
-            root_vids.push_back(it.first);
+            result.push_back(joint.getId());
         }
-        return root_vids;
+        return result;
     }
-    VID VzSkeleton::GetParent()
+    void VzSkeleton::ResetBoneMatrices()
     {
-        COMP_TRANSFORM(tc, ett, ins, INVALID_VID);
-        Entity ett_parent = tc.getParent(ins);
-        return ett_parent.getId();
-    }
-    std::vector<VID> VzSkeleton::GetChildren()
-    {
-        std::vector<VID> children;
-        COMP_TRANSFORM(tc, ett, ins, children);
-        for (auto it = tc.getChildrenBegin(ins); it != tc.getChildrenEnd(ins); it++)
+        COMP_SKELETON(skel_res, );
+        size_t njoints = skel_res->skeleton->joints.size();
+        auto& boneMatrices = skel_res->boneMatrices;
+        boneMatrices.resize(njoints);
+        auto& rcm = gEngine->getRenderableManager();
+        for (const auto& entity : skel_res->skeleton->targets)
         {
-            utils::Entity ett_child = tc.getEntity(*it);
-            children.push_back(ett_child.getId());
+            auto renderable = rcm.getInstance(entity);
+            if (renderable)
+            {
+                for (size_t boneIndex = 0; boneIndex < njoints; ++boneIndex)
+                {
+                    boneMatrices[boneIndex] = mat4f();
+                }
+                rcm.setBones(renderable, boneMatrices.data(), boneMatrices.size());
+            }
         }
-        return children;
-    }
-    void VzSkeleton::SetTransformTRS(const BoneVID vidBone, const float t[3], const float r[4], const float s[3])
-    {
-        assert(0 && "to do");
     }
     void VzSkeleton::UpdateBoneMatrices()
     {
-        assert(0 && "to do");
+        COMP_SKELETON(skel_res, );
+        size_t njoints = skel_res->skeleton->joints.size();
+        auto& boneMatrices = skel_res->boneMatrices;
+        boneMatrices.resize(njoints);
+        auto& rcm = gEngine->getRenderableManager();
+        auto& tcm = gEngine->getTransformManager();
+        for (Entity entity : skel_res->skeleton->targets)
+        {
+            auto renderable = rcm.getInstance(entity);
+            if (!renderable)
+            {
+                continue;
+            }
+            mat4 inverseGlobalTransform;
+            auto xformable = tcm.getInstance(entity);
+            if (xformable)
+            {
+                inverseGlobalTransform = inverse(tcm.getWorldTransformAccurate(xformable));
+            }
+            for (size_t boneIndex = 0; boneIndex < njoints; ++boneIndex)
+            {
+                const auto& joint = skel_res->skeleton->joints[boneIndex];
+                const mat4f& inverseBindMatrix = skel_res->skeleton->inverseBindMatrices[boneIndex];
+                TransformManager::Instance jointInstance = tcm.getInstance(joint);
+                mat4 globalJointTransform = tcm.getWorldTransformAccurate(jointInstance);
+                boneMatrices[boneIndex] = mat4f{ inverseGlobalTransform * globalJointTransform } * inverseBindMatrix;
+            }
+            rcm.setBones(renderable, boneMatrices.data(), boneMatrices.size());
+        }
     }
 }

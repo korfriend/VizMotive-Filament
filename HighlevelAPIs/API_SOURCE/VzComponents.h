@@ -2,6 +2,7 @@
 
 #include "VizComponentAPIs.h"
 #include "components/VzActor.h"
+#include "components/VzAnimation.h"
 #include "components/VzAsset.h"
 #include "components/VzCamera.h"
 #include "components/VzGeometry.h"

@@ -11,7 +11,9 @@
 
 #include "gltfio/MaterialProvider.h"
 #include "gltfio/FilamentAsset.h"
+#include "gltfio/FilamentInstance.h"
 #include "gltfio/ResourceLoader.h"
+#include "gltfio/TrsTransformManager.h"
 
 #include <array>
 
@@ -28,6 +30,7 @@ using MaterialVID = VID;
 using TextureVID = VID;
 using MInstanceVID = VID;
 using AssetVID = VID;
+using AnimationVID = VID;
 using SkeletonVID = VID;
 using BoneVID = VID;
 using FontVID = VID;
@@ -299,6 +302,7 @@ namespace vzm
         gltfio::FilamentAsset* asset = nullptr;
         std::vector<VID> rootVIDs;
         std::set<VID> assetOwnershipComponents;
+        std::vector<AnimationVID> animations;
         std::vector<SkeletonVID> skeletons;
 
         // to identify the entity's origin
@@ -310,7 +314,6 @@ namespace vzm
         std::set<LightVID> fromAssetLights;
         std::set<ActorVID> fromAssetRenderableActors;
         std::set<ActorVID> fromAssetNodes;
-        std::set<SkeletonVID> fromAssetSketetons;
 
         VzAsset::Animator animator = VzAsset::Animator(0);
 
@@ -318,27 +321,33 @@ namespace vzm
     };
     
     namespace skm {
-        struct AnimatorImpl;
+        struct Skeleton;
+        struct Animation;
     }
     struct VzAniRes
     {
-        bool isSystem = false;
+        bool isPlaying = false;
+        bool isReversing = false;
+        float currentTime = 0.0f;
+        float playRate = 1.0f;
+        VzAnimation::LoopMode loopMode = VzAnimation::LoopMode::LOOP;
+        
+        float weight = 1.0f;
+        float fadeTime = 0.0f;
+        float fadeDuration = 0.0f;
+        bool isFadeOut = false;
 
-        // 'assetOwner' will be deprecated!
-        gltfio::FilamentAsset* assetOwner = nullptr; // has ownership
-
-        // move high-level VzAsset::Animator's parameters here
-        // TODO
-
-        skm::AnimatorImpl* animator = nullptr;
+        skm::Animation* animation = nullptr;
         ~VzAniRes();
     };
 
     struct VzSkeletonRes
     {
-        std::unordered_map<BoneVID, std::string> bones;
-    };
+        std::vector<math::mat4f> boneMatrices;
 
+        skm::Skeleton* skeleton = nullptr;
+        ~VzSkeletonRes();
+    };
 }
 
 namespace vzm
@@ -396,6 +405,7 @@ namespace vzm
 
         // GLTF Asset
         std::unordered_map<AssetVID, std::unique_ptr<VzAssetRes>> assetResMap_;
+        std::unordered_map<AnimationVID, std::unique_ptr<VzAniRes>> aniResMap_;
         std::unordered_map<SkeletonVID, std::unique_ptr<VzSkeletonRes>> skeletonResMap_;
 
         std::unordered_map<VID, std::unique_ptr<VzBaseComp>> vzCompMap_;
@@ -405,11 +415,14 @@ namespace vzm
         CompositorQuad* compositor_ = nullptr;
 
     public:
+        gltfio::TrsTransformManager& GetTrsTransformManager();
+
         // Runtime can create a new entity with this
         VzScene* CreateScene(const std::string& name);
         VzRenderer* CreateRenderPath(const std::string& name);
         VzAsset* CreateAsset(const std::string& name);
-        VzSkeleton* CreateSkeleton(const std::string& name, const SkeletonVID vidExist = 0);
+        VzAnimation* CreateAnimation(const std::string& name);
+        VzSkeleton* CreateSkeleton(const std::string& name);
         size_t GetVidsByName(const std::string& name, std::vector<VID>& vids);
         VID GetFirstVidByName(const std::string& name);
         std::string GetNameByVid(const VID vid);
@@ -430,7 +443,16 @@ namespace vzm
         std::unordered_map<AssetVID, std::unique_ptr<VzAssetRes>>* GetAssetResMap() {
             return &assetResMap_;
         }
+        VzAniRes* GetAniRes(const AnimationVID vid);
+        inline const std::unordered_map<AnimationVID, std::unique_ptr<VzAniRes>>& GetAniResMap()
+        {
+            return aniResMap_;
+        }
         VzSkeletonRes* GetSkeletonRes(const SkeletonVID vid);
+        inline const std::unordered_map<SkeletonVID, std::unique_ptr<VzSkeletonRes>>& GetSkeletonResMap()
+        {
+            return skeletonResMap_;
+        }
         AssetVID GetAssetOwner(VID vid);
 
         size_t GetCameraVids(std::vector<CamVID>& camVids);

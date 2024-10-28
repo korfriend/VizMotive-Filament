@@ -503,13 +503,19 @@ namespace vzm
 #pragma region // VzAniRes
     VzAniRes::~VzAniRes()
     {
-        if (assetOwner == nullptr && !isSystem)
-        {
-            if (animator)
-                delete animator;
-            animator = nullptr;
-            // check MI...
-        }
+        if (animation)
+            delete animation;
+        animation = nullptr;
+    }
+#pragma endregion
+
+    
+#pragma region // VzAniRes
+    VzSkeletonRes::~VzSkeletonRes()
+    {
+        if (skeleton)
+            delete skeleton;
+        skeleton = nullptr;
     }
 #pragma endregion
 }
@@ -790,6 +796,8 @@ namespace vzm
         gltfio::TextureProvider* stbDecoder = nullptr;
         gltfio::TextureProvider* ktxDecoder = nullptr;
 
+        gltfio::FTrsTransformManager trsTransformManager;
+
         void Destory()
         {
             if (resourceLoader) {
@@ -897,6 +905,11 @@ namespace vzm
         return true;
     }
 
+    gltfio::TrsTransformManager& VzEngineApp::GetTrsTransformManager()
+    {
+        return vGltfIo.trsTransformManager;
+    }
+
     // Runtime can create a new entity with this
     VzScene* VzEngineApp::CreateScene(const std::string& name)
     {
@@ -937,16 +950,24 @@ namespace vzm
         auto it = vzCompMap_.emplace(vid, std::make_unique<VzAsset>(vid, "CreateAsset"));
         return (VzAsset*)it.first->second.get();
     }
-    VzSkeleton* VzEngineApp::CreateSkeleton(const std::string& name, const SkeletonVID vidExist)
+    VzAnimation* VzEngineApp::CreateAnimation(const std::string& name)
     {
         auto& em = gEngine->getEntityManager();
         auto& ncm = VzNameCompManager::Get();
-        utils::Entity ett = utils::Entity::import(vidExist);
-        if (ett.isNull()) {
-            ett = em.create();
-        }
+        utils::Entity ett = em.create();
+        AnimationVID vid = ett.getId();
+        aniResMap_[vid] = std::make_unique<VzAniRes>();
+        ncm.CreateNameComp(ett, name);
 
-        AssetVID vid = ett.getId();
+        auto it = vzCompMap_.emplace(vid, std::make_unique<VzAnimation>(vid, "CreateAnimation"));
+        return (VzAnimation*)it.first->second.get();
+    }
+    VzSkeleton* VzEngineApp::CreateSkeleton(const std::string& name)
+    {
+        auto& em = gEngine->getEntityManager();
+        auto& ncm = VzNameCompManager::Get();
+        utils::Entity ett = em.create();
+        SkeletonVID vid = ett.getId();
         skeletonResMap_[vid] = std::make_unique<VzSkeletonRes>();
         ncm.CreateNameComp(ett, name);
 
@@ -1071,6 +1092,10 @@ namespace vzm
     VzAssetRes* VzEngineApp::GetAssetRes(const AssetVID vid)
     {
         GET_RES_PTR(assetResMap_);
+    }
+    VzAniRes* VzEngineApp::GetAniRes(const AnimationVID vid)
+    {
+        GET_RES_PTR(aniResMap_);
     }
     VzSkeletonRes* VzEngineApp::GetSkeletonRes(const SkeletonVID vid)
     {
