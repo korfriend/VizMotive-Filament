@@ -420,6 +420,7 @@ namespace vzm
         // Runtime can create a new entity with this
         VzScene* CreateScene(const std::string& name);
         VzRenderer* CreateRenderPath(const std::string& name);
+        VzCompositor* CreateCompositor(const std::string& name);
         VzAsset* CreateAsset(const std::string& name);
         VzAnimation* CreateAnimation(const std::string& name);
         VzSkeleton* CreateSkeleton(const std::string& name);
